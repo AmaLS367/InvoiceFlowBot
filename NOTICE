@@ -1,0 +1,21 @@
+Invoice Bot
+Copyright 2025 Ama
+
+This product includes software developed by the following:
+
+- aiogram (https://github.com/aiogram/aiogram)
+  Licensed under the Apache License, Version 2.0
+
+- Mindee API (https://www.mindee.com/)
+  Used for invoice OCR processing
+
+- Pillow (https://python-pillow.org/)
+  Licensed under the PIL License
+
+- python-dotenv (https://github.com/theskumar/python-dotenv)
+  Licensed under the BSD 3-Clause License
+
+- requests (https://github.com/psf/requests)
+  Licensed under the Apache License, Version 2.0
+
+For license information, see the LICENSE file.
