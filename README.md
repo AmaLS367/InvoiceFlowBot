@@ -22,7 +22,7 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/AmaLS367/Invoice_bot
 cd invoice_bot
 ```
 
