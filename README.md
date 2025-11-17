@@ -1,4 +1,4 @@
-# Invoice Bot
+# InvoiceFlowBot
 
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
