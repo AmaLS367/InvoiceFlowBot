@@ -56,6 +56,17 @@ LOG_DIR=logs
 python bot.py
 ```
 
+## Tests
+
+Run unit tests with `pytest`. On Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+pytest
+```
+
 ## Usage
 
 ### Basic Commands
