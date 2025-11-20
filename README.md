@@ -163,6 +163,11 @@ Logs are written to the `logs/` directory by default:
 - [docs/ru/index.md](docs/ru/index.md)
 - [docs/en/index.md](docs/en/index.md)
 
+## Screenshots
+
+- [Скриншоты работы бота (RU)](docs/ru/screenshots.md)
+- [Bot screenshots (EN)](docs/en/screenshots.md)
+
 ## License
 
 Copyright 2025 Ama

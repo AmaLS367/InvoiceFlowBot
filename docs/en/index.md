@@ -15,4 +15,5 @@ The workflow removes repetitive manual entry. Accountants receive a ready draft,
 - [Usage](usage.md) — end-user flow, commands, and inline buttons.
 - [Tests](tests.md) — pytest instructions and coverage areas.
 - [Troubleshooting](troubleshooting.md) — quick fixes for common issues.
+- [Screenshots](screenshots.md) — visual references for the most common bot flows.
 
