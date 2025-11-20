@@ -1,5 +1,5 @@
 # InvoiceFlowBot
-[![CI](https://github.com/AmaLS367/Invoice_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/Invoice_bot/actions/workflows/ci.yml)
+[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
 
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
@@ -21,26 +21,26 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 
 ## Quick Start with Docker
 
-1. Clone the repository and copy the example env: `cp .env.example .env`
+1. Clone the repository and copy the example env: `Copy-Item .env.example .env`
 2. Start the stack: `docker-compose up --build -d`
 3. Stop the stack: `docker-compose down`
 
 ## Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/AmaLS367/Invoice_bot
-cd invoice_bot
+```powershell
+git clone https://github.com/AmaLS367/InvoiceFlowBot.git
+cd InvoiceFlowBot
 ```
 
 2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
 3. Install dependencies:
-```bash
+```powershell
 pip install -r requirements.txt
 ```
 
@@ -59,7 +59,7 @@ LOG_DIR=logs
 ```
 
 5. Run the bot:
-```bash
+```powershell
 python bot.py
 ```
 
@@ -106,7 +106,7 @@ The bot provides inline keyboard buttons for:
 ## Project Structure
 
 ```
-invoice_bot/
+InvoiceFlowBot/
 ├── bot.py                 # Main bot entry point
 ├── config.py              # Configuration management
 ├── handlers/
@@ -157,6 +157,11 @@ Logs are written to the `logs/` directory by default:
 - `errors.log` - Error and warning logs
 - `router.log` - OCR routing logs
 - `extract.log` - Invoice extraction logs
+
+## Documentation
+
+- [docs/ru/index.md](docs/ru/index.md)
+- [docs/en/index.md](docs/en/index.md)
 
 ## License
 
