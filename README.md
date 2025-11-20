@@ -1,4 +1,5 @@
 # InvoiceFlowBot
+[![CI](https://github.com/AmaLS367/Invoice_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/Invoice_bot/actions/workflows/ci.yml)
 
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
@@ -17,6 +18,12 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 - Python 3.8+
 - Telegram Bot Token
 - Mindee API Key
+
+## Quick Start with Docker
+
+1. Clone the repository and copy the example env: `cp .env.example .env`
+2. Start the stack: `docker-compose up --build -d`
+3. Stop the stack: `docker-compose down`
 
 ## Installation
 
