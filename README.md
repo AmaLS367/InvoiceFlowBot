@@ -58,6 +58,36 @@ LOG_CONSOLE=0
 LOG_DIR=logs
 ```
 
+### Configuration
+
+The bot is configured via environment variables managed by pydantic settings in `config.py`.
+
+For local development you can create a `.env` file in the project root:
+
+```env
+BOT_TOKEN=123456:ABCDEF_your_bot_token
+MINDEE_API_KEY=your-mindee-api-key
+MINDEE_MODEL_ID=mindee/invoices/v4
+DB_FILENAME=data.sqlite
+```
+
+At runtime the application reads values from the environment and `.env` through the `config.Settings` model.
+
+### Конфигурация
+
+Бот настраивается через переменные окружения, которые собираются в `config.py` через pydantic settings.
+
+Для локальной разработки можно создать файл `.env` в корне проекта:
+
+```env
+BOT_TOKEN=123456:ABCDEF_your_bot_token
+MINDEE_API_KEY=your-mindee-api-key
+MINDEE_MODEL_ID=mindee/invoices/v4
+DB_FILENAME=data.sqlite
+```
+
+Во время запуска приложение читает эти значения через модель `Settings`.
+
 5. Run the bot:
 ```powershell
 python bot.py
