@@ -5,7 +5,7 @@ import re
 import sqlite3
 from datetime import date
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from domain.invoices import (
     Invoice,
@@ -99,9 +99,9 @@ def to_iso(d: Optional[str]) -> Optional[str]:
         y = int(m.group(3))
         if y < 100:
             y += 2000 if y <= 68 else 1900
-        mo = _MONTHS.get(mon)
-        if mo:
-            return f"{y:04d}-{mo:02d}-{da:02d}"
+        month_num = _MONTHS.get(mon)
+        if month_num is not None:
+            return f"{y:04d}-{month_num:02d}-{da:02d}"
     return None
 
 def save_invoice(user_id: int, parsed: Dict[str, Any], source_path: str, raw_text: Optional[str] = None, comments: Optional[List[str]] = None) -> int:
@@ -177,7 +177,7 @@ def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optiona
                 (user_id, date_from, date_to)
             ).fetchall()
     con.close()
-    return rows
+    return cast(List[sqlite3.Row], rows)
 
 def items_count(invoice_id: int) -> int:
     con = _conn()

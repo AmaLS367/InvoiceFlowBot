@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional, cast
 
-import requests
+import requests  # type: ignore[import-untyped]
 from mindee import ClientV2, InferenceParameters
 
 import config
@@ -39,7 +39,7 @@ def mindee_predict(path: str) -> Optional[dict]:
                 timeout=60,
             )
         r.raise_for_status()
-        return r.json()
+        return cast(Dict[str, Any], r.json())
     except Exception:
         logger.exception(f"[Mindee] request failed for file {path}")
         return None
@@ -139,9 +139,11 @@ def extract_text_mindee(path: str) -> str:
 def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
     def _extract_prediction(payload: Dict[str, Any]) -> Dict[str, Any]:
         try:
-            return payload["document"]["inference"]["pages"][0]["prediction"]
+            pred = payload["document"]["inference"]["pages"][0]["prediction"]
+            return cast(Dict[str, Any], pred)
         except Exception:
-            return payload.get("document", {}).get("inference", {}).get("prediction", {}) or {}
+            pred = payload.get("document", {}).get("inference", {}).get("prediction", {}) or {}
+            return cast(Dict[str, Any], pred)
 
     def _line_items(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         items = []
@@ -187,7 +189,7 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(v, dict):
             data["date"] = v.get("value")
 
-    ssum = round(sum(i["qty"] * i["price"] for i in items), 2) if items else 0.0
+    ssum = round(sum(float(i["qty"]) * float(i["price"]) for i in items), 2) if items else 0.0
     tval_raw = data.get("total_sum")
     tval = float(tval_raw) if tval_raw is not None else 0.0
     if tval and abs(ssum - tval) / max(tval, 1.0) > 0.05:
