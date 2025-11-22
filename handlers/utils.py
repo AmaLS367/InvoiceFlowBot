@@ -1,6 +1,5 @@
 from typing import List
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.exceptions import TelegramBadRequest
 from domain.invoices import Invoice, InvoiceItem
 import io
 import csv
@@ -127,14 +126,6 @@ async def send_chunked(message: Message, text: str):
     """Send long text in chunks (respecting Telegram message limit)."""
     for i in range(0, len(text), MAX_MSG):
         await message.answer(text[i:i+MAX_MSG])
-
-
-async def safe_answer(call, text: str = "Обрабатываю…", show_alert: bool = False):
-    """Safely answer callback query, ignoring errors."""
-    try:
-        await call.answer(text=text, show_alert=show_alert, cache_time=0)
-    except TelegramBadRequest:
-        pass
 
 
 def csv_bytes_from_items(items: List[InvoiceItem]) -> bytes:

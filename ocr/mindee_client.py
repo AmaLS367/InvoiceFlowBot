@@ -42,7 +42,7 @@ def mindee_predict(path: str) -> Optional[dict]:
         r.raise_for_status()
         return r.json()
     except Exception:
-        logger.exception("[Mindee] request failed")
+        logger.exception(f"[Mindee] request failed for file {path}")
         return None
 
 
@@ -126,7 +126,7 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
 
         return packed
     except Exception:
-        logger.exception("[Mindee ClientV2] inference failed")
+        logger.exception(f"[Mindee ClientV2] inference failed for file {path}")
         return None
 
 

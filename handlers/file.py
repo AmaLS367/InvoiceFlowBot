@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, BufferedInputFile, CallbackQuery
+from aiogram.types import Message, BufferedInputFile, CallbackQuery, ForceReply
 
 from handlers.commands import cb_act_edit as cb_act_edit_impl
 from handlers.commands import cb_act_period as cb_act_period_impl
@@ -13,9 +13,7 @@ from handlers.utils import (
     main_kb, actions_kb, MAX_MSG
 )
 
-from aiogram.types import ForceReply
 from services.invoice_service import process_invoice_file, save_invoice
-from domain.invoices import Invoice
 from ocr.engine.util import get_logger, set_request_id, save_file
 from storage.db import init_db
 from pathlib import Path
@@ -101,10 +99,15 @@ async def handle_doc_or_photo(message: Message):
     # Convert HEIC/HEIF/WebP to JPEG
     ext = os.path.splitext(path)[1].lower()
     if ext in {".heic", ".heif", ".webp"}:
-        im = Image.open(path).convert("RGB")
-        new_path = path.rsplit(".", 1)[0] + ".jpg"
-        im.save(new_path, format="JPEG", quality=95)
-        path = new_path
+        try:
+            im = Image.open(path).convert("RGB")
+            new_path = path.rsplit(".", 1)[0] + ".jpg"
+            im.save(new_path, format="JPEG", quality=95)
+            path = new_path
+        except Exception as e:
+            logger.exception(f"[TG] Failed to convert {ext} file to JPEG: {e}")
+            await message.answer("Не удалось обработать файл. Попробуйте другой формат (PDF, JPG, PNG).")
+            return
         
     # Normalize photo: EXIF rotation and convert to JPEG
     if not path.lower().endswith(".pdf"):
@@ -115,16 +118,18 @@ async def handle_doc_or_photo(message: Message):
             new_path = path if ext in {".jpg", ".jpeg", ".png"} else str(Path(path).with_suffix(".jpg"))
             img.save(new_path, format="JPEG", quality=95, optimize=True)
             path = new_path
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception(f"[TG] Failed to normalize image file: {e}")
+            await message.answer("Не удалось обработать файл. Попробуйте другой формат.")
+            return
     uid = message.from_user.id if message.from_user else 0
     await message.answer("📥 Получил файл. Распознаю…")
 
     try:
         invoice = process_invoice_file(pdf_path=path, fast=True, max_pages=12)
     except Exception as e:
-        logger.exception(f"[TG] OCR failed: {e}")
-        await message.answer("Ошибка при распознавании файла. Попробуйте другой файл.")
+        logger.exception(f"[TG] OCR failed for file {path}: {e}")
+        await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
         return
 
     # Save draft in memory
@@ -204,7 +209,7 @@ async def cb_act_save(call: CallbackQuery):
     if invoice is None:
         parsed = draft["parsed"]
         # Reconstruct Invoice from dict (fallback for compatibility)
-        from domain.invoices import InvoiceHeader, InvoiceItem
+        from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
         from decimal import Decimal
         
         header = InvoiceHeader(

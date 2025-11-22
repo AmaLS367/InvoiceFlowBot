@@ -19,6 +19,7 @@ from handlers.utils import (
     format_invoice_items,
     format_invoice_full,
     fmt_header,  # For backwards compatibility with dict-based code
+    fmt_items,  # For backwards compatibility with dict-based code
     main_kb, header_kb, items_index_kb, item_fields_kb
 )
 
@@ -253,9 +254,12 @@ async def cb_itm_field(call: CallbackQuery):
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_itm_field")
     uid = call.from_user.id
-    if call.data is not None:
-        parts = call.data.split(":")
-    idx = int(parts[1]); key = parts[2]  # name/qty/price/total
+    if call.data is None:
+        await call.answer()
+        return
+    parts = call.data.split(":")
+    idx = int(parts[1])
+    key = parts[2]  # name/qty/price/total
     nice = {"name":"Название","qty":"Кол-во","price":"Цена","total":"Сумма"}[key]
     PENDING_EDIT[uid] = {"kind":"item","idx":idx,"key":key}
     if call.message is not None:
@@ -409,7 +413,6 @@ async def on_force_reply(message: Message):
                 header.invoice_number = val
             elif k == "total_sum":
                 try:
-                    from decimal import Decimal
                     header.total_amount = Decimal(str(val.replace(",", ".")))
                     ok = True
                 except:
@@ -431,21 +434,18 @@ async def on_force_reply(message: Message):
                 item.sku = val
             elif key == "qty":
                 try:
-                    from decimal import Decimal
                     item.quantity = Decimal(str(val.replace(",", ".")))
                 except:
                     await message.answer("Не число. Повторите.")
                     return
             elif key == "price":
                 try:
-                    from decimal import Decimal
                     item.unit_price = Decimal(str(val.replace(",", ".")))
                 except:
                     await message.answer("Не число. Повторите.")
                     return
             elif key == "total":
                 try:
-                    from decimal import Decimal
                     item.line_total = Decimal(str(val.replace(",", ".")))
                 except:
                     await message.answer("Не число. Повторите.")
@@ -539,8 +539,10 @@ async def cmd_invoices(message: Message):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
-    if message.text is not None:
-        parts = message.text.split()
+    if message.text is None:
+        await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
+        return
+    parts = message.text.split()
     if len(parts) < 3:
         await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
         return
@@ -601,9 +603,12 @@ async def cmd_edit_legacy(message: Message):
 
     uid = message.from_user.id if message.from_user else 0
     if uid not in CURRENT_PARSE:
-        await message.answer("Нет черновика. Загрузите документ."); return
-    if message.text is not None:
-        args = message.text.split(" ", 1)
+        await message.answer("Нет черновика. Загрузите документ.")
+        return
+    if message.text is None:
+        await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45")
+        return
+    args = message.text.split(" ", 1)
     if len(args) < 2:
         await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"); return
     parsed = CURRENT_PARSE[uid]["parsed"]
@@ -623,10 +628,13 @@ async def cmd_edititem_legacy(message: Message):
      uid = message.from_user.id if message.from_user else 0
 
      if uid not in CURRENT_PARSE:
-        await message.answer("Нет черновика. Загрузите документ."); return
+        await message.answer("Нет черновика. Загрузите документ.")
+        return
      
-     if message.text is not None:
-        args = message.text.split(" ", 2)
+     if message.text is None:
+        await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+        return
+     args = message.text.split(" ", 2)
 
      if len(args) < 3:
         await message.answer("Формат: /edititem <index> name=... qty=... price=... total=..."); return
