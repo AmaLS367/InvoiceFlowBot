@@ -179,7 +179,7 @@ def test_invoice_with_empty_strings() -> None:
         invoice_number="",
     )
     item = InvoiceItem(description="", sku="")
-    invoice = Invoice(header=header, items=[item])
+    Invoice(header=header, items=[item])
 
     assert header.supplier_name == ""
     assert header.customer_name == ""

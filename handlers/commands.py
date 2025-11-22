@@ -15,12 +15,12 @@ from handlers.utils import (
     fmt_items,  # For backwards compatibility with dict-based code
     format_invoice_full,
     format_invoice_header,
-    format_invoice_items,
     format_money,
     main_kb,
 )
 from ocr.engine.util import get_logger, set_request_id
-from services.invoice_service import list_invoices, save_invoice as save_invoice_service
+from services.invoice_service import list_invoices
+from services.invoice_service import save_invoice as save_invoice_service
 from storage.db import init_db, to_iso
 
 router = Router()
@@ -204,7 +204,7 @@ async def on_force_reply(message: Message):
                 try:
                     parsed[k] = float(val.replace(",", "."))
                     ok = True
-                except:
+                except (ValueError, TypeError):
                     parsed[k] = val
                     ok = False
                 await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
@@ -225,7 +225,7 @@ async def on_force_reply(message: Message):
                 try:
                     items[idx-1][key] = float(val.replace(",", "."))
                     await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-                except:
+                except (ValueError, TypeError):
                     await message.answer("Не число. Повторите.")
     else:
         # Work with Invoice domain model
@@ -249,7 +249,7 @@ async def on_force_reply(message: Message):
                 try:
                     header.total_amount = Decimal(str(val.replace(",", ".")))
                     ok = True
-                except:
+                except (ValueError, TypeError, Exception):
                     ok = False
                 await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
                 return
@@ -269,19 +269,19 @@ async def on_force_reply(message: Message):
             elif key == "qty":
                 try:
                     item.quantity = Decimal(str(val.replace(",", ".")))
-                except:
+                except (ValueError, TypeError, Exception):
                     await message.answer("Не число. Повторите.")
                     return
             elif key == "price":
                 try:
                     item.unit_price = Decimal(str(val.replace(",", ".")))
-                except:
+                except (ValueError, TypeError, Exception):
                     await message.answer("Не число. Повторите.")
                     return
             elif key == "total":
                 try:
                     item.line_total = Decimal(str(val.replace(",", ".")))
-                except:
+                except (ValueError, TypeError, Exception):
                     await message.answer("Не число. Повторите.")
                     return
             await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
@@ -424,8 +424,10 @@ def _apply_field(parsed: Dict[str, Any], k: str, v: str):
     if k in keymap:
         dst = keymap[k]
         if dst == "total_sum":
-            try: parsed[dst] = float(v.replace(",", "."))
-            except: parsed[dst] = v
+            try:
+                parsed[dst] = float(v.replace(",", "."))
+            except (ValueError, TypeError):
+                parsed[dst] = v
         else:
             parsed[dst] = v.strip()
 
@@ -444,7 +446,8 @@ async def cmd_edit_legacy(message: Message):
         return
     args = message.text.split(" ", 1)
     if len(args) < 2:
-        await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"); return
+        await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45")
+        return
     parsed = CURRENT_PARSE[uid]["parsed"]
     for part in re.split(r"[;,]\s*|\s{2,}", args[1].strip()):
         if "=" in part:
@@ -471,32 +474,45 @@ async def cmd_edititem_legacy(message: Message):
      args = message.text.split(" ", 2)
 
      if len(args) < 3:
-        await message.answer("Формат: /edititem <index> name=... qty=... price=... total=..."); return
+        await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+        return
      
      try: 
          idx = int(args[1])
-     except: 
-        await message.answer("Неверный индекс."); return
+     except (ValueError, TypeError):
+        await message.answer("Неверный индекс.")
+        return
      
-     parsed = CURRENT_PARSE[uid]["parsed"]; items = parsed.get("items") or []
+     parsed = CURRENT_PARSE[uid]["parsed"]
+     items = parsed.get("items") or []
      if idx < 1 or idx > len(items):
-        await message.answer("Индекс вне диапазона."); return
+        await message.answer("Индекс вне диапазона.")
+        return
      
      updates = args[2]
      for part in re.split(r"[;,]\s*|\s{2,}", updates.strip()):
         if "=" in part:
-            k, v = part.split("=", 1); k = k.strip().lower()
-            if k == "name": items[idx-1]["name"] = v.strip()
-            elif k == "code": items[idx-1]["code"] = v.strip()
+            k, v = part.split("=", 1)
+            k = k.strip().lower()
+            if k == "name":
+                items[idx-1]["name"] = v.strip()
+            elif k == "code":
+                items[idx-1]["code"] = v.strip()
             elif k == "qty":
-                try: items[idx-1]["qty"] = float(v.replace(",", ".")); 
-                except: pass
+                try:
+                    items[idx-1]["qty"] = float(v.replace(",", "."))
+                except (ValueError, TypeError):
+                    pass
             elif k == "price":
-                try: items[idx-1]["price"] = float(v.replace(",", ".")); 
-                except: pass
+                try:
+                    items[idx-1]["price"] = float(v.replace(",", "."))
+                except (ValueError, TypeError):
+                    pass
             elif k == "total":
-                try: items[idx-1]["total"] = float(v.replace(",", ".")); 
-                except: pass
+                try:
+                    items[idx-1]["total"] = float(v.replace(",", "."))
+                except (ValueError, TypeError):
+                    pass
      await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
      logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
 

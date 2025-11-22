@@ -13,7 +13,7 @@ def format_money(x) -> str:
     """Format number to money string (2 decimal places, remove trailing zeros)."""
     try:
         return f"{float(x):.2f}".rstrip("0").rstrip(".")
-    except:
+    except (ValueError, TypeError):
         return str(x)
 
 

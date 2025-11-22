@@ -76,7 +76,8 @@ def to_iso(d: Optional[str]) -> Optional[str]:
     Convert date string to ISO format (YYYY-MM-DD).
     Supports various date formats including numeric and locale-specific formats.
     """
-    if not d: return None
+    if not d:
+        return None
     s = d.strip()
     s = re.sub(r"[ \u00A0\u202f]+", " ", s)
     # 1) 2025-06-12 or 12/06/2025, 12-06-25, 12.06.2025
@@ -87,7 +88,8 @@ def to_iso(d: Optional[str]) -> Optional[str]:
     m = re.match(r"^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$", s)
     if m:
         da, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        if y < 100: y += 2000 if y <= 68 else 1900
+        if y < 100:
+            y += 2000 if y <= 68 else 1900
         return f"{y:04d}-{mo:02d}-{da:02d}"
     # 2) 12 June 2025 / 12 juin 2025
     m = re.match(r"^(\d{1,2})\s+([A-Za-z\u00E9\u00EA\u00FB\u00EE\u00F4\u00E8\u00E0\u00F9\u00EF\u00EB\u00E7]+)\s+(\d{2,4})$", s, flags=re.I)
@@ -95,7 +97,8 @@ def to_iso(d: Optional[str]) -> Optional[str]:
         da = int(m.group(1))
         mon = m.group(2).lower()
         y = int(m.group(3))
-        if y < 100: y += 2000 if y <= 68 else 1900
+        if y < 100:
+            y += 2000 if y <= 68 else 1900
         mo = _MONTHS.get(mon)
         if mo:
             return f"{y:04d}-{mo:02d}-{da:02d}"

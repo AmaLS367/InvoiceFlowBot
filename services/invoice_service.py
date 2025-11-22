@@ -3,21 +3,20 @@ Service layer for invoice processing: OCR pipeline integration and domain model 
 """
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from ocr.engine.types import ExtractionResult, Item
-from ocr.engine.router import extract_invoice
-from ocr.engine.util import get_logger
-from storage import db as storage_db
 from domain.invoices import (
     Invoice,
     InvoiceHeader,
     InvoiceItem,
     InvoiceSourceInfo,
 )
-
+from ocr.engine.router import extract_invoice
+from ocr.engine.types import ExtractionResult, Item
+from ocr.engine.util import get_logger
+from storage import db as storage_db
 
 logger = get_logger("services.invoice")
 

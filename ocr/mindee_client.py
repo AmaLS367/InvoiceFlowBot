@@ -2,13 +2,12 @@ import json
 import os
 from typing import Any, Dict, List, Optional, cast
 
-import config
 import requests
 from mindee import ClientV2, InferenceParameters
 
+import config
 from ocr.engine.types import ExtractionResult, Item
 from ocr.engine.util import file_sha256, get_logger
-
 
 MINDEE_API = config.MINDEE_API_KEY
 MODEL_ID_MINDEE = config.MINDEE_MODEL_ID

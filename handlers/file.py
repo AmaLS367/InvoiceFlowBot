@@ -3,9 +3,9 @@ import time
 import uuid
 from pathlib import Path
 
-from PIL import Image, ImageOps
 from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
+from PIL import Image, ImageOps
 
 from handlers.state import CURRENT_PARSE
 from handlers.utils import (
@@ -19,7 +19,7 @@ from handlers.utils import (
     send_chunked,
 )
 from ocr.engine.util import get_logger, save_file, set_request_id
-from services.invoice_service import process_invoice_file, save_invoice
+from services.invoice_service import process_invoice_file
 from storage.db import init_db
 
 router = Router()

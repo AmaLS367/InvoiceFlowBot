@@ -10,7 +10,6 @@ from ocr.engine.util import ensure_dir, file_sha256, get_logger, time_block, wri
 from ocr.providers.base import OcrProvider
 from ocr.providers.mindee_provider import MindeeOcrProvider
 
-
 logger = get_logger("ocr.router")
 
 # For now the router always uses the Mindee provider.

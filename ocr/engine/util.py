@@ -63,30 +63,40 @@ def configure_logging() -> None:
     root.setLevel(level)
 
     common = RotatingFileHandler(log_dir / "ocr_engine.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8")
-    common.setLevel(level); common.setFormatter(fmt); common.addFilter(req_filter)
+    common.setLevel(level)
+    common.setFormatter(fmt)
+    common.addFilter(req_filter)
     root.addHandler(common)
 
     errors = RotatingFileHandler(log_dir / "errors.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8")
-    errors.setLevel(logging.WARNING); errors.setFormatter(fmt); errors.addFilter(req_filter)
+    errors.setLevel(logging.WARNING)
+    errors.setFormatter(fmt)
+    errors.addFilter(req_filter)
     root.addHandler(errors)
 
     if to_console:
         ch = logging.StreamHandler()
-        ch.setLevel(level); ch.setFormatter(fmt); ch.addFilter(req_filter)
+        ch.setLevel(level)
+        ch.setFormatter(fmt)
+        ch.addFilter(req_filter)
         root.addHandler(ch)
 
     # Separate log channels
     router = logging.getLogger("ocr.router")
     router.setLevel(logging.DEBUG)
     h_router = RotatingFileHandler(log_dir / "router.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8")
-    h_router.setLevel(logging.DEBUG); h_router.setFormatter(fmt); h_router.addFilter(req_filter)
+    h_router.setLevel(logging.DEBUG)
+    h_router.setFormatter(fmt)
+    h_router.addFilter(req_filter)
     router.addHandler(h_router)
     router.propagate = True
 
     extract = logging.getLogger("ocr.extract")
     extract.setLevel(logging.DEBUG)
     h_extract = RotatingFileHandler(log_dir / "extract.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8")
-    h_extract.setLevel(logging.DEBUG); h_extract.setFormatter(fmt); h_extract.addFilter(req_filter)
+    h_extract.setLevel(logging.DEBUG)
+    h_extract.setFormatter(fmt)
+    h_extract.addFilter(req_filter)
     extract.addHandler(h_extract)
     extract.propagate = True
 
@@ -107,7 +117,7 @@ def time_block(logger: logging.Logger, label: str, level: int = logging.DEBUG):
 
 
 async def save_file(src: Any, bot: Any) -> Optional[str]:
-    from aiogram.types import Document, PhotoSize
+    from aiogram.types import PhotoSize
 
     tg_file = await bot.get_file(src.file_id)          
     if not tg_file or not tg_file.file_path:
