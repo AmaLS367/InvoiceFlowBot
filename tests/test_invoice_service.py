@@ -59,7 +59,9 @@ async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.
     """
     called = {}
 
-    def fake_extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> DummyExtractionResult:
+    async def fake_extract_invoice_async(
+        pdf_path: str, fast: bool = True, max_pages: int = 12
+    ) -> DummyExtractionResult:
         called["pdf_path"] = pdf_path
         called["fast"] = fast
         called["max_pages"] = max_pages
@@ -75,8 +77,12 @@ async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.
             items=items,
         )
 
-    # Mock extract_invoice in the service module where it's imported
-    monkeypatch.setattr(invoice_service, "extract_invoice", fake_extract_invoice)
+    # Mock extract_invoice_async in the service module where it's imported
+    monkeypatch.setattr(
+        invoice_service,
+        "extract_invoice_async",
+        fake_extract_invoice_async,
+    )
 
     invoice = await invoice_service.process_invoice_file(
         pdf_path="tests/data/sample.pdf",

@@ -13,10 +13,9 @@ from domain.invoices import (
     InvoiceItem,
     InvoiceSourceInfo,
 )
-from ocr.engine.router import extract_invoice
+from ocr.async_client import extract_invoice_async
 from ocr.engine.types import ExtractionResult, Item
 from ocr.engine.util import get_logger
-from services.async_utils import run_blocking_io
 from storage import db as storage_db  # noqa: F401
 from storage.db_async import (
     fetch_invoices_domain_async,
@@ -119,11 +118,10 @@ async def process_invoice_file(
         f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
     )
 
-    result = await run_blocking_io(
-        extract_invoice,
-        pdf_path,
-        fast,
-        max_pages,
+    result = await extract_invoice_async(
+        pdf_path=pdf_path,
+        fast=fast,
+        max_pages=max_pages,
     )
     invoice = build_invoice_from_extraction(result)
 
