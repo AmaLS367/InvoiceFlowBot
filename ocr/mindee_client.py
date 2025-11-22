@@ -1,13 +1,13 @@
-import os
 import json
-import requests
-import config
-from typing import Optional, Dict, Any, List, cast
+import os
+from typing import Any, Dict, List, Optional, cast
 
+import config
+import requests
 from mindee import ClientV2, InferenceParameters
 
 from ocr.engine.types import ExtractionResult, Item
-from ocr.engine.util import get_logger, file_sha256
+from ocr.engine.util import file_sha256, get_logger
 
 
 MINDEE_API = config.MINDEE_API_KEY

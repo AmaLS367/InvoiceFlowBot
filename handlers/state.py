@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Global state dictionaries for user sessions
 CURRENT_PARSE: Dict[int, Dict[str, Any]] = {}

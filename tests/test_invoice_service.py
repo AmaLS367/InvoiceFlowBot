@@ -1,6 +1,11 @@
 import os
 import sys
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
+from typing import List
+
+import pytest
 
 # Setup path and environment BEFORE any other imports
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,11 +15,6 @@ if str(PROJECT_ROOT) not in sys.path:
 os.environ.setdefault("BOT_TOKEN", "test-token")
 os.environ.setdefault("MINDEE_API_KEY", "test-api-key")
 os.environ.setdefault("MINDEE_MODEL_ID", "test-model-id")
-
-from datetime import date
-from decimal import Decimal
-from typing import List
-import pytest
 
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo  # noqa: E402
 from services import invoice_service  # noqa: E402

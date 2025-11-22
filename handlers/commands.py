@@ -1,27 +1,27 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, ForceReply
-from typing import Dict, Any
-from datetime import date
-
 import re
 import time
 import uuid
-
-from storage.db import init_db, to_iso
-from services.invoice_service import list_invoices, save_invoice as save_invoice_service
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceComment
+from datetime import date
 from decimal import Decimal
-from ocr.engine.util import get_logger, set_request_id
+from typing import Any, Dict
+
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, ForceReply, Message
+
+from domain.invoices import Invoice, InvoiceComment, InvoiceHeader, InvoiceItem
 from handlers.state import CURRENT_PARSE, PENDING_EDIT, PENDING_PERIOD
 from handlers.utils import (
-    format_money,
-    format_invoice_header,
-    format_invoice_items,
-    format_invoice_full,
     fmt_header,  # For backwards compatibility with dict-based code
     fmt_items,  # For backwards compatibility with dict-based code
-    main_kb
+    format_invoice_full,
+    format_invoice_header,
+    format_invoice_items,
+    format_money,
+    main_kb,
 )
+from ocr.engine.util import get_logger, set_request_id
+from services.invoice_service import list_invoices, save_invoice as save_invoice_service
+from storage.db import init_db, to_iso
 
 router = Router()
 init_db()  # Initialize database on startup

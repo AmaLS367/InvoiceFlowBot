@@ -1,24 +1,25 @@
 """
 Callback handlers for invoice editing and actions.
 """
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, ForceReply, Message
 import time
 import uuid
+from decimal import Decimal
 
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, ForceReply, Message
+
+from domain.invoices import Invoice, InvoiceComment, InvoiceHeader, InvoiceItem
 from handlers.state import CURRENT_PARSE, PENDING_EDIT, PENDING_PERIOD
 from handlers.utils import (
+    fmt_header,
     format_invoice_header,
     format_money,
-    fmt_header,
     header_kb,
-    items_index_kb,
     item_fields_kb,
+    items_index_kb,
 )
-from services.invoice_service import list_invoices, save_invoice as save_invoice_service
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceComment
-from decimal import Decimal
 from ocr.engine.util import get_logger, set_request_id
+from services.invoice_service import save_invoice as save_invoice_service
 
 router = Router()
 logger = get_logger("ocr.engine")

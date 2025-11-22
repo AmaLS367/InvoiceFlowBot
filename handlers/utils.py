@@ -1,8 +1,10 @@
-from typing import List
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from domain.invoices import Invoice, InvoiceItem
-import io
 import csv
+import io
+from typing import List
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+
+from domain.invoices import Invoice, InvoiceItem
 
 MAX_MSG = 4000  # Telegram message limit is 4096 characters
 

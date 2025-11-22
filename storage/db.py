@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
-import sqlite3
 import re
-from typing import Any, Dict, List, Optional
+import sqlite3
 from datetime import date
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 from domain.invoices import (
     Invoice,
@@ -138,7 +138,7 @@ def add_comment(invoice_id: int, user_id: int, text: str) -> None:
     con.close()
 
 def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optional[str] = None) -> List[sqlite3.Row]:
-    f_iso, t_iso = _to_iso(date_from), _to_iso(date_to)
+    f_iso, t_iso = to_iso(date_from), to_iso(date_to)
     con = _conn()
     if f_iso and t_iso:
         if supplier:

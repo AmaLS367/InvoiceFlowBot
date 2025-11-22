@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 import shutil
-from typing import Dict, Any
+from typing import Any, Dict
 
+from config import ARTIFACTS_DIR
 from ocr.engine.types import ExtractionResult
-from ocr.engine.util import file_sha256, ensure_dir, write_json, get_logger, time_block
+from ocr.engine.util import ensure_dir, file_sha256, get_logger, time_block, write_json
 from ocr.providers.base import OcrProvider
 from ocr.providers.mindee_provider import MindeeOcrProvider
-from config import ARTIFACTS_DIR
 
 
 logger = get_logger("ocr.router")

@@ -1,25 +1,26 @@
-from aiogram import Router, F
-from aiogram.types import Message, BufferedInputFile
+import os
+import time
+import uuid
+from pathlib import Path
+
+from PIL import Image, ImageOps
+from aiogram import F, Router
+from aiogram.types import BufferedInputFile, Message
 
 from handlers.state import CURRENT_PARSE
 from handlers.utils import (
+    MAX_MSG,
+    actions_kb,
+    csv_bytes_from_items,
     format_invoice_full,
     format_invoice_header,
     format_invoice_items,
-    csv_bytes_from_items,
+    main_kb,
     send_chunked,
-    main_kb, actions_kb, MAX_MSG
 )
-
+from ocr.engine.util import get_logger, save_file, set_request_id
 from services.invoice_service import process_invoice_file, save_invoice
-from ocr.engine.util import get_logger, set_request_id, save_file
 from storage.db import init_db
-from pathlib import Path
-from PIL import Image, ImageOps
-
-import time
-import uuid
-import os
 
 router = Router()
 init_db()

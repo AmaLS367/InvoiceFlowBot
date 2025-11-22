@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import os
 from typing import Any, Dict, List
+
 from ocr.engine.router import extract_invoice
 from ocr.engine.types import ExtractionResult
 from ocr.engine.util import get_logger, time_block
