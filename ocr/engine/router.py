@@ -4,13 +4,18 @@ import os
 import shutil
 from typing import Dict, Any
 
-from ocr.mindee_client import extract_invoice_mindee
 from ocr.engine.types import ExtractionResult
 from ocr.engine.util import file_sha256, ensure_dir, write_json, get_logger, time_block
+from ocr.providers.base import OcrProvider
+from ocr.providers.mindee_provider import MindeeOcrProvider
 from config import ARTIFACTS_DIR
 
 
 logger = get_logger("ocr.router")
+
+# For now the router always uses the Mindee provider.
+# The provider instance is kept at module level to allow future extension.
+_default_provider: OcrProvider = MindeeOcrProvider()
 
 
 def _copy_source(pdf_path: str, dst_pdf: str) -> None:
@@ -72,7 +77,11 @@ def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Ex
         _copy_source(pdf_path, dst_pdf)
 
     with time_block(logger, "router.mindee_extract"):
-        result = extract_invoice_mindee(pdf_path)
+        result = _default_provider.extract_invoice(
+            pdf_path=pdf_path,
+            fast=fast,
+            max_pages=max_pages,
+        )
 
     if not result.document_id:
         result.document_id = doc_id
