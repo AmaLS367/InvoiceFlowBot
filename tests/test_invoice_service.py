@@ -4,7 +4,6 @@ from typing import List
 
 import pytest
 
-import storage.db as storage_db
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
 from services import invoice_service
 
@@ -103,16 +102,20 @@ async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.
 @pytest.mark.asyncio
 async def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
     """
-    save_invoice should delegate persistence to storage.save_invoice_domain and return its ID.
+    save_invoice should delegate persistence to the storage layer and return its ID.
     """
     captured = {}
 
-    def fake_save_invoice_domain(invoice: Invoice, user_id: int = 0) -> int:
+    async def fake_save_invoice_domain_async(invoice: Invoice, user_id: int = 0) -> int:
         captured["invoice"] = invoice
         captured["user_id"] = user_id
         return 42
 
-    monkeypatch.setattr(storage_db, "save_invoice_domain", fake_save_invoice_domain)
+    monkeypatch.setattr(
+        invoice_service,
+        "save_invoice_domain_async",
+        fake_save_invoice_domain_async,
+    )
 
     header = InvoiceHeader(
         supplier_name="Test Supplier",
@@ -179,7 +182,7 @@ async def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatc
         source=None,
     )
 
-    def fake_fetch_invoices_domain(
+    async def fake_fetch_invoices_domain_async(
         from_date: date | None,
         to_date: date | None,
         supplier: str | None = None,
@@ -189,7 +192,11 @@ async def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatc
         captured["supplier"] = supplier
         return [invoice]
 
-    monkeypatch.setattr(storage_db, "fetch_invoices_domain", fake_fetch_invoices_domain)
+    monkeypatch.setattr(
+        invoice_service,
+        "fetch_invoices_domain_async",
+        fake_fetch_invoices_domain_async,
+    )
 
     from_date = date(2024, 1, 1)
     to_date = date(2024, 1, 31)
