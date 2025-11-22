@@ -7,7 +7,7 @@ from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
 from PIL import Image, ImageOps
 
-from handlers.state import CURRENT_PARSE
+from domain.drafts import InvoiceDraft
 from handlers.utils import (
     MAX_MSG,
     actions_kb,
@@ -19,6 +19,7 @@ from handlers.utils import (
     send_chunked,
 )
 from ocr.engine.util import get_logger, save_file, set_request_id
+from services.draft_service import set_current_draft
 from services.invoice_service import process_invoice_file
 from storage.db import init_db
 
@@ -131,13 +132,14 @@ async def handle_doc_or_photo(message: Message):
         await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
         return
 
-    # Save draft in memory
-    CURRENT_PARSE[uid] = {
-        "invoice": invoice,
-        "path": path,
-        "raw_text": "",  # Not available from service layer
-        "comments": []
-    }
+    # Save draft to database
+    draft = InvoiceDraft(
+        invoice=invoice,
+        path=path,
+        raw_text="",
+        comments=[],
+    )
+    await set_current_draft(user_id=uid, draft=draft)
 
     full_text = format_invoice_full(invoice)
 
