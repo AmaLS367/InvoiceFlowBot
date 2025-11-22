@@ -8,6 +8,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
+from core.container import AppContainer
 from domain.invoices import InvoiceComment
 from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
@@ -18,24 +19,22 @@ from handlers.utils import (
     items_index_kb,
 )
 from ocr.engine.util import get_logger, set_request_id
-from services.draft_service import (
-    clear_current_draft,
-    get_current_draft,
-)
-from services.invoice_service import save_invoice as save_invoice_service
 
 router = Router()
 logger = get_logger("ocr.engine")
 
 
 @router.callback_query(F.data == "act_edit")
-async def cb_act_edit(call: CallbackQuery):
+async def cb_act_edit(
+    call: CallbackQuery,
+    container: AppContainer,
+):
     """Handle edit action callback - show header editing options."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_edit")
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -52,13 +51,17 @@ async def cb_act_edit(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("hed:"))
-async def cb_hed_field(call: CallbackQuery, state: FSMContext):
+async def cb_hed_field(
+    call: CallbackQuery,
+    state: FSMContext,
+    container: AppContainer,
+):
     """Handle header field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_hed_field")
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -82,13 +85,16 @@ async def cb_hed_field(call: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "act_items")
-async def cb_act_items(call: CallbackQuery):
+async def cb_act_items(
+    call: CallbackQuery,
+    container: AppContainer,
+):
     """Handle items action callback - show items list for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_items")
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -109,13 +115,16 @@ async def cb_act_items(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("items_page:"))
-async def cb_items_page(call: CallbackQuery):
+async def cb_items_page(
+    call: CallbackQuery,
+    container: AppContainer,
+):
     """Handle items pagination callback."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_items_page")
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -133,13 +142,16 @@ async def cb_items_page(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("item_pick:"))
-async def cb_item_pick(call: CallbackQuery):
+async def cb_item_pick(
+    call: CallbackQuery,
+    container: AppContainer,
+):
     """Handle item selection callback - show item details for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_item_pick")
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -167,7 +179,11 @@ async def cb_item_pick(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("itm_field:"))
-async def cb_itm_field(call: CallbackQuery, state: FSMContext):
+async def cb_itm_field(
+    call: CallbackQuery,
+    state: FSMContext,
+    container: AppContainer,
+):
     """Handle item field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -196,14 +212,18 @@ async def cb_itm_field(call: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "act_comment")
-async def cb_act_comment(call: CallbackQuery, state: FSMContext):
+async def cb_act_comment(
+    call: CallbackQuery,
+    state: FSMContext,
+    container: AppContainer,
+):
     """Handle comment action callback - prompt for comment input."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_comment")
 
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -225,14 +245,17 @@ async def cb_act_comment(call: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "act_save")
-async def cb_act_save(call: CallbackQuery):
+async def cb_act_save(
+    call: CallbackQuery,
+    container: AppContainer,
+):
     """Handle save action callback - save invoice to database."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_save")
 
     uid = call.from_user.id
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -258,8 +281,8 @@ async def cb_act_save(call: CallbackQuery):
         if auto_text not in comments:
             invoice.comments.append(InvoiceComment(message=auto_text))
 
-    inv_id = await save_invoice_service(invoice, uid)
-    await clear_current_draft(uid)
+    inv_id = await container.invoice_service_module.save_invoice(invoice, user_id=uid)
+    await container.draft_service_module.clear_current_draft(uid)
     if call.message is not None:
         await call.message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     await call.answer()

@@ -8,6 +8,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
+from core.container import AppContainer
 from domain.invoices import InvoiceComment
 from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
@@ -17,13 +18,6 @@ from handlers.utils import (
     main_kb,
 )
 from ocr.engine.util import get_logger, set_request_id
-from services.draft_service import (
-    clear_current_draft,
-    get_current_draft,
-    set_current_draft,
-)
-from services.invoice_service import list_invoices
-from services.invoice_service import save_invoice as save_invoice_service
 from storage.db import init_db, to_iso
 
 router = Router()
@@ -77,12 +71,15 @@ async def cmd_help(message: Message):
 
 # ---------- View draft ----------
 @router.message(F.text == "/show")
-async def cmd_show(message: Message):
+async def cmd_show(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_show")
     uid = message.from_user.id if message.from_user else 0
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Пришлите документ.")
         return
@@ -96,7 +93,11 @@ async def cmd_show(message: Message):
 
 # ---------- Handle ForceReply input ----------
 @router.message(F.reply_to_message)
-async def on_force_reply(message: Message, state: FSMContext):
+async def on_force_reply(
+    message: Message,
+    state: FSMContext,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=on_force_reply")
@@ -106,7 +107,7 @@ async def on_force_reply(message: Message, state: FSMContext):
     
     # Comment from inline button
     if current_state == EditInvoiceState.waiting_for_comment:
-        draft = await get_current_draft(uid)
+        draft = await container.draft_service_module.get_current_draft(uid)
         if draft is None:
             await message.answer("Нет черновика. Загрузите документ.")
             await state.clear()
@@ -116,7 +117,7 @@ async def on_force_reply(message: Message, state: FSMContext):
             await message.answer("Пустой комментарий игнорирован.")
         else:
             draft.comments.append(text)
-            await set_current_draft(uid, draft)
+            await container.draft_service_module.set_current_draft(uid, draft)
             await message.answer("Комментарий добавлен.")
         await state.clear()
         logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
@@ -166,7 +167,9 @@ async def on_force_reply(message: Message, state: FSMContext):
             from_date = _parse_date_str(f_str)
             to_date = _parse_date_str(t_str)
             
-            invoices = await list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+            invoices = await container.invoice_service_module.list_invoices(
+                from_date=from_date, to_date=to_date, supplier=supplier
+            )
             if not invoices:
                 await message.answer("Ничего не найдено.")
                 return
@@ -196,7 +199,7 @@ async def on_force_reply(message: Message, state: FSMContext):
         edit_config = data.get("edit_config") or {}
         kind = edit_config.get("kind")
         
-        draft = await get_current_draft(uid)
+        draft = await container.draft_service_module.get_current_draft(uid)
         if draft is None:
             await message.answer("Нет черновика. Загрузите документ.")
             await state.clear()
@@ -226,7 +229,7 @@ async def on_force_reply(message: Message, state: FSMContext):
                 except (ValueError, TypeError, Exception):
                     ok = False
                 await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
-                await set_current_draft(uid, draft)
+                await container.draft_service_module.set_current_draft(uid, draft)
                 await state.clear()
                 return
             await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
@@ -263,7 +266,7 @@ async def on_force_reply(message: Message, state: FSMContext):
                     return
             await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
         
-        await set_current_draft(uid, draft)
+        await container.draft_service_module.set_current_draft(uid, draft)
         await state.clear()
         logger.info(f"[TG] update done req={req} h=on_force_reply")
         return
@@ -273,12 +276,15 @@ async def on_force_reply(message: Message, state: FSMContext):
 
 # ---------- Comments / Save / Query ----------
 @router.message(F.text.regexp(r"^/comment(\s|$)"))
-async def cmd_comment(message: Message):
+async def cmd_comment(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_comment")
     uid = message.from_user.id if message.from_user else 0
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
@@ -288,17 +294,20 @@ async def cmd_comment(message: Message):
             await message.answer("Формат: /comment ваш текст")
             return
     draft.comments.append(text)
-    await set_current_draft(uid, draft)
+    await container.draft_service_module.set_current_draft(uid, draft)
     await message.answer("Комментарий добавлен. /save чтобы сохранить в БД.")
     logger.info(f"[TG] update done req={req} h=cmd_comment")
 
 @router.message(F.text == "/save")
-async def cmd_save(message: Message):
+async def cmd_save(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_save")
     uid = message.from_user.id if message.from_user else 0
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика.")
         return
@@ -329,13 +338,16 @@ async def cmd_save(message: Message):
         if isinstance(comment_text, str):
             invoice.comments.append(InvoiceComment(message=comment_text))
     
-    inv_id = await save_invoice_service(invoice, user_id=uid)
-    await clear_current_draft(uid)
+    inv_id = await container.invoice_service_module.save_invoice(invoice, user_id=uid)
+    await container.draft_service_module.clear_current_draft(uid)
     await message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     logger.info(f"[TG] update done req={req} h=cmd_save")
 
 @router.message(F.text.regexp(r"^/invoices\s"))
-async def cmd_invoices(message: Message):
+async def cmd_invoices(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
@@ -355,7 +367,9 @@ async def cmd_invoices(message: Message):
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
     
-    invoices = await list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+    invoices = await container.invoice_service_module.list_invoices(
+        from_date=from_date, to_date=to_date, supplier=supplier
+    )
     if not invoices:
         await message.answer("Ничего не найдено.")
         return
@@ -379,13 +393,16 @@ async def cmd_invoices(message: Message):
 
 # ---------- Legacy text commands (kept for convenience) ----------
 @router.message(F.text.regexp(r"^/edit(\s|$)"))
-async def cmd_edit_legacy(message: Message):
+async def cmd_edit_legacy(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_edit_legacy")
 
     uid = message.from_user.id if message.from_user else 0
-    draft = await get_current_draft(uid)
+    draft = await container.draft_service_module.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
@@ -417,19 +434,22 @@ async def cmd_edit_legacy(message: Message):
                 except (ValueError, TypeError):
                     pass
     
-    await set_current_draft(uid, draft)
+    await container.draft_service_module.set_current_draft(uid, draft)
     await message.answer("Ок. Поля обновлены. /show для проверки или /save для сохранения.")
     logger.info(f"[TG] update done req={req} h=cmd_edit_legacy")
 
 @router.message(F.text.regexp(r"^/edititem(\s|$)"))
-async def cmd_edititem_legacy(message: Message):
+async def cmd_edititem_legacy(
+    message: Message,
+    container: AppContainer,
+):
      req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
      set_request_id(req)
      logger.info(f"[TG] update start req={req} h=cmd_edititem_legacy")
 
      uid = message.from_user.id if message.from_user else 0
 
-     draft = await get_current_draft(uid)
+     draft = await container.draft_service_module.get_current_draft(uid)
      if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
@@ -480,7 +500,7 @@ async def cmd_edititem_legacy(message: Message):
                     item.line_total = Decimal(str(v.replace(",", ".")))
                 except (ValueError, TypeError):
                     pass
-     await set_current_draft(uid, draft)
+     await container.draft_service_module.set_current_draft(uid, draft)
      await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
      logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
 

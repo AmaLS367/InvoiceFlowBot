@@ -7,6 +7,7 @@ from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
 from PIL import Image, ImageOps
 
+from core.container import AppContainer
 from domain.drafts import InvoiceDraft
 from handlers.utils import (
     MAX_MSG,
@@ -19,8 +20,6 @@ from handlers.utils import (
     send_chunked,
 )
 from ocr.engine.util import get_logger, save_file, set_request_id
-from services.draft_service import set_current_draft
-from services.invoice_service import process_invoice_file
 from storage.db import init_db
 
 router = Router()
@@ -72,7 +71,10 @@ async def cmd_gif(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_gif")
 
 @router.message(F.document | F.photo)
-async def handle_doc_or_photo(message: Message):
+async def handle_doc_or_photo(
+    message: Message,
+    container: AppContainer,
+):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=handle_doc_or_photo")
@@ -126,7 +128,9 @@ async def handle_doc_or_photo(message: Message):
     await message.answer("📥 Получил файл. Распознаю…")
 
     try:
-        invoice = await process_invoice_file(pdf_path=path, fast=True, max_pages=12)
+        invoice = await container.invoice_service_module.process_invoice_file(
+            pdf_path=path, fast=True, max_pages=12
+        )
     except Exception as e:
         logger.exception(f"[TG] OCR failed for file {path}: {e}")
         await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
@@ -139,7 +143,7 @@ async def handle_doc_or_photo(message: Message):
         raw_text="",
         comments=[],
     )
-    await set_current_draft(user_id=uid, draft=draft)
+    await container.draft_service_module.set_current_draft(user_id=uid, draft=draft)
 
     full_text = format_invoice_full(invoice)
 
