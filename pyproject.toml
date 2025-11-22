@@ -18,3 +18,4 @@ packages = [
     "handlers",
 ]
 
+py-modules = ["config", "bot"]
