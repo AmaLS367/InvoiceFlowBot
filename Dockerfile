@@ -1,24 +1,45 @@
-FROM python:3.11-slim-buster
+FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# Install system dependencies if needed
 RUN set -eux; \
-    sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list; \
-    sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list; \
-    printf "Acquire::Check-Valid-Until \"false\";\n" > /etc/apt/apt.conf.d/99no-check-valid; \
     apt-get update; \
     apt-get install -y --no-install-recommends gcc libc-dev; \
     rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy and install Python dependencies
+COPY requirements.txt /app/requirements.txt
 
-RUN mkdir -p logs
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY . .
+# Copy application code
+COPY . /app
 
-CMD ["python", "bot.py"]
+# Install application in editable mode
+RUN pip install --no-cache-dir -e .
 
+# Create data directory for SQLite database
+RUN mkdir -p /app/data
+
+# Create non-root user
+RUN useradd -m botuser
+
+# Change ownership of /app to botuser
+RUN chown -R botuser:botuser /app
+
+# Copy entrypoint script
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Switch to non-root user
+USER botuser
+
+# Set default database filename
+ENV DB_FILENAME=data.sqlite
+
+ENTRYPOINT ["/entrypoint.sh"]
