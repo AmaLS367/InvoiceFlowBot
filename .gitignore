@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
@@ -26,7 +27,32 @@ env/
 ENV/
 .venv
 .venv/
+env.bak/
+venv.bak/
+
+# Testing
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.cover
+*.py,cover
+nosetests.xml
+coverage.xml
+.cache/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Linting
+.ruff_cache/
 
 # Environment variables
 .env
@@ -40,6 +66,11 @@ ENV/
 *.swo
 *~
 .DS_Store
+*.sublime-project
+*.sublime-workspace
+.spyderproject
+.spyproject
+.ropeproject
 
 # Project specific
 data.sqlite
@@ -60,3 +91,39 @@ logs/
 Thumbs.db
 .DS_Store
 
+# Python packaging
+*.manifest
+*.spec
+
+# Cython
+cython_debug/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Translations
+*.mo
+*.pot
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# mkdocs documentation
+/site
