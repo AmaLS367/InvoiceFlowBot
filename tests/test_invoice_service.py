@@ -53,7 +53,8 @@ class DummyExtractionResult:
         self.score = None
 
 
-def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     process_invoice_file should call OCR router and convert the result into a domain Invoice.
     """
@@ -78,7 +79,7 @@ def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.Monkey
     # Mock extract_invoice in the service module where it's imported
     monkeypatch.setattr(invoice_service, "extract_invoice", fake_extract_invoice)
 
-    invoice = invoice_service.process_invoice_file(
+    invoice = await invoice_service.process_invoice_file(
         pdf_path="tests/data/sample.pdf",
         fast=False,
         max_pages=5,
@@ -99,7 +100,8 @@ def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.Monkey
     assert called["max_pages"] == 5
 
 
-def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     save_invoice should delegate persistence to storage.save_invoice_domain and return its ID.
     """
@@ -146,7 +148,7 @@ def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> N
         source=source,
     )
 
-    invoice_id = invoice_service.save_invoice(invoice, user_id=123)
+    invoice_id = await invoice_service.save_invoice(invoice, user_id=123)
 
     assert invoice_id == 42
     assert "invoice" in captured
@@ -154,7 +156,8 @@ def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> N
     assert captured["user_id"] == 123
 
 
-def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     list_invoices should delegate to storage.fetch_invoices_domain and return the result.
     """
@@ -192,7 +195,7 @@ def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> 
     to_date = date(2024, 1, 31)
     supplier = "Supplier A"
 
-    invoices = invoice_service.list_invoices(
+    invoices = await invoice_service.list_invoices(
         from_date=from_date,
         to_date=to_date,
         supplier=supplier,

@@ -16,7 +16,12 @@ from domain.invoices import (
 from ocr.engine.router import extract_invoice
 from ocr.engine.types import ExtractionResult, Item
 from ocr.engine.util import get_logger
-from storage import db as storage_db
+from services.async_utils import run_blocking_io
+from storage import db as storage_db  # noqa: F401
+from storage.db_async import (
+    fetch_invoices_domain_async,
+    save_invoice_domain_async,
+)
 
 logger = get_logger("services.invoice")
 
@@ -102,7 +107,11 @@ def build_invoice_from_extraction(result: ExtractionResult) -> Invoice:
     return invoice
 
 
-def process_invoice_file(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Invoice:
+async def process_invoice_file(
+    pdf_path: str,
+    fast: bool = True,
+    max_pages: int = 12,
+) -> Invoice:
     """
     Run the OCR pipeline for a single PDF/image and return a domain Invoice.
     """
@@ -110,7 +119,12 @@ def process_invoice_file(pdf_path: str, fast: bool = True, max_pages: int = 12) 
         f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
     )
 
-    result = extract_invoice(pdf_path=pdf_path, fast=fast, max_pages=max_pages)
+    result = await run_blocking_io(
+        extract_invoice,
+        pdf_path,
+        fast,
+        max_pages,
+    )
     invoice = build_invoice_from_extraction(result)
 
     logger.info(
@@ -120,7 +134,7 @@ def process_invoice_file(pdf_path: str, fast: bool = True, max_pages: int = 12) 
     return invoice
 
 
-def save_invoice(invoice: Invoice, user_id: int = 0) -> int:
+async def save_invoice(invoice: Invoice, user_id: int = 0) -> int:
     """
     Persist a domain Invoice using the storage layer and return its database ID.
     """
@@ -128,12 +142,15 @@ def save_invoice(invoice: Invoice, user_id: int = 0) -> int:
         f"[SERVICE] save_invoice supplier={invoice.header.supplier_name!r} total={invoice.header.total_amount!r}"
     )
 
-    invoice_id = storage_db.save_invoice_domain(invoice, user_id=user_id)
+    invoice_id = await save_invoice_domain_async(
+        invoice=invoice,
+        user_id=user_id,
+    )
 
     return invoice_id
 
 
-def list_invoices(
+async def list_invoices(
     from_date: Optional[date],
     to_date: Optional[date],
     supplier: Optional[str] = None,
@@ -145,7 +162,7 @@ def list_invoices(
         f"[SERVICE] list_invoices from={from_date} to={to_date} supplier={supplier!r}"
     )
 
-    invoices = storage_db.fetch_invoices_domain(
+    invoices = await fetch_invoices_domain_async(
         from_date=from_date,
         to_date=to_date,
         supplier=supplier,
