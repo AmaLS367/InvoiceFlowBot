@@ -72,3 +72,28 @@ python bot.py
 
 from an entrypoint script.
 
+### CI pipeline
+
+The GitHub Actions workflow runs the following steps:
+
+1. Installs development dependencies and the package itself in editable mode:
+
+   ```powershell
+   python -m pip install -r requirements-dev.txt
+   python -m pip install -e .
+   ```
+
+2. Applies Alembic migrations:
+
+   ```powershell
+   python -m alembic upgrade head
+   ```
+
+3. Runs static checks and tests:
+
+   ```powershell
+   python -m ruff check .
+   python -m mypy domain services ocr storage
+   python -m pytest
+   ```
+

@@ -72,3 +72,28 @@ python bot.py
 
 из entrypoint-скрипта.
 
+### CI пайплайн
+
+В GitHub Actions выполняются шаги:
+
+1. Установка dev-зависимостей и пакета в editable-режиме:
+
+   ```powershell
+   python -m pip install -r requirements-dev.txt
+   python -m pip install -e .
+   ```
+
+2. Применение миграций Alembic:
+
+   ```powershell
+   python -m alembic upgrade head
+   ```
+
+3. Запуск статических проверок и тестов:
+
+   ```powershell
+   python -m ruff check .
+   python -m mypy domain services ocr storage
+   python -m pytest
+   ```
+
