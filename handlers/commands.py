@@ -1,12 +1,16 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ForceReply
 from typing import Dict, Any
+from datetime import date
 
 import re
 import time
 import uuid
 
-from storage.db import init_db, save_invoice, query_invoices, items_count, _to_iso
+from storage.db import init_db, _to_iso
+from services.invoice_service import list_invoices, save_invoice as save_invoice_service
+from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceComment
+from decimal import Decimal
 from ocr.engine.util import get_logger, set_request_id
 from handlers.state import CURRENT_PARSE, PENDING_EDIT, PENDING_PERIOD
 from handlers.utils import (
@@ -17,6 +21,51 @@ from handlers.utils import (
 router = Router()
 init_db()  # Initialize database on startup
 logger = get_logger("ocr.engine")
+
+
+def _invoice_to_dict(invoice: Invoice) -> dict:
+    """
+    Temporary adapter to keep existing utils working with plain dicts.
+    Will be removed once utils are migrated to work with Invoice directly.
+    """
+    header = invoice.header
+    items = []
+    for item in invoice.items:
+        items.append({
+            "name": item.description or "",
+            "code": item.sku or "",
+            "qty": float(item.quantity),
+            "price": float(item.unit_price),
+            "total": float(item.line_total),
+        })
+    
+    return {
+        "supplier": header.supplier_name,
+        "client": header.customer_name,
+        "date": header.invoice_date.isoformat() if header.invoice_date else None,
+        "doc_number": header.invoice_number,
+        "total_sum": float(header.total_amount) if header.total_amount is not None else None,
+        "items": items,
+    }
+
+
+def _parse_date_str(date_str: str) -> date | None:
+    """
+    Parse date string to date object.
+    """
+    if not date_str:
+        return None
+    try:
+        return date.fromisoformat(date_str)
+    except (ValueError, TypeError):
+        # Try _to_iso first, then parse
+        iso = _to_iso(date_str)
+        if iso:
+            try:
+                return date.fromisoformat(iso)
+            except (ValueError, TypeError):
+                pass
+    return None
 
 # ---------- START / HELP ----------
 @router.message(F.text == "/start")
@@ -217,24 +266,37 @@ async def on_force_reply(message: Message):
 
         if st["step"] == "supplier":
             supplier = None if val in ("", "-") else val
-            f, t = st.get("from"), st.get("to")
+            f_str, t_str = st.get("from"), st.get("to")
             del PENDING_PERIOD[uid]
 
-            if not f or not t:
+            if not f_str or not t_str:
                 await message.answer("Не указаны даты. Повторите ввод периода.")
                 return
-            rows = query_invoices(uid, f, t, supplier)
-            if not rows:
+            
+            # Convert string dates to date objects
+            from_date = _parse_date_str(f_str)
+            to_date = _parse_date_str(t_str)
+            
+            invoices = list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+            if not invoices:
                 await message.answer("Ничего не найдено.")
                 return
 
             lines = []
             total = 0.0
-            for r in rows:
-                date = r["date_iso"] or r["date"] or "—"
-                total += float(r["total_sum"] or 0)
-                lines.append(f"#{r['id']}  {date}  {r['doc_number'] or '—'}  {r['supplier'] or '—'}  = {format_money(r['total_sum'] or 0)}  (items: {items_count(r['id'])})")
-            head = f"Счета с {f} по {t}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
+            for invoice in invoices:
+                # Get invoice ID from storage (we need to query it separately for now)
+                # For now, we'll use a placeholder or skip ID display
+                invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
+                invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+                total += invoice_total
+                items_count_val = len(invoice.items)
+                lines.append(
+                    f"  {invoice_date_str}  {invoice.header.invoice_number or '—'}  "
+                    f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
+                    f"(items: {items_count_val})"
+                )
+            head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
             text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
             await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
             return
@@ -301,57 +363,55 @@ async def cmd_save(message: Message):
         await message.answer("Нет черновика.")
         return
     draft = CURRENT_PARSE.pop(uid)
-    parsed = draft["parsed"]
-    source_path = draft.get("path","")
-    raw_text = draft.get("raw_text","")
+    invoice = draft.get("invoice")
+    
+    # If invoice is not in state, reconstruct from parsed dict
+    if invoice is None:
+        parsed = draft["parsed"]
+        header = InvoiceHeader(
+            supplier_name=parsed.get("supplier"),
+            customer_name=parsed.get("client"),
+            invoice_number=parsed.get("doc_number"),
+            invoice_date=_parse_date_str(parsed.get("date")) if parsed.get("date") else None,
+            total_amount=Decimal(str(parsed.get("total_sum", 0))) if parsed.get("total_sum") else None,
+        )
+        items = []
+        for it in parsed.get("items", []):
+            items.append(InvoiceItem(
+                description=it.get("name", ""),
+                sku=it.get("code"),
+                quantity=Decimal(str(it.get("qty", 0))),
+                unit_price=Decimal(str(it.get("price", 0))),
+                line_total=Decimal(str(it.get("total", 0))),
+            ))
+        invoice = Invoice(header=header, items=items)
+    
     comments = draft.get("comments", [])
+    
     # Auto-comment for sum mismatch
-    try:
-        header_sum_raw = parsed.get("total_sum") or 0
-        header_sum = float(header_sum_raw.replace(",", ".")) if isinstance(header_sum_raw, str) else float(header_sum_raw)
-    except Exception:
-        header_sum = 0.0
-
-    # Calculate sum from items
-    items = parsed.get("items") or []
-    sum_items = 0.0
-    for it in items:
-        t = it.get("total")
-        if t in (None, ""):
-            q = it.get("qty") or 0
-            p = it.get("price") or 0
-            try:
-                t_val = float(q) * float(p)
-            except Exception:
-                # Support strings with commas
-                try:
-                    t_val = float(str(q).replace(",", ".")) * float(str(p).replace(",", "."))
-                except Exception:
-                    t_val = 0.0
-        else:
-            try:
-                t_val = float(t)
-            except Exception:
-                try:
-                    t_val = float(str(t).replace(",", "."))
-                except Exception:
-                    t_val = 0.0
-        sum_items += t_val
-
+    header_sum = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+    sum_items = sum(float(item.line_total) for item in invoice.items)
     diff = round(sum_items - header_sum, 2)
+    
     if abs(diff) >= 0.01:
-        doc_number = parsed.get("doc_number") or "—"
-        supplier = parsed.get("supplier") or "—"
+        doc_number = invoice.header.invoice_number or "—"
+        supplier = invoice.header.supplier_name or "—"
         auto_text = (
             f"[auto] Несходство суммы: по позициям {sum_items:.2f}, "
             f"в шапке {header_sum:.2f}, разница {diff:+.2f}. "
             f"Документ: {doc_number}, Поставщик: {supplier}."
         )
-        if not isinstance(comments, list):
-            comments = []
-        if auto_text not in comments:
-            comments.append(auto_text)
-    inv_id = save_invoice(uid, parsed, source_path, raw_text, comments)
+        # Check if comment already exists
+        existing_messages = [c.message for c in invoice.comments]
+        if auto_text not in existing_messages:
+            invoice.comments.append(InvoiceComment(message=auto_text))
+    
+    # Add text comments
+    for comment_text in comments:
+        if isinstance(comment_text, str):
+            invoice.comments.append(InvoiceComment(message=comment_text))
+    
+    inv_id = save_invoice_service(invoice, user_id=uid)
     await message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     logger.info(f"[TG] update done req={req} h=cmd_save")
 
@@ -365,19 +425,33 @@ async def cmd_invoices(message: Message):
     if len(parts) < 3:
         await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
         return
-    f, t = parts[1], parts[2]
+    f_str, t_str = parts[1], parts[2]
     supplier = None
     if len(parts) >= 4 and parts[3].lower().startswith("supplier="):
         supplier = parts[3].split("=",1)[1]
-    rows = query_invoices(message.from_user.id if message.from_user else 0, f, t, supplier)
-    if not rows:
-        await message.answer("Ничего не найдено."); return
-    lines = []; total = 0.0
-    for r in rows:
-        date = r["date_iso"] or r["date"] or "—"
-        total += float(r["total_sum"] or 0)
-        lines.append(f"#{r['id']}  {date}  {r['doc_number'] or '—'}  {r['supplier'] or '—'}  = {format_money(r['total_sum'] or 0)}  (items: {items_count(r['id'])})")
-    head = f"Счета с {f} по {t}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
+    
+    # Convert string dates to date objects
+    from_date = _parse_date_str(f_str)
+    to_date = _parse_date_str(t_str)
+    
+    invoices = list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+    if not invoices:
+        await message.answer("Ничего не найдено.")
+        return
+    
+    lines = []
+    total = 0.0
+    for invoice in invoices:
+        invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
+        invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        total += invoice_total
+        items_count_val = len(invoice.items)
+        lines.append(
+            f"  {invoice_date_str}  {invoice.header.invoice_number or '—'}  "
+            f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
+            f"(items: {items_count_val})"
+        )
+    head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
     text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
     await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
     logger.info(f"[TG] update done req={req} h=cmd_invoices")
