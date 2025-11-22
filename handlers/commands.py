@@ -159,7 +159,7 @@ async def on_force_reply(message: Message):
             from_date = _parse_date_str(f_str)
             to_date = _parse_date_str(t_str)
             
-            invoices = list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+            invoices = await list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
             if not invoices:
                 await message.answer("Ничего не найдено.")
                 return
@@ -364,7 +364,7 @@ async def cmd_save(message: Message):
         if isinstance(comment_text, str):
             invoice.comments.append(InvoiceComment(message=comment_text))
     
-    inv_id = save_invoice_service(invoice, user_id=uid)
+    inv_id = await save_invoice_service(invoice, user_id=uid)
     await message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     logger.info(f"[TG] update done req={req} h=cmd_save")
 
@@ -389,7 +389,7 @@ async def cmd_invoices(message: Message):
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
     
-    invoices = list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+    invoices = await list_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
     if not invoices:
         await message.answer("Ничего не найдено.")
         return

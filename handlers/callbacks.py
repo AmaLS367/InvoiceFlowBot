@@ -283,7 +283,7 @@ async def cb_act_save(call: CallbackQuery):
         if auto_text not in comments:
             invoice.comments.append(InvoiceComment(message=auto_text))
 
-    inv_id = save_invoice_service(invoice, uid)
+    inv_id = await save_invoice_service(invoice, uid)
     if call.message is not None:
         await call.message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     await call.answer()

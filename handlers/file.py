@@ -125,7 +125,7 @@ async def handle_doc_or_photo(message: Message):
     await message.answer("📥 Получил файл. Распознаю…")
 
     try:
-        invoice = process_invoice_file(pdf_path=path, fast=True, max_pages=12)
+        invoice = await process_invoice_file(pdf_path=path, fast=True, max_pages=12)
     except Exception as e:
         logger.exception(f"[TG] OCR failed for file {path}: {e}")
         await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
