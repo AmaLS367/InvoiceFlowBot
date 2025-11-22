@@ -48,7 +48,7 @@ pip install -r requirements.txt
 ```env
 BOT_TOKEN=your_telegram_bot_token
 MINDEE_API_KEY=your_mindee_api_key
-Model_id_mindee=your_mindee_model_id
+MINDEE_MODEL_ID=your_mindee_model_id
 
 # Optional logging configuration
 LOG_LEVEL=INFO
@@ -133,7 +133,7 @@ The bot uses environment variables for configuration. See `.env.example` for ava
 
 - `BOT_TOKEN`: Telegram bot token from @BotFather
 - `MINDEE_API_KEY`: API key from Mindee platform
-- `Model_id_mindee`: Mindee model ID for invoice processing
+- `MINDEE_MODEL_ID`: Mindee model ID for invoice processing
 
 ### Optional Variables
 

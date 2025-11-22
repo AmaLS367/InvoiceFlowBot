@@ -10,8 +10,8 @@ from ocr.engine.types import ExtractionResult, Item
 from ocr.engine.util import get_logger, file_sha256
 
 
-MINDEE_API = config.MINDEE_API
-MODEL_ID_MINDEE = config.MODEL_ID_MINDEE
+MINDEE_API = config.MINDEE_API_KEY
+MODEL_ID_MINDEE = config.MINDEE_MODEL_ID
 
 logger = get_logger("ocr.mindee")
 
