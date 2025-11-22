@@ -7,8 +7,13 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 if BOT_TOKEN is None:
     raise RuntimeError("BOT_TOKEN not found or empty. Check your .env file.")
 
-MINDEE_API = os.getenv("MINDEE_API_KEY")
-MODEL_ID_MINDEE = os.getenv("Model_id_mindee")
+MINDEE_API_KEY = os.getenv("MINDEE_API_KEY")
+if MINDEE_API_KEY is None or not MINDEE_API_KEY.strip():
+    raise RuntimeError("MINDEE_API_KEY is not set. Please configure it in environment or .env file.")
+
+MINDEE_MODEL_ID = os.getenv("MINDEE_MODEL_ID")
+if MINDEE_MODEL_ID is None or not MINDEE_MODEL_ID.strip():
+    raise RuntimeError("MINDEE_MODEL_ID is not set. Please configure it in environment or .env file.")
 
 UPLOAD_FOLDER = "data/uploads"
 ARTIFACTS_DIR = "data/artifacts"

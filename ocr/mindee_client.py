@@ -10,8 +10,8 @@ from ocr.engine.types import ExtractionResult, Item
 from ocr.engine.util import get_logger, file_sha256
 
 
-MINDEE_API = config.MINDEE_API
-MODEL_ID_MINDEE = config.MODEL_ID_MINDEE
+MINDEE_API = config.MINDEE_API_KEY
+MODEL_ID_MINDEE = config.MINDEE_MODEL_ID
 
 logger = get_logger("ocr.mindee")
 
@@ -42,7 +42,7 @@ def mindee_predict(path: str) -> Optional[dict]:
         r.raise_for_status()
         return r.json()
     except Exception:
-        logger.exception("[Mindee] request failed")
+        logger.exception(f"[Mindee] request failed for file {path}")
         return None
 
 
@@ -126,7 +126,7 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
 
         return packed
     except Exception:
-        logger.exception("[Mindee ClientV2] inference failed")
+        logger.exception(f"[Mindee ClientV2] inference failed for file {path}")
         return None
 
 

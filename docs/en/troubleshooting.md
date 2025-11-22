@@ -12,13 +12,25 @@
 
 ## Mindee API errors
 - **Problem:** OCR fails with Mindee-related messages.
-- **Cause:** invalid `MINDEE_API_KEY`, incorrect `Model_id_mindee`, or transient network issues.
+- **Cause:** invalid `MINDEE_API_KEY`, incorrect `MINDEE_MODEL_ID`, or transient network issues.
 - **Fix:** update credentials in `.env`, confirm that the Mindee account is active, and retry once connectivity is restored.
+
+## File processing errors
+- **Problem:** bot reports "Не удалось обработать файл" (Failed to process file) or similar error messages.
+- **Cause:** corrupted PDF, unsupported image format, or file conversion failure (e.g., HEIC/HEIF to JPEG).
+- **Behavior:** the bot sends a user-friendly error message in Telegram and logs detailed error information (including file path and exception traceback) to `logs/errors.log` for debugging.
+- **Fix:** ensure the file is a valid PDF or supported image format (JPEG, PNG). For HEIC/HEIF files, the bot attempts automatic conversion; if it fails, try converting manually before uploading.
+
+## OCR service errors
+- **Problem:** bot responds with "Сервис распознавания сейчас недоступен" (OCR service temporarily unavailable).
+- **Cause:** network timeout, Mindee API 4xx/5xx response, or service outage.
+- **Behavior:** the bot sends a user-friendly message to the user and logs the full error details (including request path, response status, and exception) to `logs/errors.log` for investigation.
+- **Fix:** check network connectivity, verify Mindee API status, and retry after a short delay. Review `logs/errors.log` for specific error codes or messages.
 
 ## Docker container exits immediately
 - **Problem:** `docker ps` shows the service stopping right after launch.
 - **Cause:** missing mandatory environment variables or missing write access to logs/database.
-- **Fix:** review `docker logs <container>`, provide `BOT_TOKEN`, `MINDEE_API_KEY`, `Model_id_mindee`, and make sure `logs/` plus `data.sqlite` are writable.
+- **Fix:** review `docker logs <container>`, provide `BOT_TOKEN`, `MINDEE_API_KEY`, `MINDEE_MODEL_ID`, and make sure `logs/` plus `data.sqlite` are writable.
 
 ## Logs are empty
 - **Problem:** no log files appear, even under load.
