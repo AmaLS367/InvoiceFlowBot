@@ -27,6 +27,9 @@ jobs:
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           pip install -e .
 
+      - name: Run DB migrations
+        run: python -m alembic upgrade head
+
       - name: Run ruff
         run: |
           python -m ruff check .

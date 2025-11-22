@@ -159,10 +159,35 @@ The bot uses environment variables for configuration. See `.env.example` for ava
 
 ## Database
 
-The bot uses SQLite database to store invoices. The database is automatically initialized on first run. Tables include:
+The bot uses SQLite database to store invoices. The database schema is managed by Alembic.
+
+### Database setup
+
+Before running the bot or tests make sure the schema is up to date:
+
+```powershell
+python -m alembic upgrade head
+```
+
+The application entrypoints call `storage.db.init_db()`, which will also upgrade the database to the latest migration.
+
+### Настройка базы данных
+
+Схема базы управляется через Alembic.
+
+Перед запуском бота или тестов убедитесь, что применены все миграции:
+
+```powershell
+python -m alembic upgrade head
+```
+
+Точка входа вызывает `storage.db.init_db()`, внутри которого выполняется миграция до актуальной версии.
+
+The database tables include:
 - Invoices (header information)
 - Items (line items for each invoice)
 - Comments (comments associated with invoices)
+- Invoice drafts (temporary drafts for editing)
 
 ## Logging
 
