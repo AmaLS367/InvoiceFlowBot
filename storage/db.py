@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 import sqlite3
 from datetime import date
@@ -10,6 +9,7 @@ from typing import Any, Dict, List, Optional, cast
 
 from alembic.config import Config
 
+import config
 from alembic import command
 from domain.invoices import (
     Invoice,
@@ -18,7 +18,7 @@ from domain.invoices import (
     InvoiceSourceInfo,
 )
 
-DB_PATH = os.getenv("INVOICE_DB_PATH", "data.sqlite")
+DB_PATH: str = config.DB_PATH
 
 
 def _get_alembic_config() -> Config:

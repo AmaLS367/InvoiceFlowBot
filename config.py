@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,6 +31,13 @@ class Settings(BaseSettings):
     LOG_BACKUPS: int = 5
     LOG_CONSOLE: str = "0"
     LOG_DIR: Optional[str] = None
+
+    # Database configuration
+    DB_FILENAME: str = Field("data.sqlite", alias="INVOICE_DB_PATH")
+    DB_DIR: Path = Field(
+        default_factory=lambda: Path(__file__).resolve().parent,
+        alias="DB_DIR",
+    )
 
 
 @lru_cache()
@@ -64,3 +73,7 @@ LOG_ROTATE_MB: int = settings.LOG_ROTATE_MB
 LOG_BACKUPS: int = settings.LOG_BACKUPS
 LOG_CONSOLE: bool = settings.LOG_CONSOLE in ("1", "true", "True")
 LOG_DIR: Optional[str] = settings.LOG_DIR
+
+# Database configuration
+BASE_DIR: Path = settings.DB_DIR
+DB_PATH: str = str(BASE_DIR / settings.DB_FILENAME)
