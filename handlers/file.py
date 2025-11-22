@@ -5,7 +5,11 @@ from handlers.commands import cb_act_edit as cb_act_edit_impl
 from handlers.commands import cb_act_period as cb_act_period_impl
 from handlers.state import PENDING_EDIT, CURRENT_PARSE
 from handlers.utils import (
-    fmt_header, fmt_items, send_chunked, csv_bytes,
+    format_invoice_full,
+    format_invoice_header,
+    format_invoice_items,
+    csv_bytes_from_items,
+    send_chunked,
     main_kb, actions_kb, MAX_MSG
 )
 
@@ -24,32 +28,6 @@ import os
 router = Router()
 init_db()
 logger = get_logger("ocr.engine")
-
-
-def _invoice_to_dict(invoice: Invoice) -> dict:
-    """
-    Temporary adapter to keep existing utils working with plain dicts.
-    Will be removed once utils are migrated to work with Invoice directly.
-    """
-    header = invoice.header
-    items = []
-    for item in invoice.items:
-        items.append({
-            "name": item.description or "",
-            "code": item.sku or "",
-            "qty": float(item.quantity),
-            "price": float(item.unit_price),
-            "total": float(item.line_total),
-        })
-    
-    return {
-        "supplier": header.supplier_name,
-        "client": header.customer_name,
-        "date": header.invoice_date.isoformat() if header.invoice_date else None,
-        "doc_number": header.invoice_number,
-        "total_sum": float(header.total_amount) if header.total_amount is not None else None,
-        "items": items,
-    }
 
 
 @router.message(F.text == "/start")
@@ -149,30 +127,27 @@ async def handle_doc_or_photo(message: Message):
         await message.answer("Ошибка при распознавании файла. Попробуйте другой файл.")
         return
 
-    # Convert to dict for compatibility with existing utils and state
-    parsed = _invoice_to_dict(invoice)
-    
-    # Save draft in memory (store both Invoice and dict for compatibility)
+    # Save draft in memory
     CURRENT_PARSE[uid] = {
         "invoice": invoice,
-        "parsed": parsed,
         "path": path,
         "raw_text": "",  # Not available from service layer
         "comments": []
     }
 
-    head_text = fmt_header(parsed)
-    items = parsed.get("items") or []
-    items_text = fmt_items(items) if items else "Позиции не распознаны."
-    full = f"{head_text}\n\n" + "—"*34 + f"\n\n{items_text}"
+    full_text = format_invoice_full(invoice)
 
-    if len(full) <= MAX_MSG:
-        await message.answer(full, reply_markup=actions_kb())
+    if len(full_text) <= MAX_MSG:
+        await message.answer(full_text, reply_markup=actions_kb())
     else:
+        head_text = format_invoice_header(invoice)
+        items_text = format_invoice_items(invoice.items)
         await message.answer(head_text, reply_markup=actions_kb())
-        if len(items) > 60 or len(items_text) > MAX_MSG * 2:
+        if len(invoice.items) > 60 or len(items_text) > MAX_MSG * 2:
             await message.answer("Таблица длинная, отправляю CSV.")
-            await message.answer_document(BufferedInputFile(csv_bytes(items), filename="invoice_items.csv"))
+            await message.answer_document(
+                BufferedInputFile(csv_bytes_from_items(invoice.items), filename="invoice_items.csv")
+            )
         await send_chunked(message, items_text)
     logger.info(f"[TG] update done req={req} h=handle_doc_or_photo")
 

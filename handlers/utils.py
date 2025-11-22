@@ -1,5 +1,7 @@
+from typing import List
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.exceptions import TelegramBadRequest
+from domain.invoices import Invoice, InvoiceItem
 import io
 import csv
 
@@ -14,8 +16,85 @@ def format_money(x) -> str:
         return str(x)
 
 
+def format_invoice_header(invoice: Invoice) -> str:
+    """
+    Format invoice header info into a human readable text block.
+    """
+    header = invoice.header
+    date_str = header.invoice_date.isoformat() if header.invoice_date else "—"
+    total_str = format_money(header.total_amount) if header.total_amount is not None else "—"
+    
+    return (
+        f"📑 Документ: {header.invoice_number or '—'}\n"
+        f"📅 Дата: {date_str}\n"
+        f"🏭 Поставщик: {header.supplier_name or '—'}\n"
+        f"👤 Клиент: {header.customer_name or '—'}\n"
+        f"💰 Итого: {total_str}"
+    )
+
+
+def format_invoice_items(items: List[InvoiceItem]) -> str:
+    """
+    Format invoice line items into a text representation.
+    """
+    if not items:
+        return "Позиции не распознаны."
+    
+    blocks = []
+    for i, item in enumerate(items, 1):
+        name = (item.description or "").strip() or "—"
+        code = (item.sku or "").strip()
+        qty = format_money(item.quantity)
+        price = format_money(item.unit_price)
+        total = format_money(item.line_total)
+        title = f"{i}. {name}" if not code else f"{i}. [{code}] {name}"
+        blocks.append(f"{title}\n   Кол-во: {qty}  |  Цена: {price}  |  Сумма: {total}")
+    return "\n\n".join(blocks)
+
+
+def format_invoice_summary(invoice: Invoice) -> str:
+    """
+    Format invoice totals and summary information.
+    """
+    header = invoice.header
+    lines = []
+    
+    if header.subtotal is not None:
+        lines.append(f"Подытог: {format_money(header.subtotal)}")
+    if header.tax_amount is not None:
+        lines.append(f"НДС: {format_money(header.tax_amount)}")
+    if header.total_amount is not None:
+        lines.append(f"Итого: {format_money(header.total_amount)}")
+    if header.currency:
+        lines.append(f"Валюта: {header.currency}")
+    
+    return "\n".join(lines) if lines else ""
+
+
+def format_invoice_full(invoice: Invoice) -> str:
+    """
+    Format the full invoice (header, items, summary) into a single text block.
+    """
+    header_text = format_invoice_header(invoice)
+    items_text = format_invoice_items(invoice.items)
+    summary_text = format_invoice_summary(invoice)
+    
+    parts = [header_text]
+    if items_text:
+        parts.append("—" * 34)
+        parts.append(items_text)
+    if summary_text:
+        parts.append("—" * 34)
+        parts.append(summary_text)
+    
+    return "\n\n".join(parts)
+
+
+# Backwards compatible wrappers for dict-based code
 def fmt_header(p: dict) -> str:
-    """Format invoice header for display."""
+    """
+    Backwards compatible adapter: format invoice header from dict.
+    """
     return (
         f"📑 Документ: {p.get('doc_number') or '—'}\n"
         f"📅 Дата: {p.get('date') or '—'}\n"
@@ -26,7 +105,12 @@ def fmt_header(p: dict) -> str:
 
 
 def fmt_items(items: list[dict]) -> str:
-    """Format invoice items list for display."""
+    """
+    Backwards compatible adapter: format invoice items from list of dicts.
+    """
+    if not items:
+        return "Позиции не распознаны."
+    
     blocks = []
     for i, it in enumerate(items, 1):
         name = (it.get("name") or "").strip() or "—"
@@ -53,8 +137,30 @@ async def safe_answer(call, text: str = "Обрабатываю…", show_alert:
         pass
 
 
+def csv_bytes_from_items(items: List[InvoiceItem]) -> bytes:
+    """
+    Generate CSV bytes from list of InvoiceItem domain entities.
+    """
+    sio = io.StringIO()
+    w = csv.writer(sio, delimiter=';')
+    w.writerow(["#", "name", "qty", "price", "total"])
+    for i, item in enumerate(items, 1):
+        w.writerow([
+            i,
+            item.description or "",
+            format_money(item.quantity),
+            format_money(item.unit_price),
+            format_money(item.line_total),
+        ])
+    data = sio.getvalue().encode("utf-8-sig")
+    sio.close()
+    return data
+
+
 def csv_bytes(items: list[dict]) -> bytes:
-    """Generate CSV bytes from items list."""
+    """
+    Backwards compatible adapter: generate CSV bytes from list of dicts.
+    """
     sio = io.StringIO()
     w = csv.writer(sio, delimiter=';')
     w.writerow(["#", "name", "qty", "price", "total"])

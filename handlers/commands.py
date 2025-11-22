@@ -14,39 +14,17 @@ from decimal import Decimal
 from ocr.engine.util import get_logger, set_request_id
 from handlers.state import CURRENT_PARSE, PENDING_EDIT, PENDING_PERIOD
 from handlers.utils import (
-    format_money, fmt_header, fmt_items,
+    format_money,
+    format_invoice_header,
+    format_invoice_items,
+    format_invoice_full,
+    fmt_header,  # For backwards compatibility with dict-based code
     main_kb, header_kb, items_index_kb, item_fields_kb
 )
 
 router = Router()
 init_db()  # Initialize database on startup
 logger = get_logger("ocr.engine")
-
-
-def _invoice_to_dict(invoice: Invoice) -> dict:
-    """
-    Temporary adapter to keep existing utils working with plain dicts.
-    Will be removed once utils are migrated to work with Invoice directly.
-    """
-    header = invoice.header
-    items = []
-    for item in invoice.items:
-        items.append({
-            "name": item.description or "",
-            "code": item.sku or "",
-            "qty": float(item.quantity),
-            "price": float(item.unit_price),
-            "total": float(item.line_total),
-        })
-    
-    return {
-        "supplier": header.supplier_name,
-        "client": header.customer_name,
-        "date": header.invoice_date.isoformat() if header.invoice_date else None,
-        "doc_number": header.invoice_number,
-        "total_sum": float(header.total_amount) if header.total_amount is not None else None,
-        "items": items,
-    }
 
 
 def _parse_date_str(date_str: str) -> date | None:
@@ -103,11 +81,21 @@ async def cmd_show(message: Message):
     if uid not in CURRENT_PARSE:
         await message.answer("Нет черновика. Пришлите документ.")
         return
-    p = CURRENT_PARSE[uid]["parsed"]
-    head_text = fmt_header(p)
-    items_text = fmt_items(p.get("items") or [])
-    full = f"{head_text}\n\n" + "—"*30 + f"\n\n{items_text if items_text else 'Позиции не распознаны.'}"
-    await message.answer(full if len(full) < 3900 else head_text)
+    
+    invoice = CURRENT_PARSE[uid].get("invoice")
+    if invoice is None:
+        # Fallback: try to get from parsed dict
+        p = CURRENT_PARSE[uid].get("parsed")
+        if p:
+            head_text = fmt_header(p)
+            items_text = fmt_items(p.get("items") or [])
+            full = f"{head_text}\n\n" + "—"*30 + f"\n\n{items_text if items_text else 'Позиции не распознаны.'}"
+            await message.answer(full if len(full) < 3900 else head_text)
+        else:
+            await message.answer("Нет черновика. Пришлите документ.")
+    else:
+        full_text = format_invoice_full(invoice)
+        await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
     logger.info(f"[TG] update done req={req} h=cmd_show")
 
 # ---------- Inline editing flow ----------
@@ -120,8 +108,20 @@ async def cb_act_edit(call: CallbackQuery):
     if uid not in CURRENT_PARSE:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
-            await call.answer(); return
-    head_text = fmt_header(CURRENT_PARSE[uid]["parsed"])
+            await call.answer()
+        return
+    
+    invoice = CURRENT_PARSE[uid].get("invoice")
+    if invoice is None:
+        # Fallback: use parsed dict
+        p = CURRENT_PARSE[uid].get("parsed")
+        if p:
+            head_text = fmt_header(p)
+        else:
+            head_text = "Нет черновика. Пришлите документ."
+    else:
+        head_text = format_invoice_header(invoice)
+    
     if call.message is not None:
         await call.message.answer(head_text + "\nВыберите поле для редактирования:", reply_markup=header_kb())
         await call.answer()
@@ -134,7 +134,9 @@ async def cb_hed_field(call: CallbackQuery):
     logger.info(f"[TG] update start req={req} h=cb_hed_field")
     uid = call.from_user.id
     if uid not in CURRENT_PARSE:
-        await call.answer(); return
+        await call.answer()
+        return
+    
     if call.data is not None:
         field = call.data.split(":",1)[1]
         nice = {"supplier":"Поставщик","client":"Клиент","date":"Дата","doc_number":"Номер","total_sum":"Итого"}[field]
@@ -151,12 +153,23 @@ async def cb_act_items(call: CallbackQuery):
     logger.info(f"[TG] update start req={req} h=cb_act_items")
     uid = call.from_user.id
     if uid not in CURRENT_PARSE:
-        await call.answer(); return
-    n = len(CURRENT_PARSE[uid]["parsed"].get("items") or [])
+        await call.answer()
+        return
+    
+    invoice = CURRENT_PARSE[uid].get("invoice")
+    if invoice:
+        n = len(invoice.items)
+    else:
+        # Fallback: use parsed dict
+        p = CURRENT_PARSE[uid].get("parsed")
+        n = len(p.get("items") or []) if p else 0
+    
     if n == 0:
         if call.message is not None:
             await call.message.answer("Позиции не распознаны.")
-            await call.answer(); return
+            await call.answer()
+        return
+    
     if call.message is not None:
         await call.message.answer(f"Выберите позицию для редактирования (всего: {n}):", reply_markup=items_index_kb(n, 1))
         await call.answer()
@@ -169,11 +182,19 @@ async def cb_items_page(call: CallbackQuery):
     logger.info(f"[TG] update start req={req} h=cb_items_page")
     uid = call.from_user.id
     if uid not in CURRENT_PARSE:
-        await call.answer(); return
+        await call.answer()
+        return
         
     if call.data is not None:
         page = int(call.data.split(":")[1])
-        n = len(CURRENT_PARSE[uid]["parsed"].get("items") or [])
+        invoice = CURRENT_PARSE[uid].get("invoice")
+        if invoice:
+            n = len(invoice.items)
+        else:
+            # Fallback: use parsed dict
+            p = CURRENT_PARSE[uid].get("parsed")
+            n = len(p.get("items") or []) if p else 0
+        
         if call.message is not None:
             if isinstance(call.message, Message):
                 await call.message.edit_reply_markup(reply_markup=items_index_kb(n, page))
@@ -187,17 +208,40 @@ async def cb_item_pick(call: CallbackQuery):
     logger.info(f"[TG] update start req={req} h=cb_item_pick")
     uid = call.from_user.id
     if uid not in CURRENT_PARSE:
-        await call.answer(); return
+        await call.answer()
+        return
+    
     if call.data is not None:
         idx = int(call.data.split(":")[1])
-    items = CURRENT_PARSE[uid]["parsed"].get("items") or []
-    if not (1 <= idx <= len(items)):
-        await call.answer(); return
-    it = items[idx-1]
-    text = (f"#{idx}\n"
+    
+    invoice = CURRENT_PARSE[uid].get("invoice")
+    if invoice:
+        items = invoice.items
+        if not (1 <= idx <= len(items)):
+            await call.answer()
+            return
+        item = items[idx-1]
+        text = (
+            f"#{idx}\n"
+            f"Название: {item.description or ''}\n"
+            f"Код: {item.sku or ''}\n"
+            f"Кол-во: {format_money(item.quantity)} | Цена: {format_money(item.unit_price)} | Сумма: {format_money(item.line_total)}"
+        )
+    else:
+        # Fallback: use parsed dict
+        p = CURRENT_PARSE[uid].get("parsed")
+        items = p.get("items") or [] if p else []
+        if not (1 <= idx <= len(items)):
+            await call.answer()
+            return
+        it = items[idx-1]
+        text = (
+            f"#{idx}\n"
             f"Название: {it.get('name','')}\n"
             f"Код: {it.get('code','')}\n"
-            f"Кол-во: {format_money(it.get('qty',0))} | Цена: {format_money(it.get('price',0))} | Сумма: {format_money(it.get('total',0))}")
+            f"Кол-во: {format_money(it.get('qty',0))} | Цена: {format_money(it.get('price',0))} | Сумма: {format_money(it.get('total',0))}"
+        )
+    
     if call.message is not None:
         await call.message.answer(text, reply_markup=item_fields_kb(idx))
         await call.answer()
@@ -304,34 +348,109 @@ async def on_force_reply(message: Message):
     if uid not in PENDING_EDIT or uid not in CURRENT_PARSE:
         return
     cfg = PENDING_EDIT.pop(uid)
-    parsed = CURRENT_PARSE[uid]["parsed"]
-    if message.text is not None:
-        val = message.text.strip()
+    
+    invoice = CURRENT_PARSE[uid].get("invoice")
+    if invoice is None:
+        # Fallback: work with parsed dict
+        parsed = CURRENT_PARSE[uid].get("parsed")
+        if not parsed:
+            await message.answer("Нет черновика. Загрузите документ.")
+            return
+        
+        if message.text is not None:
+            val = message.text.strip()
 
-    if cfg["kind"] == "header":
-        k = cfg["key"]
-        if k == "total_sum":
-            try: parsed[k] = float(val.replace(",", ".")); ok = True
-            except: parsed[k] = val; ok = False
-            await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
+        if cfg["kind"] == "header":
+            k = cfg["key"]
+            if k == "total_sum":
+                try:
+                    parsed[k] = float(val.replace(",", "."))
+                    ok = True
+                except:
+                    parsed[k] = val
+                    ok = False
+                await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
+            else:
+                parsed[k] = val
+                await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
         else:
-            parsed[k] = val
-            await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-    else:
-        idx = cfg["idx"]
-        items = parsed.get("items") or []
-        if not (1 <= idx <= len(items)):
-            await message.answer("Индекс вне диапазона."); return
-        key = cfg["key"]
-        if key == "name" or key == "code":
-            items[idx-1][key] = val
-            await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-        else:
-            try:
-                items[idx-1][key] = float(val.replace(",", "."))
+            idx = cfg["idx"]
+            items = parsed.get("items") or []
+            if not (1 <= idx <= len(items)):
+                await message.answer("Индекс вне диапазона.")
+                return
+            key = cfg["key"]
+            if key == "name" or key == "code":
+                items[idx-1][key] = val
                 await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-            except:
-                await message.answer("Не число. Повторите.")
+            else:
+                try:
+                    items[idx-1][key] = float(val.replace(",", "."))
+                    await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+                except:
+                    await message.answer("Не число. Повторите.")
+    else:
+        # Work with Invoice domain model
+        if message.text is not None:
+            val = message.text.strip()
+
+        if cfg["kind"] == "header":
+            k = cfg["key"]
+            header = invoice.header
+            if k == "supplier":
+                header.supplier_name = val
+            elif k == "client":
+                header.customer_name = val
+            elif k == "date":
+                # Try to parse date
+                parsed_date = _parse_date_str(val)
+                header.invoice_date = parsed_date
+            elif k == "doc_number":
+                header.invoice_number = val
+            elif k == "total_sum":
+                try:
+                    from decimal import Decimal
+                    header.total_amount = Decimal(str(val.replace(",", ".")))
+                    ok = True
+                except:
+                    ok = False
+                await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
+                return
+            await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+        else:
+            idx = cfg["idx"]
+            items = invoice.items
+            if not (1 <= idx <= len(items)):
+                await message.answer("Индекс вне диапазона.")
+                return
+            key = cfg["key"]
+            item = items[idx-1]
+            if key == "name":
+                item.description = val
+            elif key == "code":
+                item.sku = val
+            elif key == "qty":
+                try:
+                    from decimal import Decimal
+                    item.quantity = Decimal(str(val.replace(",", ".")))
+                except:
+                    await message.answer("Не число. Повторите.")
+                    return
+            elif key == "price":
+                try:
+                    from decimal import Decimal
+                    item.unit_price = Decimal(str(val.replace(",", ".")))
+                except:
+                    await message.answer("Не число. Повторите.")
+                    return
+            elif key == "total":
+                try:
+                    from decimal import Decimal
+                    item.line_total = Decimal(str(val.replace(",", ".")))
+                except:
+                    await message.answer("Не число. Повторите.")
+                    return
+            await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
     logger.info(f"[TG] update done req={req} h=on_force_reply")
 
 # ---------- Comments / Save / Query ----------
