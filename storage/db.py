@@ -71,7 +71,11 @@ _MONTHS = {
     "janvier":1,"février":2,"fevrier":2,"mars":3,"avril":4,"mai":5,"juin":6,"juillet":7,"août":8,"aout":8,"septembre":9,"octobre":10,"novembre":11,"décembre":12,"decembre":12,
 }
 
-def _to_iso(d: Optional[str]) -> Optional[str]:
+def to_iso(d: Optional[str]) -> Optional[str]:
+    """
+    Convert date string to ISO format (YYYY-MM-DD).
+    Supports various date formats including numeric and locale-specific formats.
+    """
     if not d: return None
     s = d.strip()
     s = re.sub(r"[ \u00A0\u202f]+", " ", s)
@@ -100,7 +104,7 @@ def _to_iso(d: Optional[str]) -> Optional[str]:
 def save_invoice(user_id: int, parsed: Dict[str, Any], source_path: str, raw_text: Optional[str] = None, comments: Optional[List[str]] = None) -> int:
     con = _conn()
     cur = con.cursor()
-    iso = _to_iso(parsed.get("date"))
+    iso = to_iso(parsed.get("date"))
     cur.execute("""
         INSERT INTO invoices(user_id, supplier, client, doc_number, date, date_iso, total_sum, raw_text, source_path)
         VALUES(?,?,?,?,?,?,?,?,?)

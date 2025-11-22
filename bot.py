@@ -3,6 +3,7 @@ from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
 from handlers.file import router as file_router
 from handlers.commands import router as cmd_router
+from handlers.callbacks import router as callbacks_router
 from ocr.engine.util import get_logger
 
 logger = get_logger("ocr.engine")
@@ -15,6 +16,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(file_router)
     dp.include_router(cmd_router)
+    dp.include_router(callbacks_router)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

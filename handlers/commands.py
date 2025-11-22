@@ -7,7 +7,7 @@ import re
 import time
 import uuid
 
-from storage.db import init_db, _to_iso
+from storage.db import init_db, to_iso
 from services.invoice_service import list_invoices, save_invoice as save_invoice_service
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceComment
 from decimal import Decimal
@@ -20,7 +20,7 @@ from handlers.utils import (
     format_invoice_full,
     fmt_header,  # For backwards compatibility with dict-based code
     fmt_items,  # For backwards compatibility with dict-based code
-    main_kb, header_kb, items_index_kb, item_fields_kb
+    main_kb
 )
 
 router = Router()
@@ -37,8 +37,8 @@ def _parse_date_str(date_str: str) -> date | None:
     try:
         return date.fromisoformat(date_str)
     except (ValueError, TypeError):
-        # Try _to_iso first, then parse
-        iso = _to_iso(date_str)
+        # Try to_iso first, then parse
+        iso = to_iso(date_str)
         if iso:
             try:
                 return date.fromisoformat(iso)
@@ -99,173 +99,7 @@ async def cmd_show(message: Message):
         await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
     logger.info(f"[TG] update done req={req} h=cmd_show")
 
-# ---------- Inline editing flow ----------
-@router.callback_query(F.data == "act_edit")
-async def cb_act_edit(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_act_edit")
-    uid = call.from_user.id
-    if uid not in CURRENT_PARSE:
-        if call.message is not None:
-            await call.message.answer("Нет черновика. Пришлите документ.")
-            await call.answer()
-        return
-    
-    invoice = CURRENT_PARSE[uid].get("invoice")
-    if invoice is None:
-        # Fallback: use parsed dict
-        p = CURRENT_PARSE[uid].get("parsed")
-        if p:
-            head_text = fmt_header(p)
-        else:
-            head_text = "Нет черновика. Пришлите документ."
-    else:
-        head_text = format_invoice_header(invoice)
-    
-    if call.message is not None:
-        await call.message.answer(head_text + "\nВыберите поле для редактирования:", reply_markup=header_kb())
-        await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_act_edit")
-
-@router.callback_query(F.data.startswith("hed:"))
-async def cb_hed_field(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_hed_field")
-    uid = call.from_user.id
-    if uid not in CURRENT_PARSE:
-        await call.answer()
-        return
-    
-    if call.data is not None:
-        field = call.data.split(":",1)[1]
-        nice = {"supplier":"Поставщик","client":"Клиент","date":"Дата","doc_number":"Номер","total_sum":"Итого"}[field]
-    PENDING_EDIT[uid] = {"kind":"header","key":field}
-    if call.message is not None:
-        await call.message.answer(f"Введите новое значение для «{nice}»:", reply_markup=ForceReply(selective=True))
-        await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_hed_field")
-
-@router.callback_query(F.data == "act_items")
-async def cb_act_items(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_act_items")
-    uid = call.from_user.id
-    if uid not in CURRENT_PARSE:
-        await call.answer()
-        return
-    
-    invoice = CURRENT_PARSE[uid].get("invoice")
-    if invoice:
-        n = len(invoice.items)
-    else:
-        # Fallback: use parsed dict
-        p = CURRENT_PARSE[uid].get("parsed")
-        n = len(p.get("items") or []) if p else 0
-    
-    if n == 0:
-        if call.message is not None:
-            await call.message.answer("Позиции не распознаны.")
-            await call.answer()
-        return
-    
-    if call.message is not None:
-        await call.message.answer(f"Выберите позицию для редактирования (всего: {n}):", reply_markup=items_index_kb(n, 1))
-        await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_act_items")        
-
-@router.callback_query(F.data.startswith("items_page:"))
-async def cb_items_page(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_items_page")
-    uid = call.from_user.id
-    if uid not in CURRENT_PARSE:
-        await call.answer()
-        return
-        
-    if call.data is not None:
-        page = int(call.data.split(":")[1])
-        invoice = CURRENT_PARSE[uid].get("invoice")
-        if invoice:
-            n = len(invoice.items)
-        else:
-            # Fallback: use parsed dict
-            p = CURRENT_PARSE[uid].get("parsed")
-            n = len(p.get("items") or []) if p else 0
-        
-        if call.message is not None:
-            if isinstance(call.message, Message):
-                await call.message.edit_reply_markup(reply_markup=items_index_kb(n, page))
-                await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_items_page")
-
-@router.callback_query(F.data.startswith("item_pick:"))
-async def cb_item_pick(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_item_pick")
-    uid = call.from_user.id
-    if uid not in CURRENT_PARSE:
-        await call.answer()
-        return
-    
-    if call.data is not None:
-        idx = int(call.data.split(":")[1])
-    
-    invoice = CURRENT_PARSE[uid].get("invoice")
-    if invoice:
-        items = invoice.items
-        if not (1 <= idx <= len(items)):
-            await call.answer()
-            return
-        item = items[idx-1]
-        text = (
-            f"#{idx}\n"
-            f"Название: {item.description or ''}\n"
-            f"Код: {item.sku or ''}\n"
-            f"Кол-во: {format_money(item.quantity)} | Цена: {format_money(item.unit_price)} | Сумма: {format_money(item.line_total)}"
-        )
-    else:
-        # Fallback: use parsed dict
-        p = CURRENT_PARSE[uid].get("parsed")
-        items = p.get("items") or [] if p else []
-        if not (1 <= idx <= len(items)):
-            await call.answer()
-            return
-        it = items[idx-1]
-        text = (
-            f"#{idx}\n"
-            f"Название: {it.get('name','')}\n"
-            f"Код: {it.get('code','')}\n"
-            f"Кол-во: {format_money(it.get('qty',0))} | Цена: {format_money(it.get('price',0))} | Сумма: {format_money(it.get('total',0))}"
-        )
-    
-    if call.message is not None:
-        await call.message.answer(text, reply_markup=item_fields_kb(idx))
-        await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_item_pick")
-
-@router.callback_query(F.data.startswith("itm_field:"))
-async def cb_itm_field(call: CallbackQuery):
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-    set_request_id(req)
-    logger.info(f"[TG] update start req={req} h=cb_itm_field")
-    uid = call.from_user.id
-    if call.data is None:
-        await call.answer()
-        return
-    parts = call.data.split(":")
-    idx = int(parts[1])
-    key = parts[2]  # name/qty/price/total
-    nice = {"name":"Название","qty":"Кол-во","price":"Цена","total":"Сумма"}[key]
-    PENDING_EDIT[uid] = {"kind":"item","idx":idx,"key":key}
-    if call.message is not None:
-        await call.message.answer(f"Введите новое значение для «{nice}» у позиции #{idx}:", reply_markup=ForceReply(selective=True))
-        await call.answer()
-    logger.info(f"[TG] update done req={req} h=cb_itm_field")
+# Callback handlers moved to handlers/callbacks.py
 
 # ---------- Handle ForceReply input ----------
 @router.message(F.reply_to_message)
@@ -298,14 +132,14 @@ async def on_force_reply(message: Message):
             val = message.text.strip()
 
         if st["step"] == "from":
-            iso = _to_iso(val) or val  # Accept as-is if parsing fails, DB will handle it
+            iso = to_iso(val) or val  # Accept as-is if parsing fails, DB will handle it
             st["from"] = iso
             st["step"] = "to"
             await message.answer("По дату (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
             return
 
         if st["step"] == "to":
-            iso = _to_iso(val) or val
+            iso = to_iso(val) or val
             st["to"] = iso
             st["step"] = "supplier"
             await message.answer("Фильтр по поставщику (опционально). Введите текст или «-» чтобы пропустить:",
