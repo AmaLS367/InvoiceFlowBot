@@ -5,7 +5,7 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 
 ## Features
 
-- **OCR Processing**: Automatic extraction of invoice data using Mindee API
+- **OCR Processing**: Automatic extraction of invoice data using Mindee API. The OCR layer is built on a provider abstraction, allowing for easy integration of additional OCR providers in the future.
 - **Multiple Format Support**: Handles PDF files and images (JPEG, PNG, HEIC, HEIF, WebP)
 - **Interactive Editing**: Edit invoice header fields and line items via Telegram interface
 - **Data Storage**: Save processed invoices to SQLite database
@@ -74,6 +74,12 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+You can also run a specific test file:
+
+```powershell
+python -m pytest tests/test_invoice_service.py
+```
+
 ## Usage
 
 ### Basic Commands
@@ -122,8 +128,11 @@ InvoiceFlowBot/
 ├── ocr/
 │   ├── extract.py         # Invoice extraction entry point
 │   ├── mindee_client.py   # Mindee API integration
+│   ├── providers/         # OCR provider abstraction layer
+│   │   ├── base.py        # OcrProvider interface
+│   │   └── mindee_provider.py  # Mindee provider implementation
 │   └── engine/
-│       ├── router.py      # OCR routing logic
+│       ├── router.py      # OCR routing logic (uses providers)
 │       ├── types.py       # Data type definitions
 │       └── util.py        # OCR utilities and logging
 └── storage/
@@ -188,6 +197,34 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+## Development
+
+### Code Quality
+
+The project uses the following tools for code quality:
+
+- **ruff** - Fast Python linter
+- **mypy** - Static type checking
+
+### Local Development Setup
+
+```powershell
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Run linter
+python -m ruff check .
+
+# Run type checker
+python -m mypy domain services ocr storage
+
+# Run tests
+python -m pytest
+```
+
+The CI pipeline automatically runs `ruff`, `mypy`, and `pytest` on every push and pull request.
 
 ## Contributing
 
