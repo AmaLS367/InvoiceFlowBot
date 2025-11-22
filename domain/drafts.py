@@ -9,9 +9,9 @@ from domain.invoices import Invoice
 @dataclass
 class InvoiceDraft:
     """
-    Domain object representing a current invoice draft for a user.
+    In-progress invoice draft for a user.
 
-    It keeps the parsed Invoice together with source file path,
+    Keeps the parsed Invoice together with source file path,
     optional raw OCR text and user comments that are not yet persisted.
     """
 

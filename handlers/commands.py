@@ -21,20 +21,17 @@ from ocr.engine.util import get_logger, set_request_id
 from storage.db import init_db, to_iso
 
 router = Router()
-init_db()  # Initialize database on startup
+init_db()
 logger = get_logger("ocr.engine")
 
 
 def _parse_date_str(date_str: str) -> date | None:
-    """
-    Parse date string to date object.
-    """
+    """Parse date string to date object."""
     if not date_str:
         return None
     try:
         return date.fromisoformat(date_str)
     except (ValueError, TypeError):
-        # Try to_iso first, then parse
         iso = to_iso(date_str)
         if iso:
             try:
@@ -43,7 +40,6 @@ def _parse_date_str(date_str: str) -> date | None:
                 pass
     return None
 
-# ---------- START / HELP ----------
 @router.message(F.text == "/start")
 async def cmd_start(message: Message):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -69,7 +65,6 @@ async def cmd_help(message: Message):
     )
     logger.info(f"[TG] update done req={req} h=cmd_help")
 
-# ---------- View draft ----------
 @router.message(F.text == "/show")
 async def cmd_show(
     message: Message,
@@ -89,9 +84,6 @@ async def cmd_show(
     await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
     logger.info(f"[TG] update done req={req} h=cmd_show")
 
-# Callback handlers moved to handlers/callbacks.py
-
-# ---------- Handle ForceReply input ----------
 @router.message(F.reply_to_message)
 async def on_force_reply(
     message: Message,
@@ -105,7 +97,6 @@ async def on_force_reply(
     
     current_state = await state.get_state()
     
-    # Comment from inline button
     if current_state == EditInvoiceState.waiting_for_comment:
         draft = await container.draft_service_module.get_current_draft(uid)
         if draft is None:
@@ -123,11 +114,10 @@ async def on_force_reply(
         logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
         return
     
-    # Period: step-by-step input
     if current_state == InvoicesPeriodState.waiting_for_from_date:
         if message.text is not None:
             val = message.text.strip()
-            iso = to_iso(val) or val  # Accept as-is if parsing fails, DB will handle it
+            iso = to_iso(val) or val
             data = await state.get_data()
             period = data.get("period") or {}
             period["from"] = iso
@@ -162,8 +152,7 @@ async def on_force_reply(
             if not f_str or not t_str:
                 await message.answer("Не указаны даты. Повторите ввод периода.")
                 return
-            
-            # Convert string dates to date objects
+
             from_date = _parse_date_str(f_str)
             to_date = _parse_date_str(t_str)
             
@@ -177,8 +166,6 @@ async def on_force_reply(
             lines = []
             total = 0.0
             for invoice in invoices:
-                # Get invoice ID from storage (we need to query it separately for now)
-                # For now, we'll use a placeholder or skip ID display
                 invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
                 invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
                 total += invoice_total
@@ -193,7 +180,6 @@ async def on_force_reply(
             await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
             return
 
-    # Edit invoice field
     if current_state == EditInvoiceState.waiting_for_field_value:
         data = await state.get_data()
         edit_config = data.get("edit_config") or {}
@@ -274,7 +260,6 @@ async def on_force_reply(
     # If state is not one of the expected states, do nothing
     logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
 
-# ---------- Comments / Save / Query ----------
 @router.message(F.text.regexp(r"^/comment(\s|$)"))
 async def cmd_comment(
     message: Message,
@@ -328,7 +313,6 @@ async def cmd_save(
             f"в шапке {header_sum:.2f}, разница {diff:+.2f}. "
             f"Документ: {doc_number}, Поставщик: {supplier}."
         )
-        # Check if comment already exists
         existing_messages = [c.message for c in invoice.comments]
         if auto_text not in existing_messages:
             invoice.comments.append(InvoiceComment(message=auto_text))
@@ -362,8 +346,7 @@ async def cmd_invoices(
     supplier = None
     if len(parts) >= 4 and parts[3].lower().startswith("supplier="):
         supplier = parts[3].split("=",1)[1]
-    
-    # Convert string dates to date objects
+
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
     
@@ -391,7 +374,6 @@ async def cmd_invoices(
     await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
     logger.info(f"[TG] update done req={req} h=cmd_invoices")
 
-# ---------- Legacy text commands (kept for convenience) ----------
 @router.message(F.text.regexp(r"^/edit(\s|$)"))
 async def cmd_edit_legacy(
     message: Message,

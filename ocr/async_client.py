@@ -1,3 +1,9 @@
+"""
+Async OCR client and mapping logic for Mindee invoice results.
+
+Responsible for calling the HTTP API and converting raw predictions
+into Invoice domain objects.
+"""
 from __future__ import annotations
 
 import json
@@ -29,7 +35,6 @@ async def _mindee_predict_async(pdf_path: str) -> Dict[str, Any]:
     if not pdf_file.exists():
         raise FileNotFoundError(str(pdf_file))
 
-    # We follow the same basic contract as mindee_predict: send file as 'document' form field.
     async with httpx.AsyncClient(timeout=60.0) as client:
         with pdf_file.open("rb") as f:
             response = await client.post(
@@ -71,8 +76,9 @@ async def extract_invoice_async(
     max_pages: int = 12,
 ) -> ExtractionResult:
     """
-    Asynchronous invoice extraction using Mindee HTTP API and the same normalization
-    pipeline as the synchronous Mindee client.
+    Call Mindee OCR for the given file and convert the response into an ExtractionResult.
+
+    Handles field normalization, item ordering and basic type conversions.
     """
     logger.info(
         "[OCR ASYNC] extract_invoice_async start pdf_path=%r fast=%s max_pages=%s",
@@ -84,7 +90,6 @@ async def extract_invoice_async(
     raw_payload = await _mindee_predict_async(pdf_path)
 
     if not raw_payload:
-        # Mirror the behaviour of the sync client on failures: produce an "empty" payload with warnings.
         data: Dict[str, Any] = {
             "supplier": None,
             "client": None,
@@ -97,7 +102,6 @@ async def extract_invoice_async(
         }
     else:
         data = mindee_struct_to_data(raw_payload)
-        # Ensure we always have a warnings list
         if "warnings" not in data or data["warnings"] is None:
             data["warnings"] = []
         elif not isinstance(data["warnings"], list):

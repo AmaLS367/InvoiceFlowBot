@@ -1,3 +1,8 @@
+"""
+Business logic for managing per-user invoice drafts.
+
+Drafts represent the in-progress state of a parsed invoice.
+"""
 from __future__ import annotations
 
 from typing import Optional

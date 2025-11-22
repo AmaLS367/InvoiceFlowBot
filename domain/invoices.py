@@ -1,5 +1,5 @@
 """
-Domain entities for invoice processing.
+Domain models and value objects describing invoices and their items.
 """
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -10,7 +10,7 @@ from typing import List, Optional
 @dataclass
 class InvoiceItem:
     """
-    Domain entity representing a single line item in an invoice.
+    Single line item in an invoice.
     """
     description: str
     sku: Optional[str] = None
@@ -23,7 +23,7 @@ class InvoiceItem:
 @dataclass
 class InvoiceHeader:
     """
-    Domain entity representing invoice header information (supplier, customer, dates, totals).
+    Invoice header information: supplier, customer, dates, totals.
     """
     supplier_name: Optional[str] = None
     supplier_tax_id: Optional[str] = None
@@ -41,7 +41,7 @@ class InvoiceHeader:
 @dataclass
 class InvoiceComment:
     """
-    Domain entity representing a comment attached to an invoice.
+    Comment attached to an invoice.
     """
     message: str
     author: Optional[str] = None
@@ -51,7 +51,7 @@ class InvoiceComment:
 @dataclass
 class InvoiceSourceInfo:
     """
-    Domain entity representing source metadata for invoice data (OCR provider, file paths).
+    Source metadata for invoice data: OCR provider, file paths.
     """
     file_path: Optional[str] = None
     file_sha256: Optional[str] = None
@@ -62,7 +62,7 @@ class InvoiceSourceInfo:
 @dataclass
 class Invoice:
     """
-    Domain entity representing a parsed invoice with header, items and source metadata.
+    Canonical invoice representation used across the application.
     """
     header: InvoiceHeader
     items: List[InvoiceItem] = field(default_factory=list)
@@ -70,15 +70,9 @@ class Invoice:
     source: Optional[InvoiceSourceInfo] = None
 
     def total_items(self) -> int:
-        """
-        Returns the total number of items in the invoice.
-        """
         return len(self.items)
 
     def has_items(self) -> bool:
-        """
-        Returns True if the invoice has at least one item.
-        """
         return len(self.items) > 0
 
 

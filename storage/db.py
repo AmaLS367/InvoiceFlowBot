@@ -1,3 +1,8 @@
+"""
+Synchronous database utilities and Alembic-based schema initialization.
+
+This module exposes DB_PATH and init_db used by the rest of the application.
+"""
 from __future__ import annotations
 
 import re
@@ -39,9 +44,7 @@ def _conn():
 
 def init_db() -> None:
     """
-    Initialize the database schema using Alembic migrations.
-
-    This function upgrades the database to the latest migration head.
+    Apply all Alembic migrations and ensure the SQLite schema is up to date.
     """
     config = _get_alembic_config()
     command.upgrade(config, "head")
@@ -145,7 +148,6 @@ def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optiona
                 (user_id, f_iso, t_iso)
             ).fetchall()
     else:
-        # If ISO parsing failed, search by created_at
         if supplier:
             rows = con.execute(
                 "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "

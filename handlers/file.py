@@ -98,7 +98,6 @@ async def handle_doc_or_photo(
         await message.answer("Ошибка при сохранении файла")
         return
     
-    # Convert HEIC/HEIF/WebP to JPEG
     ext = os.path.splitext(path)[1].lower()
     if ext in {".heic", ".heif", ".webp"}:
         try:
@@ -111,7 +110,6 @@ async def handle_doc_or_photo(
             await message.answer("Не удалось обработать файл. Попробуйте другой формат (PDF, JPG, PNG).")
             return
         
-    # Normalize photo: EXIF rotation and convert to JPEG
     if not path.lower().endswith(".pdf"):
         try:
             img = Image.open(path)
@@ -136,7 +134,7 @@ async def handle_doc_or_photo(
         await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
         return
 
-    # Save draft to database
+    # Build an invoice draft so the user can review and edit the parsed data before saving.
     draft = InvoiceDraft(
         invoice=invoice,
         path=path,

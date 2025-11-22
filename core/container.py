@@ -7,11 +7,7 @@ from typing import Any
 @dataclass
 class AppContainer:
     """
-    Simple application-wide dependency container.
-
-    For now it stores references to modules that implement
-    services and infrastructure. In later stages we can replace
-    these modules with test doubles or alternative implementations.
+    Simple dependency container holding references to service and infrastructure modules.
     """
 
     invoice_service_module: Any
@@ -22,10 +18,7 @@ class AppContainer:
 
 def create_app_container() -> AppContainer:
     """
-    Build the default AppContainer for the application.
-
-    This function wires together the current production implementations
-    of services and infrastructure.
+    Build the default AppContainer wiring real service and infrastructure modules.
     """
     from ocr import async_client
     from services import draft_service, invoice_service

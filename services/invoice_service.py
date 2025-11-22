@@ -1,5 +1,7 @@
 """
-Service layer for invoice processing: OCR pipeline integration and domain model conversion.
+High-level business logic for invoice processing.
+
+Coordinates OCR results, domain models and persistence layer.
 """
 from __future__ import annotations
 
@@ -112,7 +114,7 @@ async def process_invoice_file(
     max_pages: int = 12,
 ) -> Invoice:
     """
-    Run the OCR pipeline for a single PDF/image and return a domain Invoice.
+    Run OCR on the given file and map the result into an Invoice domain object.
     """
     logger.info(
         f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
@@ -134,7 +136,7 @@ async def process_invoice_file(
 
 async def save_invoice(invoice: Invoice, user_id: int = 0) -> int:
     """
-    Persist a domain Invoice using the storage layer and return its database ID.
+    Persist an Invoice to the database and return its ID.
     """
     logger.info(
         f"[SERVICE] save_invoice supplier={invoice.header.supplier_name!r} total={invoice.header.total_amount!r}"
@@ -154,7 +156,9 @@ async def list_invoices(
     supplier: Optional[str] = None,
 ) -> List[Invoice]:
     """
-    Fetch invoices from the storage layer as domain entities.
+    Fetch invoices for the given date period, sorted by creation time.
+
+    Optionally filter by supplier name.
     """
     logger.info(
         f"[SERVICE] list_invoices from={from_date} to={to_date} supplier={supplier!r}"

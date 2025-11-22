@@ -1,3 +1,8 @@
+"""
+Async data access layer built on top of aiosqlite.
+
+Provides high-level operations for reading and writing invoice-related data.
+"""
 from __future__ import annotations
 
 from datetime import date
@@ -25,7 +30,7 @@ async def _connect() -> aiosqlite.Connection:
 
 async def save_invoice_domain_async(invoice: Invoice, user_id: int = 0) -> int:
     """
-    Persist a domain Invoice into the database using aiosqlite and return the created invoice ID.
+    Insert invoice and related items in a single transaction, return the created invoice ID.
     """
     connection = await _connect()
     try:
@@ -98,7 +103,9 @@ async def fetch_invoices_domain_async(
     supplier: Optional[str] = None,
 ) -> List[Invoice]:
     """
-    Fetch invoices from the database using aiosqlite and return them as domain Invoice entities.
+    Fetch invoices matching the date range and optional supplier filter.
+
+    Results are sorted by date (or creation time if dates are missing).
     """
     connection = await _connect()
     try:
