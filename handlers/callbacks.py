@@ -5,10 +5,11 @@ import time
 import uuid
 
 from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
 from domain.invoices import InvoiceComment
-from handlers.state import PENDING_EDIT, PENDING_PERIOD
+from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
     format_invoice_header,
     format_money,
@@ -51,7 +52,7 @@ async def cb_act_edit(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("hed:"))
-async def cb_hed_field(call: CallbackQuery):
+async def cb_hed_field(call: CallbackQuery, state: FSMContext):
     """Handle header field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -65,7 +66,15 @@ async def cb_hed_field(call: CallbackQuery):
     if call.data is not None:
         field = call.data.split(":",1)[1]
         nice = {"supplier":"Поставщик","client":"Клиент","date":"Дата","doc_number":"Номер","total_sum":"Итого"}[field]
-    PENDING_EDIT[uid] = {"kind":"header","key":field}
+    await state.set_state(EditInvoiceState.waiting_for_field_value)
+    await state.update_data(
+        {
+            "edit_config": {
+                "kind": "header",
+                "key": field,
+            }
+        }
+    )
     if call.message is not None:
         await call.message.answer(f"Введите новое значение для «{nice}»:", reply_markup=ForceReply(selective=True))
         await call.answer()
@@ -158,12 +167,11 @@ async def cb_item_pick(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("itm_field:"))
-async def cb_itm_field(call: CallbackQuery):
+async def cb_itm_field(call: CallbackQuery, state: FSMContext):
     """Handle item field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_itm_field")
-    uid = call.from_user.id
     if call.data is None:
         await call.answer()
         return
@@ -171,7 +179,16 @@ async def cb_itm_field(call: CallbackQuery):
     idx = int(parts[1])
     key = parts[2]  # name/qty/price/total
     nice = {"name":"Название","qty":"Кол-во","price":"Цена","total":"Сумма"}[key]
-    PENDING_EDIT[uid] = {"kind":"item","idx":idx,"key":key}
+    await state.set_state(EditInvoiceState.waiting_for_field_value)
+    await state.update_data(
+        {
+            "edit_config": {
+                "kind": "item",
+                "idx": idx,
+                "key": key,
+            }
+        }
+    )
     if call.message is not None:
         await call.message.answer(f"Введите новое значение для «{nice}» у позиции #{idx}:", reply_markup=ForceReply(selective=True))
         await call.answer()
@@ -179,7 +196,7 @@ async def cb_itm_field(call: CallbackQuery):
 
 
 @router.callback_query(F.data == "act_comment")
-async def cb_act_comment(call: CallbackQuery):
+async def cb_act_comment(call: CallbackQuery, state: FSMContext):
     """Handle comment action callback - prompt for comment input."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -193,7 +210,14 @@ async def cb_act_comment(call: CallbackQuery):
         await call.answer()
         return
 
-    PENDING_EDIT[uid] = {"kind": "comment"}
+    await state.set_state(EditInvoiceState.waiting_for_comment)
+    await state.update_data(
+        {
+            "edit_config": {
+                "kind": "comment",
+            }
+        }
+    )
     if call.message is not None:
         await call.message.answer("Комментарий к счёту:", reply_markup=ForceReply(selective=True))
     await call.answer()
@@ -243,13 +267,13 @@ async def cb_act_save(call: CallbackQuery):
 
 
 @router.callback_query(F.data == "act_period")
-async def cb_act_period(call: CallbackQuery):
+async def cb_act_period(call: CallbackQuery, state: FSMContext):
     """Handle period action callback - prompt for date range input."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_period")
-    uid = call.from_user.id
-    PENDING_PERIOD[uid] = {"step": "from"}
+    await state.set_state(InvoicesPeriodState.waiting_for_from_date)
+    await state.update_data({"period": {}})
     if call.message is not None:
         await call.message.answer("С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
         await call.answer()

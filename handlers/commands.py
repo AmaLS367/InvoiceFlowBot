@@ -5,10 +5,11 @@ from datetime import date
 from decimal import Decimal
 
 from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
 from domain.invoices import InvoiceComment
-from handlers.state import PENDING_EDIT, PENDING_PERIOD
+from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
     format_invoice_full,
     format_invoice_header,
@@ -95,18 +96,20 @@ async def cmd_show(message: Message):
 
 # ---------- Handle ForceReply input ----------
 @router.message(F.reply_to_message)
-async def on_force_reply(message: Message):
+async def on_force_reply(message: Message, state: FSMContext):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=on_force_reply")
     uid = message.from_user.id if message.from_user else 0
     
+    current_state = await state.get_state()
+    
     # Comment from inline button
-    if uid in PENDING_EDIT and PENDING_EDIT.get(uid, {}).get("kind") == "comment":
+    if current_state == EditInvoiceState.waiting_for_comment:
         draft = await get_current_draft(uid)
         if draft is None:
             await message.answer("Нет черновика. Загрузите документ.")
-            PENDING_EDIT.pop(uid, None)
+            await state.clear()
             return
         text = (message.text or "").strip()
         if not text:
@@ -115,35 +118,45 @@ async def on_force_reply(message: Message):
             draft.comments.append(text)
             await set_current_draft(uid, draft)
             await message.answer("Комментарий добавлен.")
-        PENDING_EDIT.pop(uid, None)
+        await state.clear()
         logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
         return
     
     # Period: step-by-step input
-    if uid in PENDING_PERIOD:
-        st = PENDING_PERIOD[uid]
+    if current_state == InvoicesPeriodState.waiting_for_from_date:
         if message.text is not None:
             val = message.text.strip()
-
-        if st["step"] == "from":
             iso = to_iso(val) or val  # Accept as-is if parsing fails, DB will handle it
-            st["from"] = iso
-            st["step"] = "to"
+            data = await state.get_data()
+            period = data.get("period") or {}
+            period["from"] = iso
+            await state.update_data({"period": period})
+            await state.set_state(InvoicesPeriodState.waiting_for_to_date)
             await message.answer("По дату (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
             return
 
-        if st["step"] == "to":
+    if current_state == InvoicesPeriodState.waiting_for_to_date:
+        if message.text is not None:
+            val = message.text.strip()
             iso = to_iso(val) or val
-            st["to"] = iso
-            st["step"] = "supplier"
+            data = await state.get_data()
+            period = data.get("period") or {}
+            period["to"] = iso
+            await state.update_data({"period": period})
+            await state.set_state(InvoicesPeriodState.waiting_for_supplier)
             await message.answer("Фильтр по поставщику (опционально). Введите текст или «-» чтобы пропустить:",
                                  reply_markup=ForceReply(selective=True))
             return
 
-        if st["step"] == "supplier":
+    if current_state == InvoicesPeriodState.waiting_for_supplier:
+        if message.text is not None:
+            val = message.text.strip()
             supplier = None if val in ("", "-") else val
-            f_str, t_str = st.get("from"), st.get("to")
-            del PENDING_PERIOD[uid]
+            data = await state.get_data()
+            period = data.get("period") or {}
+            f_str = period.get("from")
+            t_str = period.get("to")
+            await state.clear()
 
             if not f_str or not t_str:
                 await message.answer("Не указаны даты. Повторите ввод периода.")
@@ -177,76 +190,86 @@ async def on_force_reply(message: Message):
             await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
             return
 
-    if uid not in PENDING_EDIT:
-        return
-    cfg = PENDING_EDIT.pop(uid)
-    
-    draft = await get_current_draft(uid)
-    if draft is None:
-        await message.answer("Нет черновика. Загрузите документ.")
-        return
-    
-    invoice = draft.invoice
-    if message.text is not None:
-        val = message.text.strip()
+    # Edit invoice field
+    if current_state == EditInvoiceState.waiting_for_field_value:
+        data = await state.get_data()
+        edit_config = data.get("edit_config") or {}
+        kind = edit_config.get("kind")
+        
+        draft = await get_current_draft(uid)
+        if draft is None:
+            await message.answer("Нет черновика. Загрузите документ.")
+            await state.clear()
+            return
+        
+        invoice = draft.invoice
+        if message.text is not None:
+            val = message.text.strip()
 
-    if cfg["kind"] == "header":
-        k = cfg["key"]
-        header = invoice.header
-        if k == "supplier":
-            header.supplier_name = val
-        elif k == "client":
-            header.customer_name = val
-        elif k == "date":
-            # Try to parse date
-            parsed_date = _parse_date_str(val)
-            header.invoice_date = parsed_date
-        elif k == "doc_number":
-            header.invoice_number = val
-        elif k == "total_sum":
-            try:
-                header.total_amount = Decimal(str(val.replace(",", ".")))
-                ok = True
-            except (ValueError, TypeError, Exception):
-                ok = False
-            await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
-            await set_current_draft(uid, draft)
-            return
-        await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-    else:
-        idx = cfg["idx"]
-        items = invoice.items
-        if not (1 <= idx <= len(items)):
-            await message.answer("Индекс вне диапазона.")
-            return
-        key = cfg["key"]
-        item = items[idx-1]
-        if key == "name":
-            item.description = val
-        elif key == "code":
-            item.sku = val
-        elif key == "qty":
-            try:
-                item.quantity = Decimal(str(val.replace(",", ".")))
-            except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
+        if kind == "header":
+            k = edit_config.get("key")
+            header = invoice.header
+            if k == "supplier":
+                header.supplier_name = val
+            elif k == "client":
+                header.customer_name = val
+            elif k == "date":
+                # Try to parse date
+                parsed_date = _parse_date_str(val)
+                header.invoice_date = parsed_date
+            elif k == "doc_number":
+                header.invoice_number = val
+            elif k == "total_sum":
+                try:
+                    header.total_amount = Decimal(str(val.replace(",", ".")))
+                    ok = True
+                except (ValueError, TypeError, Exception):
+                    ok = False
+                await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
+                await set_current_draft(uid, draft)
+                await state.clear()
                 return
-        elif key == "price":
-            try:
-                item.unit_price = Decimal(str(val.replace(",", ".")))
-            except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
+            await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+        elif kind == "item":
+            idx = edit_config.get("idx")
+            items = invoice.items
+            if not (1 <= idx <= len(items)):
+                await message.answer("Индекс вне диапазона.")
+                await state.clear()
                 return
-        elif key == "total":
-            try:
-                item.line_total = Decimal(str(val.replace(",", ".")))
-            except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
-                return
-        await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+            key = edit_config.get("key")
+            item = items[idx-1]
+            if key == "name":
+                item.description = val
+            elif key == "code":
+                item.sku = val
+            elif key == "qty":
+                try:
+                    item.quantity = Decimal(str(val.replace(",", ".")))
+                except (ValueError, TypeError, Exception):
+                    await message.answer("Не число. Повторите.")
+                    return
+            elif key == "price":
+                try:
+                    item.unit_price = Decimal(str(val.replace(",", ".")))
+                except (ValueError, TypeError, Exception):
+                    await message.answer("Не число. Повторите.")
+                    return
+            elif key == "total":
+                try:
+                    item.line_total = Decimal(str(val.replace(",", ".")))
+                except (ValueError, TypeError, Exception):
+                    await message.answer("Не число. Повторите.")
+                    return
+            await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+        
+        await set_current_draft(uid, draft)
+        await state.clear()
+        logger.info(f"[TG] update done req={req} h=on_force_reply")
+        return
     
-    await set_current_draft(uid, draft)
-    logger.info(f"[TG] update done req={req} h=on_force_reply")
+    # If state is not one of the expected states, do nothing
+    logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
 
 # ---------- Comments / Save / Query ----------
 @router.message(F.text.regexp(r"^/comment(\s|$)"))
@@ -462,13 +485,13 @@ async def cmd_edititem_legacy(message: Message):
      logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
 
 @router.callback_query(F.data == "act_period")
-async def cb_act_period(call: CallbackQuery):
+async def cb_act_period(call: CallbackQuery, state: FSMContext):
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_period")
 
-    uid = call.from_user.id
-    PENDING_PERIOD[uid] = {"step": "from"}
+    await state.set_state(InvoicesPeriodState.waiting_for_from_date)
+    await state.update_data({"period": {}})
     if call.message is not None:
         await call.message.answer("С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
         await call.answer()
