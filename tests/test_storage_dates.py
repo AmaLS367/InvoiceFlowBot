@@ -1,14 +1,4 @@
-import os
-import sys
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-os.environ.setdefault("BOT_TOKEN", "test-token")
-
-from storage import db  # noqa: E402
+from storage import db
 
 
 def test_to_iso_handles_numeric_and_locale_dates():

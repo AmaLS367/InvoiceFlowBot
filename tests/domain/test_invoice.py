@@ -1,7 +1,6 @@
 """
 Unit tests for Invoice domain entity.
 """
-
 from datetime import date
 from decimal import Decimal
 

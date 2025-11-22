@@ -1,23 +1,12 @@
-import os
-import sys
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 from typing import List
 
 import pytest
 
-# Setup path and environment BEFORE any other imports
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-os.environ.setdefault("BOT_TOKEN", "test-token")
-os.environ.setdefault("MINDEE_API_KEY", "test-api-key")
-os.environ.setdefault("MINDEE_MODEL_ID", "test-model-id")
-
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo  # noqa: E402
-from services import invoice_service  # noqa: E402
+from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
+from services import invoice_service
+import storage.db as storage_db
 
 
 class DummyItem:
@@ -121,7 +110,6 @@ def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> N
         captured["user_id"] = user_id
         return 42
 
-    import storage.db as storage_db
     monkeypatch.setattr(storage_db, "save_invoice_domain", fake_save_invoice_domain)
 
     header = InvoiceHeader(
@@ -198,7 +186,6 @@ def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> 
         captured["supplier"] = supplier
         return [invoice]
 
-    import storage.db as storage_db
     monkeypatch.setattr(storage_db, "fetch_invoices_domain", fake_fetch_invoices_domain)
 
     from_date = date(2024, 1, 1)

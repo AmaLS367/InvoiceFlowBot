@@ -1,7 +1,6 @@
 """
 Unit tests for InvoiceComment domain entity.
 """
-
 from datetime import datetime
 
 from domain.invoices import InvoiceComment
