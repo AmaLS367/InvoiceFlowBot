@@ -7,8 +7,8 @@ All settings live in environment variables. `config.py` loads `.env` with `os.ge
 | Variable | Purpose | Accepted values | Default |
 | --- | --- | --- | --- |
 | `BOT_TOKEN` | Telegram bot token used by Aiogram | Token from @BotFather | none (startup fails without it) |
-| `MINDEE_API_KEY` | Mindee API key for invoice extraction | API key from the Mindee console | none |
-| `Model_id_mindee` | Mindee model identifier | Preset names like `invoice` or custom model IDs | none |
+| `MINDEE_API_KEY` | Mindee API key for invoice extraction | API key from the Mindee console (https://platform.mindee.com/) | none (startup fails without it) |
+| `MINDEE_MODEL_ID` | Mindee model identifier for invoice processing | Model ID from Mindee platform (e.g., `mindee/invoices/v4` or custom model UUID) | none (startup fails without it) |
 
 ## Optional variables
 

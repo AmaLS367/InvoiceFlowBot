@@ -109,8 +109,13 @@ The bot provides inline keyboard buttons for:
 InvoiceFlowBot/
 ├── bot.py                 # Main bot entry point
 ├── config.py              # Configuration management
+├── domain/
+│   └── invoices.py        # Domain entities (Invoice, InvoiceHeader, InvoiceItem, etc.)
+├── services/
+│   └── invoice_service.py # Service layer (OCR orchestration, domain conversion)
 ├── handlers/
-│   ├── commands.py        # Command handlers
+│   ├── commands.py        # Text command handlers (/show, /edit, /invoices, etc.)
+│   ├── callbacks.py       # Callback query handlers (inline button actions)
 │   ├── file.py            # File upload handlers
 │   ├── state.py           # Global state management
 │   └── utils.py           # Utility functions and keyboards
