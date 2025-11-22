@@ -14,7 +14,11 @@ from ocr.engine.util import get_logger
 logger = get_logger("ocr.engine")
 logger.info("Bot startup")
 
-async def main():
+
+async def _run_bot() -> None:
+    """
+    Async entrypoint that initializes and runs the Telegram bot.
+    """
     if BOT_TOKEN is None:
         raise ValueError("BOT_TOKEN is not set. Please check your config.py or environment variables.")
     bot = Bot(token=BOT_TOKEN)
@@ -28,5 +32,15 @@ async def main():
     dp.include_router(callbacks_router)
     await dp.start_polling(bot)
 
+
+def main() -> None:
+    """
+    Sync entrypoint used by the console script.
+
+    It wraps the async bot runner into asyncio.run.
+    """
+    asyncio.run(_run_bot())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
