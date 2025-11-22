@@ -4,8 +4,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import BOT_TOKEN
+from core.container import create_app_container
 from handlers.callbacks import router as callbacks_router
 from handlers.commands import router as cmd_router
+from handlers.di_middleware import ContainerMiddleware
 from handlers.file import router as file_router
 from ocr.engine.util import get_logger
 
@@ -17,6 +19,10 @@ async def main():
         raise ValueError("BOT_TOKEN is not set. Please check your config.py or environment variables.")
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
+
+    container = create_app_container()
+    dp.update.outer_middleware(ContainerMiddleware(container))
+
     dp.include_router(file_router)
     dp.include_router(cmd_router)
     dp.include_router(callbacks_router)
