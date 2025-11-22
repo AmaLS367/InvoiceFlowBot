@@ -5,8 +5,12 @@ import re
 import sqlite3
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
+from alembic.config import Config
+
+from alembic import command
 from domain.invoices import (
     Invoice,
     InvoiceHeader,
@@ -16,56 +20,31 @@ from domain.invoices import (
 
 DB_PATH = os.getenv("INVOICE_DB_PATH", "data.sqlite")
 
+
+def _get_alembic_config() -> Config:
+    """
+    Build an Alembic Config instance pointing to the alembic.ini file
+    located in the project root directory.
+    """
+    base_dir = Path(__file__).resolve().parent.parent
+    alembic_ini = base_dir / "alembic.ini"
+    config = Config(str(alembic_ini))
+    return config
+
+
 def _conn():
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con
 
-def init_db():
-    con = _conn()
-    cur = con.cursor()
-    cur.executescript("""
-    PRAGMA journal_mode=WAL;
-    CREATE TABLE IF NOT EXISTS invoices(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        supplier TEXT,
-        client TEXT,
-        doc_number TEXT,
-        date TEXT,
-        date_iso TEXT,               -- YYYY-MM-DD if parsed successfully
-        total_sum REAL,
-        raw_text TEXT,
-        source_path TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS invoice_items(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        invoice_id INTEGER NOT NULL,
-        idx INTEGER NOT NULL,
-        code TEXT,
-        name TEXT,
-        qty REAL,
-        price REAL,
-        total REAL,
-        FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
-    );
-    CREATE TABLE IF NOT EXISTS comments(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        invoice_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        text TEXT NOT NULL,
-        created_at TEXT DEFAULT (datetime('now')),
-        FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
-    );
-    CREATE TABLE IF NOT EXISTS invoice_drafts(
-        user_id INTEGER PRIMARY KEY,
-        payload TEXT NOT NULL,
-        created_at TEXT DEFAULT (datetime('now'))
-    );
-    """)
-    con.commit()
-    con.close()
+def init_db() -> None:
+    """
+    Initialize the database schema using Alembic migrations.
+
+    This function upgrades the database to the latest migration head.
+    """
+    config = _get_alembic_config()
+    command.upgrade(config, "head")
 
 _MONTHS = {
     # Russian
