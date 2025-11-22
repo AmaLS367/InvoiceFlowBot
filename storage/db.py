@@ -58,6 +58,11 @@ def init_db():
         created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS invoice_drafts(
+        user_id INTEGER PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
     """)
     con.commit()
     con.close()
