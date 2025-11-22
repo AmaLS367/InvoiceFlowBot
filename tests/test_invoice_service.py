@@ -4,10 +4,9 @@ from typing import List
 
 import pytest
 
+import storage.db as storage_db
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
 from services import invoice_service
-import storage.db as storage_db
-
 
 
 class DummyItem:
