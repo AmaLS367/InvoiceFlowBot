@@ -46,6 +46,9 @@ def init_db() -> None:
     Apply all Alembic migrations and ensure the SQLite schema is up to date.
     """
     config = _get_alembic_config()
+    # Set database URL in config so alembic/env.py can use it
+    database_url = f"sqlite:///{DB_PATH}"
+    config.set_main_option("sqlalchemy.url", database_url)
     command.upgrade(config, "head")
 
 _MONTHS = {
