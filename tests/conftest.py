@@ -11,6 +11,8 @@ project_root_str = str(project_root)
 if project_root_str not in sys.path:
     sys.path.insert(0, project_root_str)
 
+from typing import Any, Dict  # noqa: E402
+
 import pytest  # noqa: E402
 
 from config import Settings  # noqa: E402
@@ -18,6 +20,7 @@ from core.container import AppContainer  # noqa: E402
 from handlers.di_middleware import ContainerMiddleware  # noqa: E402
 from storage.db_async import AsyncInvoiceStorage  # noqa: E402
 from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor  # noqa: E402
+from tests.fakes.fake_services import FakeInvoiceService  # noqa: E402
 from tests.fakes.fake_storage import (  # noqa: E402
     FakeStorage,
     make_fake_delete_draft_func,
@@ -138,3 +141,43 @@ def app_container_with_test_db(
     # The storage can be used separately in tests
     container = AppContainer(config=app_config_with_test_db)
     return container
+
+
+@pytest.fixture()
+def handlers_container(app_config: Settings) -> AppContainer:
+    """
+    Create an AppContainer with fake dependencies for handler testing.
+
+    Uses fake storage and OCR to avoid real database/API calls.
+    """
+    return AppContainer(
+        config=app_config,
+        ocr_extractor=make_fake_ocr_extractor(fake_ocr=FakeOcr()),
+        save_invoice_func=make_fake_save_invoice_func(fake_storage=FakeStorage()),
+        fetch_invoices_func=make_fake_fetch_invoices_func(fake_storage=FakeStorage()),
+        load_draft_func=make_fake_load_draft_func(fake_storage=FakeStorage()),
+        save_draft_func=make_fake_save_draft_func(fake_storage=FakeStorage()),
+        delete_draft_func=make_fake_delete_draft_func(fake_storage=FakeStorage()),
+    )
+
+
+@pytest.fixture()
+def handlers_data(handlers_container: AppContainer) -> Dict[str, Any]:
+    """
+    Create handler data dict with container for testing handlers.
+
+    This fixture provides the data dict that handlers expect from ContainerMiddleware.
+    """
+    return {"container": handlers_container}
+
+
+@pytest.fixture()
+def fake_invoice_service(handlers_container: AppContainer) -> FakeInvoiceService:
+    """
+    Create a fake InvoiceService and inject it into the container.
+
+    Returns the fake service so tests can inspect calls and configure return values.
+    """
+    fake_service = FakeInvoiceService()
+    handlers_container.invoice_service = fake_service
+    return fake_service

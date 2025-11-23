@@ -35,8 +35,56 @@ def _parse_date_str(date_str: str) -> date | None:
     return None
 
 
+async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
+    """Handle /invoices command."""
+    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
+    set_request_id(req)
+    logger.info(f"[TG] update start req={req} h=cmd_invoices")
+    container = get_container(data)
+    invoice_service = get_invoice_service(container)
+    if message.text is None:
+        await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
+        return
+    parts = message.text.split()
+    if len(parts) < 3:
+        await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
+        return
+    f_str, t_str = parts[1], parts[2]
+    supplier = None
+    if len(parts) >= 4 and parts[3].lower().startswith("supplier="):
+        supplier = parts[3].split("=",1)[1]
+
+    from_date = _parse_date_str(f_str)
+    to_date = _parse_date_str(t_str)
+
+    invoices = await invoice_service.list_invoices(
+        from_date=from_date, to_date=to_date, supplier=supplier
+    )
+    if not invoices:
+        await message.answer("Ничего не найдено.")
+        return
+
+    lines = []
+    total = 0.0
+    for invoice in invoices:
+        invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
+        invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        total += invoice_total
+        items_count_val = len(invoice.items)
+        lines.append(
+            f"  {invoice_date_str}  {invoice.header.invoice_number or '—'}  "
+            f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
+            f"(items: {items_count_val})"
+        )
+    head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
+    text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
+    await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
+    logger.info(f"[TG] update done req={req} h=cmd_invoices")
+
+
 def setup(router: Router) -> None:
     """Register invoice-related command handlers."""
+    router.message.register(cmd_invoices, F.text.regexp(r"^/invoices\s"))
 
     @router.message(F.reply_to_message)
     async def on_force_reply_invoices(
@@ -117,52 +165,6 @@ def setup(router: Router) -> None:
                 text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
                 await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
                 return
-
-    @router.message(F.text.regexp(r"^/invoices\s"))
-    async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
-        req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-        set_request_id(req)
-        logger.info(f"[TG] update start req={req} h=cmd_invoices")
-        container = get_container(data)
-        invoice_service = get_invoice_service(container)
-        if message.text is None:
-            await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
-            return
-        parts = message.text.split()
-        if len(parts) < 3:
-            await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
-            return
-        f_str, t_str = parts[1], parts[2]
-        supplier = None
-        if len(parts) >= 4 and parts[3].lower().startswith("supplier="):
-            supplier = parts[3].split("=",1)[1]
-
-        from_date = _parse_date_str(f_str)
-        to_date = _parse_date_str(t_str)
-
-        invoices = await invoice_service.list_invoices(
-            from_date=from_date, to_date=to_date, supplier=supplier
-        )
-        if not invoices:
-            await message.answer("Ничего не найдено.")
-            return
-
-        lines = []
-        total = 0.0
-        for invoice in invoices:
-            invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
-            invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
-            total += invoice_total
-            items_count_val = len(invoice.items)
-            lines.append(
-                f"  {invoice_date_str}  {invoice.header.invoice_number or '—'}  "
-                f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
-                f"(items: {items_count_val})"
-            )
-        head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
-        text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
-        await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
-        logger.info(f"[TG] update done req={req} h=cmd_invoices")
 
     @router.callback_query(F.data == "act_period")
     async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
