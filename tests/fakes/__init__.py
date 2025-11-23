@@ -1,0 +1,4 @@
+"""
+Fake implementations for testing.
+"""
+
