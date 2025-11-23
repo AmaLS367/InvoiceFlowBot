@@ -8,21 +8,19 @@ from aiogram.types import TelegramObject
 
 from core.container import AppContainer, create_app_container
 from handlers.di_middleware import ContainerMiddleware
-from ocr import async_client as real_async_client
-from services import draft_service as real_draft_service
-from services import invoice_service as real_invoice_service
-from storage import db_async as real_db_async
+from services.draft_service import DraftService
+from services.invoice_service import InvoiceService
 
 
-def test_create_app_container_wires_real_modules() -> None:
+def test_create_app_container_wires_real_services() -> None:
     container = create_app_container()
 
     assert isinstance(container, AppContainer)
 
-    assert container.invoice_service_module is real_invoice_service
-    assert container.draft_service_module is real_draft_service
-    assert container.db_async_module is real_db_async
-    assert container.ocr_async_client_module is real_async_client
+    assert isinstance(container.invoice_service, InvoiceService)
+    assert isinstance(container.draft_service, DraftService)
+    assert container.invoice_service_module is container.invoice_service
+    assert container.draft_service_module is container.draft_service
 
 
 class FakeInvoiceService:
@@ -37,16 +35,11 @@ class FakeInvoiceService:
 def make_fake_container() -> AppContainer:
     fake_invoice_service = FakeInvoiceService()
 
-    # простые заглушки для остальных полей, пока они не нужны в тесте
     fake_draft_service = types.SimpleNamespace()
-    fake_db_async = types.SimpleNamespace()
-    fake_ocr_client = types.SimpleNamespace()
 
     return AppContainer(
-        invoice_service_module=fake_invoice_service,
-        draft_service_module=fake_draft_service,
-        db_async_module=fake_db_async,
-        ocr_async_client_module=fake_ocr_client,
+        invoice_service=fake_invoice_service,
+        draft_service=fake_draft_service,
     )
 
 

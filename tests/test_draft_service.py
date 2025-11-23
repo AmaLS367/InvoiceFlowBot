@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import date
 from decimal import Decimal
 
@@ -7,8 +8,13 @@ import pytest
 
 from domain.drafts import InvoiceDraft
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from services import draft_service
+from services.draft_service import DraftService
 from storage import db as storage_db
+from storage.drafts_async import (
+    delete_draft_invoice,
+    load_draft_invoice,
+    save_draft_invoice,
+)
 
 
 def _make_sample_draft() -> InvoiceDraft:
@@ -59,15 +65,22 @@ async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     user_id = 123
     draft = _make_sample_draft()
 
+    service = DraftService(
+        load_draft_func=load_draft_invoice,
+        save_draft_func=save_draft_invoice,
+        delete_draft_func=delete_draft_invoice,
+        logger=logging.getLogger("test"),
+    )
+
     # Initially there should be no draft.
-    loaded_none = await draft_service.get_current_draft(user_id)
+    loaded_none = await service.get_current_draft(user_id)
     assert loaded_none is None
 
     # Save draft.
-    await draft_service.set_current_draft(user_id, draft)
+    await service.set_current_draft(user_id, draft)
 
     # Load draft and ensure basic fields match.
-    loaded = await draft_service.get_current_draft(user_id)
+    loaded = await service.get_current_draft(user_id)
     assert loaded is not None
     assert loaded.invoice.header.supplier_name == draft.invoice.header.supplier_name
     assert loaded.invoice.header.customer_name == draft.invoice.header.customer_name
@@ -78,7 +91,7 @@ async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     assert loaded.comments == draft.comments
 
     # Clear draft.
-    await draft_service.clear_current_draft(user_id)
-    loaded_after_clear = await draft_service.get_current_draft(user_id)
+    await service.clear_current_draft(user_id)
+    loaded_after_clear = await service.get_current_draft(user_id)
     assert loaded_after_clear is None
 

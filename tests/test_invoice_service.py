@@ -5,7 +5,7 @@ from typing import List
 import pytest
 
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from services import invoice_service
+from services.invoice_service import InvoiceService
 
 
 class DummyItem:
@@ -53,10 +53,12 @@ class DummyExtractionResult:
 
 
 @pytest.mark.asyncio
-async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
     """
     process_invoice_file should call OCR router and convert the result into a domain Invoice.
     """
+    import logging
+
     called = {}
 
     async def fake_extract_invoice_async(
@@ -77,14 +79,24 @@ async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.
             items=items,
         )
 
-    # Mock extract_invoice_async in the service module where it's imported
-    monkeypatch.setattr(
-        invoice_service,
-        "extract_invoice_async",
-        fake_extract_invoice_async,
+    async def fake_save_invoice_func(invoice: Invoice, user_id: int = 0) -> int:
+        return 0
+
+    async def fake_fetch_invoices_func(
+        from_date: date | None,
+        to_date: date | None,
+        supplier: str | None = None,
+    ) -> List[Invoice]:
+        return []
+
+    service = InvoiceService(
+        ocr_extractor=fake_extract_invoice_async,
+        save_invoice_func=fake_save_invoice_func,
+        fetch_invoices_func=fake_fetch_invoices_func,
+        logger=logging.getLogger("test"),
     )
 
-    invoice = await invoice_service.process_invoice_file(
+    invoice = await service.process_invoice_file(
         pdf_path="tests/data/sample.pdf",
         fast=False,
         max_pages=5,
@@ -106,21 +118,38 @@ async def test_process_invoice_file_builds_invoice_from_ocr(monkeypatch: pytest.
 
 
 @pytest.mark.asyncio
-async def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_save_invoice_delegates_to_storage() -> None:
     """
     save_invoice should delegate persistence to the storage layer and return its ID.
     """
+    import logging
+
     captured = {}
+
+    async def fake_extract_invoice_async(
+        pdf_path: str, fast: bool = True, max_pages: int = 12
+    ) -> DummyExtractionResult:
+        return DummyExtractionResult(
+            supplier="", client="", invoice_date="", total_sum=0.0, items=[]
+        )
 
     async def fake_save_invoice_domain_async(invoice: Invoice, user_id: int = 0) -> int:
         captured["invoice"] = invoice
         captured["user_id"] = user_id
         return 42
 
-    monkeypatch.setattr(
-        invoice_service,
-        "save_invoice_domain_async",
-        fake_save_invoice_domain_async,
+    async def fake_fetch_invoices_func(
+        from_date: date | None,
+        to_date: date | None,
+        supplier: str | None = None,
+    ) -> List[Invoice]:
+        return []
+
+    service = InvoiceService(
+        ocr_extractor=fake_extract_invoice_async,
+        save_invoice_func=fake_save_invoice_domain_async,
+        fetch_invoices_func=fake_fetch_invoices_func,
+        logger=logging.getLogger("test"),
     )
 
     header = InvoiceHeader(
@@ -157,7 +186,7 @@ async def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch
         source=source,
     )
 
-    invoice_id = await invoice_service.save_invoice(invoice, user_id=123)
+    invoice_id = await service.save_invoice(invoice, user_id=123)
 
     assert invoice_id == 42
     assert "invoice" in captured
@@ -166,11 +195,23 @@ async def test_save_invoice_delegates_to_storage(monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.asyncio
-async def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_list_invoices_delegates_to_storage() -> None:
     """
     list_invoices should delegate to storage.fetch_invoices_domain and return the result.
     """
+    import logging
+
     captured = {}
+
+    async def fake_extract_invoice_async(
+        pdf_path: str, fast: bool = True, max_pages: int = 12
+    ) -> DummyExtractionResult:
+        return DummyExtractionResult(
+            supplier="", client="", invoice_date="", total_sum=0.0, items=[]
+        )
+
+    async def fake_save_invoice_func(invoice: Invoice, user_id: int = 0) -> int:
+        return 0
 
     header = InvoiceHeader(
         supplier_name="Supplier A",
@@ -198,17 +239,18 @@ async def test_list_invoices_delegates_to_storage(monkeypatch: pytest.MonkeyPatc
         captured["supplier"] = supplier
         return [invoice]
 
-    monkeypatch.setattr(
-        invoice_service,
-        "fetch_invoices_domain_async",
-        fake_fetch_invoices_domain_async,
+    service = InvoiceService(
+        ocr_extractor=fake_extract_invoice_async,
+        save_invoice_func=fake_save_invoice_func,
+        fetch_invoices_func=fake_fetch_invoices_domain_async,
+        logger=logging.getLogger("test"),
     )
 
     from_date = date(2024, 1, 1)
     to_date = date(2024, 1, 31)
     supplier = "Supplier A"
 
-    invoices = await invoice_service.list_invoices(
+    invoices = await service.list_invoices(
         from_date=from_date,
         to_date=to_date,
         supplier=supplier,
