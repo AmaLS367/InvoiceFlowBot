@@ -37,6 +37,9 @@ jobs:
         run: |
           python -m mypy domain services ocr storage handlers
 
-      - name: Run tests
-        run: pytest
+      - name: Run unit tests (no storage DB)
+        run: pytest --import-mode=importlib -m "not storage_db"
+
+      - name: Run storage DB integration tests
+        run: pytest --import-mode=importlib -m "storage_db"
 

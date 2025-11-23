@@ -43,3 +43,8 @@ packages = [
 ]
 
 py-modules = ["config", "bot"]
+
+[tool.pytest.ini_options]
+markers = [
+    "storage_db: integration tests for storage with real SQLite and Alembic migrations",
+]

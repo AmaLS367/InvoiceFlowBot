@@ -15,6 +15,8 @@ import pytest
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
 from storage.db_async import AsyncInvoiceStorage
 
+pytestmark = pytest.mark.storage_db
+
 
 @pytest.mark.asyncio
 async def test_save_and_fetch_invoice_by_date_range(

@@ -11,6 +11,8 @@ import pytest
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
 from storage.db_async import AsyncInvoiceStorage
 
+pytestmark = pytest.mark.storage_db
+
 
 @pytest.mark.asyncio
 async def test_async_storage_works_with_migrated_schema(
