@@ -21,6 +21,7 @@ from handlers.di_middleware import ContainerMiddleware  # noqa: E402
 from storage.db_async import AsyncInvoiceStorage  # noqa: E402
 from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor  # noqa: E402
 from tests.fakes.fake_services import FakeInvoiceService  # noqa: E402
+from tests.fakes.fake_services_drafts import FakeDraftService  # noqa: E402
 from tests.fakes.fake_storage import (  # noqa: E402
     FakeStorage,
     make_fake_delete_draft_func,
@@ -181,3 +182,34 @@ def fake_invoice_service(handlers_container: AppContainer) -> FakeInvoiceService
     fake_service = FakeInvoiceService()
     handlers_container.invoice_service = fake_service
     return fake_service
+
+
+@pytest.fixture()
+def file_handlers_container(app_config: Settings) -> AppContainer:
+    """
+    Create an AppContainer with fake dependencies for file handler testing.
+
+    Uses fake storage, OCR, and draft service to avoid real database/API calls.
+    """
+    container = AppContainer(
+        config=app_config,
+        ocr_extractor=make_fake_ocr_extractor(fake_ocr=FakeOcr()),
+        save_invoice_func=make_fake_save_invoice_func(fake_storage=FakeStorage()),
+        fetch_invoices_func=make_fake_fetch_invoices_func(fake_storage=FakeStorage()),
+        load_draft_func=make_fake_load_draft_func(fake_storage=FakeStorage()),
+        save_draft_func=make_fake_save_draft_func(fake_storage=FakeStorage()),
+        delete_draft_func=make_fake_delete_draft_func(fake_storage=FakeStorage()),
+    )
+    # Replace draft_service with fake
+    container.draft_service = FakeDraftService()
+    return container
+
+
+@pytest.fixture()
+def file_handlers_data(file_handlers_container: AppContainer) -> Dict[str, Any]:
+    """
+    Create handler data dict with container for testing file handlers.
+
+    This fixture provides the data dict that handlers expect from ContainerMiddleware.
+    """
+    return {"container": file_handlers_container}
