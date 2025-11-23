@@ -39,6 +39,12 @@ jobs:
         run: |
           python -m mypy domain services ocr storage handlers
 
+      - name: Security checks (bandit)
+        run: bandit -c bandit.yaml domain services ocr storage handlers
+
+      - name: Dependency vulnerability audit (pip-audit)
+        run: pip-audit
+
       - name: Run unit tests (no storage DB)
         run: pytest --import-mode=importlib -m "not storage_db"
 
