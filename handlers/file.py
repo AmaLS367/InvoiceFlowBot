@@ -74,13 +74,18 @@ async def _process_file_and_create_draft(
         return
 
     # Build an invoice draft so the user can review and edit the parsed data before saving.
-    draft = InvoiceDraft(
-        invoice=invoice,
-        path=file_path,
-        raw_text="",
-        comments=[],
-    )
-    await draft_service.set_current_draft(user_id=uid, draft=draft)
+    try:
+        draft = InvoiceDraft(
+            invoice=invoice,
+            path=file_path,
+            raw_text="",
+            comments=[],
+        )
+        await draft_service.set_current_draft(user_id=uid, draft=draft)
+    except Exception as e:
+        logger.exception(f"[TG] Failed to create draft for file {file_path}: {e}")
+        await message.answer("Не удалось сохранить черновик. Повторите попытку позже.")
+        return
 
     full_text = format_invoice_full(invoice)
 

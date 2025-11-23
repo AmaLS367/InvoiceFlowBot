@@ -15,6 +15,7 @@ class FakeOcr:
 
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
+        self.raise_error: bool = False
 
     async def extract_invoice_async(
         self,
@@ -24,6 +25,8 @@ class FakeOcr:
     ) -> ExtractionResult:
         """Fake extract invoice function."""
         self.calls.append(("extract_invoice_async", (pdf_path, fast, max_pages), {}))
+        if self.raise_error:
+            raise RuntimeError("OCR failed")
         # Return minimal valid ExtractionResult
         return ExtractionResult(
             document_id="fake-doc-id",
