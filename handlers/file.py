@@ -78,7 +78,9 @@ async def handle_doc_or_photo(message: Message, data: Dict[str, Any]) -> None:
     invoice_service = get_invoice_service(container)
     draft_service = get_draft_service(container)
 
-    file = None
+    from aiogram.types import Document, PhotoSize
+
+    file: Document | PhotoSize | None = None
     if message.document:
         file = message.document
     elif message.photo:
@@ -111,7 +113,7 @@ async def handle_doc_or_photo(message: Message, data: Dict[str, Any]) -> None:
 
     if not path.lower().endswith(".pdf"):
         try:
-            img = Image.open(path)
+            img: Image.Image = Image.open(path)
             img = ImageOps.exif_transpose(img).convert("RGB")
             ext = Path(path).suffix.lower()
             new_path = path if ext in {".jpg", ".jpeg", ".png"} else str(Path(path).with_suffix(".jpg"))

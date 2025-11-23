@@ -35,7 +35,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          python -m mypy domain services ocr storage
+          python -m mypy domain services ocr storage handlers
 
       - name: Run tests
         run: pytest

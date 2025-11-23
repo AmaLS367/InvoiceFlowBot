@@ -221,14 +221,19 @@ async def on_force_reply(
                 return
             await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
         elif kind == "item":
-            idx = edit_config.get("idx")
+            idx_raw = edit_config.get("idx")
+            if not isinstance(idx_raw, int):
+                await message.answer("Индекс не указан.")
+                await state.clear()
+                return
+            idx = idx_raw
             items = invoice.items
             if not (1 <= idx <= len(items)):
                 await message.answer("Индекс вне диапазона.")
                 await state.clear()
                 return
             key = edit_config.get("key")
-            item = items[idx-1]
+            item = items[idx - 1]
             if key == "name":
                 item.description = val
             elif key == "code":
