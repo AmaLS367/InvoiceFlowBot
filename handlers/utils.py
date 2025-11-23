@@ -5,6 +5,13 @@ from typing import List
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from domain.invoices import Invoice, InvoiceItem
+from handlers.callback_registry import (
+    CallbackAction,
+    CallbackHeader,
+    make_item_field_callback,
+    make_item_pick_callback,
+    make_items_page_callback,
+)
 
 MAX_MSG = 4000  # Telegram message limit is 4096 characters
 
@@ -178,16 +185,38 @@ def main_kb() -> InlineKeyboardMarkup:
     """Main menu keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="📄 Загрузить счёт", callback_data="act_upload")],
             [
-                InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
-                InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment"),
+                InlineKeyboardButton(
+                    text="📄 Загрузить счёт",
+                    callback_data=CallbackAction.UPLOAD.value,
+                )
             ],
             [
-                InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
-                InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period"),
+                InlineKeyboardButton(
+                    text="✏️ Редактировать",
+                    callback_data=CallbackAction.EDIT.value,
+                ),
+                InlineKeyboardButton(
+                    text="💬 Комментарий",
+                    callback_data=CallbackAction.COMMENT.value,
+                ),
             ],
-            [InlineKeyboardButton(text="ℹ️ Помощь", callback_data="act_help")],
+            [
+                InlineKeyboardButton(
+                    text="💾 Сохранить",
+                    callback_data=CallbackAction.SAVE.value,
+                ),
+                InlineKeyboardButton(
+                    text="📊 Счета за период",
+                    callback_data=CallbackAction.PERIOD.value,
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="ℹ️ Помощь",
+                    callback_data=CallbackAction.HELP.value,
+                )
+            ],
         ]
     )
 
@@ -197,12 +226,24 @@ def actions_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
-                InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment"),
+                InlineKeyboardButton(
+                    text="✏️ Редактировать",
+                    callback_data=CallbackAction.EDIT.value,
+                ),
+                InlineKeyboardButton(
+                    text="💬 Комментарий",
+                    callback_data=CallbackAction.COMMENT.value,
+                ),
             ],
             [
-                InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
-                InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period"),
+                InlineKeyboardButton(
+                    text="💾 Сохранить",
+                    callback_data=CallbackAction.SAVE.value,
+                ),
+                InlineKeyboardButton(
+                    text="📊 Счета за период",
+                    callback_data=CallbackAction.PERIOD.value,
+                ),
             ],
         ]
     )
@@ -213,15 +254,37 @@ def header_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="🏭 Поставщик", callback_data="hed:supplier"),
-                InlineKeyboardButton(text="👤 Клиент", callback_data="hed:client"),
+                InlineKeyboardButton(
+                    text="🏭 Поставщик",
+                    callback_data=CallbackHeader.SUPPLIER.value,
+                ),
+                InlineKeyboardButton(
+                    text="👤 Клиент",
+                    callback_data=CallbackHeader.CLIENT.value,
+                ),
             ],
             [
-                InlineKeyboardButton(text="📅 Дата", callback_data="hed:date"),
-                InlineKeyboardButton(text="📑 Номер", callback_data="hed:doc_number"),
+                InlineKeyboardButton(
+                    text="📅 Дата",
+                    callback_data=CallbackHeader.DATE.value,
+                ),
+                InlineKeyboardButton(
+                    text="📑 Номер",
+                    callback_data=CallbackHeader.DOC_NUMBER.value,
+                ),
             ],
-            [InlineKeyboardButton(text="💰 Итого", callback_data="hed:total_sum")],
-            [InlineKeyboardButton(text="📦 Позиции", callback_data="act_items")],
+            [
+                InlineKeyboardButton(
+                    text="💰 Итого",
+                    callback_data=CallbackHeader.TOTAL_SUM.value,
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📦 Позиции",
+                    callback_data=CallbackAction.ITEMS.value,
+                )
+            ],
         ]
     )
 
@@ -233,7 +296,9 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
     rows = []
     row = []
     for i in range(start, end + 1):
-        row.append(InlineKeyboardButton(text=str(i), callback_data=f"item_pick:{i}"))
+        row.append(
+            InlineKeyboardButton(text=str(i), callback_data=make_item_pick_callback(i))
+        )
         if len(row) == 5:
             rows.append(row)
             row = []
@@ -241,12 +306,26 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
         rows.append(row)
     nav = []
     if page > 1:
-        nav.append(InlineKeyboardButton(text="◀️", callback_data=f"items_page:{page-1}"))
+        nav.append(
+            InlineKeyboardButton(
+                text="◀️", callback_data=make_items_page_callback(page - 1)
+            )
+        )
     if end < n:
-        nav.append(InlineKeyboardButton(text="▶️", callback_data=f"items_page:{page+1}"))
+        nav.append(
+            InlineKeyboardButton(
+                text="▶️", callback_data=make_items_page_callback(page + 1)
+            )
+        )
     if nav:
         rows.append(nav)
-    rows.append([InlineKeyboardButton(text="⬅️ К шапке", callback_data="act_edit")])
+    rows.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ К шапке", callback_data=CallbackAction.EDIT.value
+            )
+        ]
+    )
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -254,12 +333,31 @@ def item_fields_kb(idx: int) -> InlineKeyboardMarkup:
     """Item fields editing keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="✏️ Название", callback_data=f"itm_field:{idx}:name")],
             [
-                InlineKeyboardButton(text="🔢 Кол-во", callback_data=f"itm_field:{idx}:qty"),
-                InlineKeyboardButton(text="💵 Цена", callback_data=f"itm_field:{idx}:price"),
-                InlineKeyboardButton(text="🧮 Сумма", callback_data=f"itm_field:{idx}:total"),
+                InlineKeyboardButton(
+                    text="✏️ Название",
+                    callback_data=make_item_field_callback(idx, "name"),
+                )
             ],
-            [InlineKeyboardButton(text="⬅️ К списку", callback_data="act_items")],
+            [
+                InlineKeyboardButton(
+                    text="🔢 Кол-во",
+                    callback_data=make_item_field_callback(idx, "qty"),
+                ),
+                InlineKeyboardButton(
+                    text="💵 Цена",
+                    callback_data=make_item_field_callback(idx, "price"),
+                ),
+                InlineKeyboardButton(
+                    text="🧮 Сумма",
+                    callback_data=make_item_field_callback(idx, "total"),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⬅️ К списку",
+                    callback_data=CallbackAction.ITEMS.value,
+                )
+            ],
         ]
     )

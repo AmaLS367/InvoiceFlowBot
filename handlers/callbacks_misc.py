@@ -10,6 +10,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
+from handlers.callback_registry import CallbackAction
 from handlers.fsm import InvoicesPeriodState
 from ocr.engine.util import get_logger, set_request_id
 
@@ -19,7 +20,7 @@ logger = get_logger("ocr.engine")
 def setup(router: Router) -> None:
     """Register miscellaneous callback handlers."""
 
-    @router.callback_query(F.data == "act_period")
+    @router.callback_query(F.data == CallbackAction.PERIOD.value)
     async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
         """Handle period action callback - prompt for date range input."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -34,7 +35,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")
 
-    @router.callback_query(F.data == "act_upload")
+    @router.callback_query(F.data == CallbackAction.UPLOAD.value)
     async def cb_act_upload(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle upload action callback - prompt for file upload."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -49,7 +50,7 @@ def setup(router: Router) -> None:
 
         logger.info(f"[TG] update done req={req} h=cb_act_upload")
 
-    @router.callback_query(F.data == "act_help")
+    @router.callback_query(F.data == CallbackAction.HELP.value)
     async def cb_act_help(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle help action callback - show help message."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"

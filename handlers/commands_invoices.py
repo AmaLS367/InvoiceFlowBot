@@ -11,6 +11,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
+from handlers.callback_registry import CallbackAction
 from handlers.deps import get_container, get_invoice_service
 from handlers.fsm import InvoicesPeriodState
 from handlers.utils import format_money
@@ -196,7 +197,7 @@ def setup(router: Router) -> None:
                 )
                 return
 
-    @router.callback_query(F.data == "act_period")
+    @router.callback_query(F.data == CallbackAction.PERIOD.value)
     async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)

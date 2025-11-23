@@ -11,6 +11,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
 from domain.invoices import InvoiceComment
+from handlers.callback_registry import (
+    HEADER_PREFIX,
+    ITEM_FIELD_PREFIX,
+    ITEM_PICK_PREFIX,
+    ITEMS_PAGE_PREFIX,
+    CallbackAction,
+)
 from handlers.deps import get_container, get_draft_service, get_invoice_service
 from handlers.fsm import EditInvoiceState
 from handlers.utils import (
@@ -28,7 +35,7 @@ logger = get_logger("ocr.engine")
 def setup(router: Router) -> None:
     """Register edit-related callback handlers."""
 
-    @router.callback_query(F.data == "act_edit")
+    @router.callback_query(F.data == CallbackAction.EDIT.value)
     async def cb_act_edit(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle edit action callback - show header editing options."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -54,7 +61,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_edit")
 
-    @router.callback_query(F.data.startswith("hed:"))
+    @router.callback_query(F.data.startswith(HEADER_PREFIX))
     async def cb_hed_field(
         call: CallbackQuery,
         state: FSMContext,
@@ -97,7 +104,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_hed_field")
 
-    @router.callback_query(F.data == "act_items")
+    @router.callback_query(F.data == CallbackAction.ITEMS.value)
     async def cb_act_items(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle items action callback - show items list for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -128,7 +135,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_items")
 
-    @router.callback_query(F.data.startswith("items_page:"))
+    @router.callback_query(F.data.startswith(ITEMS_PAGE_PREFIX + ":"))
     async def cb_items_page(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle items pagination callback."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -155,7 +162,7 @@ def setup(router: Router) -> None:
                     await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_items_page")
 
-    @router.callback_query(F.data.startswith("item_pick:"))
+    @router.callback_query(F.data.startswith(ITEM_PICK_PREFIX + ":"))
     async def cb_item_pick(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle item selection callback - show item details for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -190,7 +197,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_item_pick")
 
-    @router.callback_query(F.data.startswith("itm_field:"))
+    @router.callback_query(F.data.startswith(ITEM_FIELD_PREFIX + ":"))
     async def cb_itm_field(
         call: CallbackQuery,
         state: FSMContext,
@@ -225,7 +232,7 @@ def setup(router: Router) -> None:
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_itm_field")
 
-    @router.callback_query(F.data == "act_comment")
+    @router.callback_query(F.data == CallbackAction.COMMENT.value)
     async def cb_act_comment(
         call: CallbackQuery,
         state: FSMContext,
@@ -260,7 +267,7 @@ def setup(router: Router) -> None:
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_comment")
 
-    @router.callback_query(F.data == "act_save")
+    @router.callback_query(F.data == CallbackAction.SAVE.value)
     async def cb_act_save(call: CallbackQuery, data: Dict[str, Any]) -> None:
         """Handle save action callback - save invoice to database."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
