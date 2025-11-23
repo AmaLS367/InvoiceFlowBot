@@ -269,66 +269,58 @@ def _rowset_to_invoice(
     return invoice
 
 
+def _run_async(coro) -> Any:
+    """
+    Helper to run async coroutine from sync context.
+    Handles both cases: when event loop is running and when it's not.
+    """
+    import asyncio
+    import threading
+    from typing import cast
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No event loop running, create a new one
+        return cast(Any, asyncio.run(coro))
+    else:
+        # Event loop is running, run in a new thread with a new event loop
+        # This is needed when sync functions are called from async context (e.g., in tests)
+        result: Any = None
+        exception: Exception | None = None
+
+        def run_in_thread() -> None:
+            nonlocal result, exception
+            try:
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                result = new_loop.run_until_complete(coro)
+                new_loop.close()
+            except Exception as e:
+                exception = e
+
+        thread = threading.Thread(target=run_in_thread)
+        thread.start()
+        thread.join()
+
+        if exception:
+            raise exception
+        return cast(Any, result)
+
+
 def save_invoice_domain(invoice: Invoice, user_id: int = 0) -> int:
     """
     Persist a domain Invoice into the database and return the created invoice ID.
+
+    This is a thin wrapper over AsyncInvoiceStorage.save_invoice for backward compatibility.
+    All SQL logic is in the async layer.
     """
-    con = _conn()
-    cur = con.cursor()
+    from typing import cast
 
-    db_header = _invoice_to_db_header(invoice)
-    iso = db_header.get("date_iso")
+    from storage.db_async import AsyncInvoiceStorage
 
-    cur.execute("""
-        INSERT INTO invoices(user_id, supplier, client, doc_number, date, date_iso, total_sum, raw_text, source_path)
-        VALUES(?,?,?,?,?,?,?,?,?)
-    """, (
-        user_id,
-        db_header.get("supplier"),
-        db_header.get("client"),
-        db_header.get("doc_number"),
-        db_header.get("date"),
-        iso,
-        db_header.get("total_sum"),
-        "",
-        db_header.get("source_path") or "",
-    ))
-
-    invoice_id = cur.lastrowid
-    if invoice_id is None:
-        con.close()
-        return 0
-
-    for index, item in enumerate(invoice.items, 1):
-        db_item = _invoice_item_to_db_row(invoice_id, item, index)
-        cur.execute("""
-            INSERT INTO invoice_items(invoice_id, idx, code, name, qty, price, total)
-            VALUES(?,?,?,?,?,?,?)
-        """, (
-            db_item["invoice_id"],
-            db_item["idx"],
-            db_item["code"],
-            db_item["name"],
-            db_item["qty"],
-            db_item["price"],
-            db_item["total"],
-        ))
-
-    for comment in invoice.comments:
-        comment_user_id = user_id
-        if comment.author:
-            try:
-                comment_user_id = int(comment.author)
-            except (ValueError, TypeError):
-                pass
-        cur.execute(
-            "INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)",
-            (invoice_id, comment_user_id, comment.message)
-        )
-
-    con.commit()
-    con.close()
-    return int(invoice_id or 0)
+    storage = AsyncInvoiceStorage(database_path=DB_PATH)
+    return cast(int, _run_async(storage.save_invoice(invoice, user_id=user_id)))
 
 
 def fetch_invoices_domain(
@@ -338,55 +330,13 @@ def fetch_invoices_domain(
 ) -> List[Invoice]:
     """
     Fetch invoices from the database and return them as domain Invoice entities.
+
+    This is a thin wrapper over AsyncInvoiceStorage.fetch_invoices for backward compatibility.
+    All SQL logic is in the async layer.
     """
-    con = _conn()
+    from typing import cast
 
-    from_iso = from_date.isoformat() if from_date else None
-    to_iso = to_date.isoformat() if to_date else None
+    from storage.db_async import AsyncInvoiceStorage
 
-    if from_iso and to_iso:
-        if supplier:
-            header_rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path FROM invoices "
-                "WHERE COALESCE(date_iso, date) IS NOT NULL "
-                "AND date_iso BETWEEN ? AND ? AND supplier LIKE ? "
-                "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (from_iso, to_iso, f"%{supplier}%")
-            ).fetchall()
-        else:
-            header_rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path FROM invoices "
-                "WHERE COALESCE(date_iso, date) IS NOT NULL "
-                "AND date_iso BETWEEN ? AND ? "
-                "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (from_iso, to_iso)
-            ).fetchall()
-    else:
-        if supplier:
-            header_rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path FROM invoices "
-                "WHERE supplier LIKE ? "
-                "ORDER BY created_at ASC, id ASC",
-                (f"%{supplier}%",)
-            ).fetchall()
-        else:
-            header_rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path FROM invoices "
-                "ORDER BY created_at ASC, id ASC"
-            ).fetchall()
-
-    invoices = []
-    for header_row in header_rows:
-        invoice_id = header_row["id"]
-        item_rows = con.execute(
-            "SELECT code, name, qty, price, total FROM invoice_items WHERE invoice_id=? ORDER BY idx ASC",
-            (invoice_id,)
-        ).fetchall()
-
-        header_dict = dict(header_row)
-        item_dicts = [dict(item_row) for item_row in item_rows]
-        invoice = _rowset_to_invoice(header_dict, item_dicts)
-        invoices.append(invoice)
-
-    con.close()
-    return invoices
+    storage = AsyncInvoiceStorage(database_path=DB_PATH)
+    return cast(List[Invoice], _run_async(storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)))
