@@ -10,7 +10,7 @@ import re
 import sqlite3
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional
 
 from alembic.config import Config
 
@@ -190,56 +190,6 @@ def save_invoice(
     con.commit()
     con.close()
     return int(invoice_id or 0)
-
-
-def add_comment(invoice_id: int, user_id: int, text: str) -> None:
-    con = _conn()
-    con.execute(
-        "INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)", (invoice_id, user_id, text)
-    )
-    con.commit()
-    con.close()
-
-
-def query_invoices(
-    user_id: int, date_from: str, date_to: str, supplier: Optional[str] = None
-) -> List[sqlite3.Row]:
-    f_iso, t_iso = to_iso(date_from), to_iso(date_to)
-    con = _conn()
-    if f_iso and t_iso:
-        if supplier:
-            rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
-                "WHERE user_id=? AND COALESCE(date_iso, date) IS NOT NULL "
-                "AND date_iso BETWEEN ? AND ? AND supplier LIKE ? "
-                "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (user_id, f_iso, t_iso, f"%{supplier}%"),
-            ).fetchall()
-        else:
-            rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
-                "WHERE user_id=? AND COALESCE(date_iso, date) IS NOT NULL "
-                "AND date_iso BETWEEN ? AND ? "
-                "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (user_id, f_iso, t_iso),
-            ).fetchall()
-    else:
-        if supplier:
-            rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
-                "WHERE user_id=? AND created_at BETWEEN ? AND datetime(?, '+1 day') AND supplier LIKE ? "
-                "ORDER BY created_at ASC, id ASC",
-                (user_id, date_from, date_to, f"%{supplier}%"),
-            ).fetchall()
-        else:
-            rows = con.execute(
-                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
-                "WHERE user_id=? AND created_at BETWEEN ? AND datetime(?, '+1 day') "
-                "ORDER BY created_at ASC, id ASC",
-                (user_id, date_from, date_to),
-            ).fetchall()
-    con.close()
-    return cast(List[sqlite3.Row], rows)
 
 
 def items_count(invoice_id: int) -> int:
