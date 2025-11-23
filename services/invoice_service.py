@@ -19,6 +19,8 @@ from domain.invoices import (
 )
 from ocr.engine.types import ExtractionResult, Item
 
+DEFAULT_MAX_OCR_PAGES = 12
+
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
     """
@@ -120,7 +122,7 @@ class InvoiceService:
         self,
         pdf_path: str,
         fast: bool = True,
-        max_pages: int = 12,
+        max_pages: int = DEFAULT_MAX_OCR_PAGES,
     ) -> Invoice:
         """
         Run OCR on the given file and map the result into an Invoice domain object.
@@ -182,6 +184,7 @@ class InvoiceService:
 
 
 __all__ = [
+    "DEFAULT_MAX_OCR_PAGES",
     "InvoiceService",
     "build_invoice_from_extraction",
 ]

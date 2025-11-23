@@ -20,9 +20,16 @@ from handlers.utils import (
     send_chunked,
 )
 from ocr.engine.util import get_logger, save_file, set_request_id
+from services.invoice_service import DEFAULT_MAX_OCR_PAGES
 
 router = Router()
 logger = get_logger("ocr.engine")
+
+# Max number of items to render inline before forcing CSV export.
+MAX_INLINE_ITEMS = 60
+
+# Max total length of items text before preferring CSV (keep a safe margin from Telegram limit).
+MAX_ITEMS_TEXT_LENGTH = MAX_MSG * 2
 
 
 # Note: /start, /help, and /gif handlers are now in handlers/commands_common.py
@@ -73,7 +80,9 @@ async def _process_file_and_create_draft(
 
     try:
         invoice = await invoice_service.process_invoice_file(
-            pdf_path=file_path, fast=True, max_pages=12
+            pdf_path=file_path,
+            fast=True,
+            max_pages=DEFAULT_MAX_OCR_PAGES,
         )
     except Exception as e:
         logger.exception(f"[TG] OCR failed for file {file_path}: {e}")
@@ -102,7 +111,7 @@ async def _process_file_and_create_draft(
         head_text = format_invoice_header(invoice)
         items_text = format_invoice_items(invoice.items)
         await message.answer(head_text, reply_markup=actions_kb())
-        if len(invoice.items) > 60 or len(items_text) > MAX_MSG * 2:
+        if len(invoice.items) > MAX_INLINE_ITEMS or len(items_text) > MAX_ITEMS_TEXT_LENGTH:
             await message.answer("Таблица длинная, отправляю CSV.")
             await message.answer_document(
                 BufferedInputFile(csv_bytes_from_items(invoice.items), filename="invoice_items.csv")

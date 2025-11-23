@@ -12,6 +12,9 @@ from ocr.engine.util import file_sha256, get_logger
 MINDEE_API = config.MINDEE_API_KEY
 MODEL_ID_MINDEE = config.MINDEE_MODEL_ID
 
+# Network timeout for Mindee HTTP calls (seconds).
+MINDEE_HTTP_TIMEOUT_SECONDS = 60
+
 logger = get_logger("ocr.mindee")
 
 
@@ -36,7 +39,7 @@ def mindee_predict(path: str) -> Optional[dict]:
                 url,
                 headers={"Authorization": f"Token {api}"},
                 files={"document": f},
-                timeout=60,
+                timeout=MINDEE_HTTP_TIMEOUT_SECONDS,
             )
         r.raise_for_status()
         return cast(Dict[str, Any], r.json())
