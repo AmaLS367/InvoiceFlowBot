@@ -8,7 +8,6 @@ from __future__ import annotations
 import re
 import sqlite3
 from datetime import date
-from decimal import Decimal
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
@@ -16,11 +15,11 @@ from alembic.config import Config
 
 import config
 from alembic import command
-from domain.invoices import (
-    Invoice,
-    InvoiceHeader,
-    InvoiceItem,
-    InvoiceSourceInfo,
+from domain.invoices import Invoice
+from storage.mappers import (
+    db_row_to_invoice,
+    invoice_item_to_db_row,
+    invoice_to_db_row,
 )
 
 DB_PATH: str = config.DB_PATH
@@ -172,101 +171,11 @@ def items_count(invoice_id: int) -> int:
     return int(n)
 
 
-def _invoice_to_db_header(invoice: Invoice) -> dict:
-    """
-    Convert domain Invoice header to a dict suitable for inserting into the invoices table.
-    """
-    header = invoice.header
-    date_iso = None
-    if header.invoice_date:
-        date_iso = header.invoice_date.isoformat()
-
-    source_path = None
-    if invoice.source and invoice.source.file_path:
-        source_path = invoice.source.file_path
-
-    total_sum = None
-    if header.total_amount is not None:
-        total_sum = float(header.total_amount)
-
-    return {
-        "supplier": header.supplier_name,
-        "client": header.customer_name,
-        "doc_number": header.invoice_number,
-        "date": header.invoice_date.isoformat() if header.invoice_date else None,
-        "date_iso": date_iso,
-        "total_sum": total_sum,
-        "source_path": source_path,
-    }
-
-
-def _invoice_item_to_db_row(invoice_id: int, item: InvoiceItem, index: int) -> dict:
-    """
-    Convert a single InvoiceItem to a dict suitable for inserting into the invoice_items table.
-    """
-    return {
-        "invoice_id": invoice_id,
-        "idx": index,
-        "code": item.sku or "",
-        "name": item.description or "",
-        "qty": float(item.quantity),
-        "price": float(item.unit_price),
-        "total": float(item.line_total),
-    }
-
-
-def _rowset_to_invoice(
-    header_row: dict,
-    item_rows: List[dict],
-) -> Invoice:
-    """
-    Build a domain Invoice entity from a database header row and related item rows.
-    """
-    invoice_date = None
-    if header_row.get("date_iso"):
-        try:
-            invoice_date = date.fromisoformat(header_row["date_iso"])
-        except (ValueError, TypeError):
-            pass
-
-    total_amount = None
-    if header_row.get("total_sum") is not None:
-        total_amount = Decimal(str(header_row["total_sum"]))
-
-    header = InvoiceHeader(
-        supplier_name=header_row.get("supplier"),
-        customer_name=header_row.get("client"),
-        invoice_number=header_row.get("doc_number"),
-        invoice_date=invoice_date,
-        total_amount=total_amount,
-    )
-
-    items = []
-    for item_row in item_rows:
-        item = InvoiceItem(
-            description=item_row.get("name") or "",
-            sku=item_row.get("code"),
-            quantity=Decimal(str(item_row.get("qty", 0))),
-            unit_price=Decimal(str(item_row.get("price", 0))),
-            line_total=Decimal(str(item_row.get("total", 0))),
-        )
-        items.append(item)
-
-    source = InvoiceSourceInfo(
-        file_path=header_row.get("source_path"),
-        file_sha256=None,
-        provider=None,
-        raw_payload_path=None,
-    )
-
-    invoice = Invoice(
-        header=header,
-        items=items,
-        comments=[],
-        source=source,
-    )
-
-    return invoice
+# Mapping functions moved to storage/mappers.py
+# Keep old function names as aliases for backward compatibility
+_invoice_to_db_header = invoice_to_db_row
+_invoice_item_to_db_row = invoice_item_to_db_row
+_rowset_to_invoice = db_row_to_invoice
 
 
 def _run_async(coro) -> Any:

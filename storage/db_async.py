@@ -12,11 +12,11 @@ from typing import Any, List, Optional, Tuple
 import aiosqlite
 
 from domain.invoices import Invoice
-from storage.db import (
-    DB_PATH,
-    _invoice_item_to_db_row,
-    _invoice_to_db_header,
-    _rowset_to_invoice,
+from storage.db import DB_PATH
+from storage.mappers import (
+    db_row_to_invoice,
+    invoice_item_to_db_row,
+    invoice_to_db_row,
 )
 
 
@@ -58,25 +58,14 @@ class AsyncInvoiceStorage:
         connection = await self._get_connection()
         try:
             cursor = await connection.cursor()
-            db_header = _invoice_to_db_header(invoice)
-            iso = db_header.get("date_iso")
+            db_row = invoice_to_db_row(invoice, user_id=user_id)
 
             await cursor.execute(
                 """
                 INSERT INTO invoices(user_id, supplier, client, doc_number, date, date_iso, total_sum, raw_text, source_path)
-                VALUES(?,?,?,?,?,?,?,?,?)
+                VALUES(:user_id, :supplier, :client, :doc_number, :date, :date_iso, :total_sum, :raw_text, :source_path)
                 """,
-                (
-                    user_id,
-                    db_header.get("supplier"),
-                    db_header.get("client"),
-                    db_header.get("doc_number"),
-                    db_header.get("date"),
-                    iso,
-                    db_header.get("total_sum"),
-                    "",
-                    db_header.get("source_path") or "",
-                ),
+                db_row,
             )
 
             invoice_id = cursor.lastrowid
@@ -85,21 +74,13 @@ class AsyncInvoiceStorage:
                 return 0
 
             for index, item in enumerate(invoice.items, 1):
-                db_item = _invoice_item_to_db_row(int(invoice_id), item, index)
+                item_row = invoice_item_to_db_row(int(invoice_id), item, index)
                 await cursor.execute(
                     """
                     INSERT INTO invoice_items(invoice_id, idx, code, name, qty, price, total)
-                    VALUES(?,?,?,?,?,?,?)
+                    VALUES(:invoice_id, :idx, :code, :name, :qty, :price, :total)
                     """,
-                    (
-                        db_item["invoice_id"],
-                        db_item["idx"],
-                        db_item["code"],
-                        db_item["name"],
-                        db_item["qty"],
-                        db_item["price"],
-                        db_item["total"],
-                    ),
+                    item_row,
                 )
 
             for comment in invoice.comments:
@@ -195,7 +176,7 @@ class AsyncInvoiceStorage:
 
                 header_dict = dict(header_row)
                 item_dicts = [dict(item_row) for item_row in item_rows]
-                invoice = _rowset_to_invoice(header_dict, item_dicts)
+                invoice = db_row_to_invoice(header_dict, item_dicts)
                 invoices.append(invoice)
 
             return invoices
