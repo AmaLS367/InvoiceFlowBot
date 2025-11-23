@@ -3,13 +3,14 @@ import time
 import uuid
 from datetime import date
 from decimal import Decimal
+from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
-from core.container import AppContainer
 from domain.invoices import InvoiceComment
+from handlers.deps import get_container, get_draft_service, get_invoice_service
 from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
     format_invoice_full,
@@ -18,10 +19,9 @@ from handlers.utils import (
     main_kb,
 )
 from ocr.engine.util import get_logger, set_request_id
-from storage.db import init_db, to_iso
+from storage.db import to_iso
 
 router = Router()
-init_db()
 logger = get_logger("ocr.engine")
 
 
@@ -41,7 +41,7 @@ def _parse_date_str(date_str: str) -> date | None:
     return None
 
 @router.message(F.text == "/start")
-async def cmd_start(message: Message):
+async def cmd_start(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_start")
@@ -54,7 +54,7 @@ async def cmd_start(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_start")
 
 @router.message(F.text == "/help")
-async def cmd_help(message: Message):
+async def cmd_help(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_help")
@@ -66,19 +66,18 @@ async def cmd_help(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_help")
 
 @router.message(F.text == "/show")
-async def cmd_show(
-    message: Message,
-    container: AppContainer,
-):
+async def cmd_show(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_show")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = message.from_user.id if message.from_user else 0
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Пришлите документ.")
         return
-    
+
     invoice = draft.invoice
     full_text = format_invoice_full(invoice)
     await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
@@ -88,17 +87,20 @@ async def cmd_show(
 async def on_force_reply(
     message: Message,
     state: FSMContext,
-    container: AppContainer,
-):
+    data: Dict[str, Any],
+) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=on_force_reply")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
+    invoice_service = get_invoice_service(container)
     uid = message.from_user.id if message.from_user else 0
-    
+
     current_state = await state.get_state()
-    
+
     if current_state == EditInvoiceState.waiting_for_comment:
-        draft = await container.draft_service_module.get_current_draft(uid)
+        draft = await draft_service.get_current_draft(uid)
         if draft is None:
             await message.answer("Нет черновика. Загрузите документ.")
             await state.clear()
@@ -108,7 +110,7 @@ async def on_force_reply(
             await message.answer("Пустой комментарий игнорирован.")
         else:
             draft.comments.append(text)
-            await container.draft_service_module.set_current_draft(uid, draft)
+            await draft_service.set_current_draft(uid, draft)
             await message.answer("Комментарий добавлен.")
         await state.clear()
         logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
@@ -118,8 +120,8 @@ async def on_force_reply(
         if message.text is not None:
             val = message.text.strip()
             iso = to_iso(val) or val
-            data = await state.get_data()
-            period = data.get("period") or {}
+            state_data = await state.get_data()
+            period = state_data.get("period") or {}
             period["from"] = iso
             await state.update_data({"period": period})
             await state.set_state(InvoicesPeriodState.waiting_for_to_date)
@@ -130,8 +132,8 @@ async def on_force_reply(
         if message.text is not None:
             val = message.text.strip()
             iso = to_iso(val) or val
-            data = await state.get_data()
-            period = data.get("period") or {}
+            state_data = await state.get_data()
+            period = state_data.get("period") or {}
             period["to"] = iso
             await state.update_data({"period": period})
             await state.set_state(InvoicesPeriodState.waiting_for_supplier)
@@ -143,8 +145,8 @@ async def on_force_reply(
         if message.text is not None:
             val = message.text.strip()
             supplier = None if val in ("", "-") else val
-            data = await state.get_data()
-            period = data.get("period") or {}
+            state_data = await state.get_data()
+            period = state_data.get("period") or {}
             f_str = period.get("from")
             t_str = period.get("to")
             await state.clear()
@@ -155,8 +157,8 @@ async def on_force_reply(
 
             from_date = _parse_date_str(f_str)
             to_date = _parse_date_str(t_str)
-            
-            invoices = await container.invoice_service_module.list_invoices(
+
+            invoices = await invoice_service.list_invoices(
                 from_date=from_date, to_date=to_date, supplier=supplier
             )
             if not invoices:
@@ -181,16 +183,16 @@ async def on_force_reply(
             return
 
     if current_state == EditInvoiceState.waiting_for_field_value:
-        data = await state.get_data()
-        edit_config = data.get("edit_config") or {}
+        state_data = await state.get_data()
+        edit_config = state_data.get("edit_config") or {}
         kind = edit_config.get("kind")
-        
-        draft = await container.draft_service_module.get_current_draft(uid)
+
+        draft = await draft_service.get_current_draft(uid)
         if draft is None:
             await message.answer("Нет черновика. Загрузите документ.")
             await state.clear()
             return
-        
+
         invoice = draft.invoice
         if message.text is not None:
             val = message.text.strip()
@@ -203,7 +205,6 @@ async def on_force_reply(
             elif k == "client":
                 header.customer_name = val
             elif k == "date":
-                # Try to parse date
                 parsed_date = _parse_date_str(val)
                 header.invoice_date = parsed_date
             elif k == "doc_number":
@@ -215,7 +216,7 @@ async def on_force_reply(
                 except (ValueError, TypeError, Exception):
                     ok = False
                 await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
-                await container.draft_service_module.set_current_draft(uid, draft)
+                await draft_service.set_current_draft(uid, draft)
                 await state.clear()
                 return
             await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
@@ -251,8 +252,8 @@ async def on_force_reply(
                     await message.answer("Не число. Повторите.")
                     return
             await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
-        
-        await container.draft_service_module.set_current_draft(uid, draft)
+
+        await draft_service.set_current_draft(uid, draft)
         await state.clear()
         logger.info(f"[TG] update done req={req} h=on_force_reply")
         return
@@ -261,15 +262,14 @@ async def on_force_reply(
     logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
 
 @router.message(F.text.regexp(r"^/comment(\s|$)"))
-async def cmd_comment(
-    message: Message,
-    container: AppContainer,
-):
+async def cmd_comment(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_comment")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = message.from_user.id if message.from_user else 0
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
@@ -279,32 +279,32 @@ async def cmd_comment(
             await message.answer("Формат: /comment ваш текст")
             return
     draft.comments.append(text)
-    await container.draft_service_module.set_current_draft(uid, draft)
+    await draft_service.set_current_draft(uid, draft)
     await message.answer("Комментарий добавлен. /save чтобы сохранить в БД.")
     logger.info(f"[TG] update done req={req} h=cmd_comment")
 
 @router.message(F.text == "/save")
-async def cmd_save(
-    message: Message,
-    container: AppContainer,
-):
+async def cmd_save(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_save")
+    container = get_container(data)
+    invoice_service = get_invoice_service(container)
+    draft_service = get_draft_service(container)
     uid = message.from_user.id if message.from_user else 0
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика.")
         return
-    
+
     invoice = draft.invoice
     comments = draft.comments
-    
+
     # Auto-comment for sum mismatch
     header_sum = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
     sum_items = sum(float(item.line_total) for item in invoice.items)
     diff = round(sum_items - header_sum, 2)
-    
+
     if abs(diff) >= 0.01:
         doc_number = invoice.header.invoice_number or "—"
         supplier = invoice.header.supplier_name or "—"
@@ -316,25 +316,24 @@ async def cmd_save(
         existing_messages = [c.message for c in invoice.comments]
         if auto_text not in existing_messages:
             invoice.comments.append(InvoiceComment(message=auto_text))
-    
+
     # Add text comments
     for comment_text in comments:
         if isinstance(comment_text, str):
             invoice.comments.append(InvoiceComment(message=comment_text))
-    
-    inv_id = await container.invoice_service_module.save_invoice(invoice, user_id=uid)
-    await container.draft_service_module.clear_current_draft(uid)
+
+    inv_id = await invoice_service.save_invoice(invoice, user_id=uid)
+    await draft_service.clear_current_draft(uid)
     await message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     logger.info(f"[TG] update done req={req} h=cmd_save")
 
 @router.message(F.text.regexp(r"^/invoices\s"))
-async def cmd_invoices(
-    message: Message,
-    container: AppContainer,
-):
+async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
+    container = get_container(data)
+    invoice_service = get_invoice_service(container)
     if message.text is None:
         await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
         return
@@ -349,8 +348,8 @@ async def cmd_invoices(
 
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
-    
-    invoices = await container.invoice_service_module.list_invoices(
+
+    invoices = await invoice_service.list_invoices(
         from_date=from_date, to_date=to_date, supplier=supplier
     )
     if not invoices:
@@ -375,16 +374,14 @@ async def cmd_invoices(
     logger.info(f"[TG] update done req={req} h=cmd_invoices")
 
 @router.message(F.text.regexp(r"^/edit(\s|$)"))
-async def cmd_edit_legacy(
-    message: Message,
-    container: AppContainer,
-):
+async def cmd_edit_legacy(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_edit_legacy")
-
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = message.from_user.id if message.from_user else 0
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
@@ -395,7 +392,7 @@ async def cmd_edit_legacy(
     if len(args) < 2:
         await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45")
         return
-    
+
     invoice = draft.invoice
     for part in re.split(r"[;,]\s*|\s{2,}", args[1].strip()):
         if "=" in part:
@@ -415,51 +412,49 @@ async def cmd_edit_legacy(
                     header.total_amount = Decimal(str(v.replace(",", ".")))
                 except (ValueError, TypeError):
                     pass
-    
-    await container.draft_service_module.set_current_draft(uid, draft)
+
+    await draft_service.set_current_draft(uid, draft)
     await message.answer("Ок. Поля обновлены. /show для проверки или /save для сохранения.")
     logger.info(f"[TG] update done req={req} h=cmd_edit_legacy")
 
 @router.message(F.text.regexp(r"^/edititem(\s|$)"))
-async def cmd_edititem_legacy(
-    message: Message,
-    container: AppContainer,
-):
-     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-     set_request_id(req)
-     logger.info(f"[TG] update start req={req} h=cmd_edititem_legacy")
+async def cmd_edititem_legacy(message: Message, data: Dict[str, Any]) -> None:
+    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
+    set_request_id(req)
+    logger.info(f"[TG] update start req={req} h=cmd_edititem_legacy")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
+    uid = message.from_user.id if message.from_user else 0
 
-     uid = message.from_user.id if message.from_user else 0
-
-     draft = await container.draft_service_module.get_current_draft(uid)
-     if draft is None:
+    draft = await draft_service.get_current_draft(uid)
+    if draft is None:
         await message.answer("Нет черновика. Загрузите документ.")
         return
-     
-     if message.text is None:
-        await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
-        return
-     args = message.text.split(" ", 2)
 
-     if len(args) < 3:
+    if message.text is None:
         await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
         return
-     
-     try: 
-         idx = int(args[1])
-     except (ValueError, TypeError):
+    args = message.text.split(" ", 2)
+
+    if len(args) < 3:
+        await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+        return
+
+    try:
+        idx = int(args[1])
+    except (ValueError, TypeError):
         await message.answer("Неверный индекс.")
         return
-     
-     invoice = draft.invoice
-     items = invoice.items
-     if idx < 1 or idx > len(items):
+
+    invoice = draft.invoice
+    items = invoice.items
+    if idx < 1 or idx > len(items):
         await message.answer("Индекс вне диапазона.")
         return
-     
-     item = items[idx-1]
-     updates = args[2]
-     for part in re.split(r"[;,]\s*|\s{2,}", updates.strip()):
+
+    item = items[idx-1]
+    updates = args[2]
+    for part in re.split(r"[;,]\s*|\s{2,}", updates.strip()):
         if "=" in part:
             k, v = part.split("=", 1)
             k = k.strip().lower()
@@ -482,12 +477,12 @@ async def cmd_edititem_legacy(
                     item.line_total = Decimal(str(v.replace(",", ".")))
                 except (ValueError, TypeError):
                     pass
-     await container.draft_service_module.set_current_draft(uid, draft)
-     await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
-     logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
+    await draft_service.set_current_draft(uid, draft)
+    await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
+    logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
 
 @router.callback_query(F.data == "act_period")
-async def cb_act_period(call: CallbackQuery, state: FSMContext):
+async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_period")

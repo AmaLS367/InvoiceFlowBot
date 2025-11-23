@@ -3,13 +3,14 @@ Callback handlers for invoice editing and actions.
 """
 import time
 import uuid
+from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
-from core.container import AppContainer
 from domain.invoices import InvoiceComment
+from handlers.deps import get_container, get_draft_service, get_invoice_service
 from handlers.fsm import EditInvoiceState, InvoicesPeriodState
 from handlers.utils import (
     format_invoice_header,
@@ -25,16 +26,15 @@ logger = get_logger("ocr.engine")
 
 
 @router.callback_query(F.data == "act_edit")
-async def cb_act_edit(
-    call: CallbackQuery,
-    container: AppContainer,
-):
+async def cb_act_edit(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle edit action callback - show header editing options."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_edit")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -54,14 +54,16 @@ async def cb_act_edit(
 async def cb_hed_field(
     call: CallbackQuery,
     state: FSMContext,
-    container: AppContainer,
-):
+    data: Dict[str, Any],
+) -> None:
     """Handle header field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_hed_field")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -85,16 +87,15 @@ async def cb_hed_field(
 
 
 @router.callback_query(F.data == "act_items")
-async def cb_act_items(
-    call: CallbackQuery,
-    container: AppContainer,
-):
+async def cb_act_items(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle items action callback - show items list for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_items")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -115,16 +116,15 @@ async def cb_act_items(
 
 
 @router.callback_query(F.data.startswith("items_page:"))
-async def cb_items_page(
-    call: CallbackQuery,
-    container: AppContainer,
-):
+async def cb_items_page(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle items pagination callback."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_items_page")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -142,16 +142,15 @@ async def cb_items_page(
 
 
 @router.callback_query(F.data.startswith("item_pick:"))
-async def cb_item_pick(
-    call: CallbackQuery,
-    container: AppContainer,
-):
+async def cb_item_pick(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle item selection callback - show item details for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_item_pick")
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         await call.answer()
         return
@@ -182,8 +181,8 @@ async def cb_item_pick(
 async def cb_itm_field(
     call: CallbackQuery,
     state: FSMContext,
-    container: AppContainer,
-):
+    data: Dict[str, Any],
+) -> None:
     """Handle item field selection for editing."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -215,15 +214,16 @@ async def cb_itm_field(
 async def cb_act_comment(
     call: CallbackQuery,
     state: FSMContext,
-    container: AppContainer,
-):
+    data: Dict[str, Any],
+) -> None:
     """Handle comment action callback - prompt for comment input."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_comment")
-
+    container = get_container(data)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -245,17 +245,16 @@ async def cb_act_comment(
 
 
 @router.callback_query(F.data == "act_save")
-async def cb_act_save(
-    call: CallbackQuery,
-    container: AppContainer,
-):
+async def cb_act_save(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle save action callback - save invoice to database."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cb_act_save")
-
+    container = get_container(data)
+    invoice_service = get_invoice_service(container)
+    draft_service = get_draft_service(container)
     uid = call.from_user.id
-    draft = await container.draft_service_module.get_current_draft(uid)
+    draft = await draft_service.get_current_draft(uid)
     if draft is None:
         if call.message is not None:
             await call.message.answer("Нет черновика. Пришлите документ.")
@@ -269,7 +268,7 @@ async def cb_act_save(
     header_sum = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
     sum_items = sum(float(item.line_total) for item in invoice.items)
     diff = round(sum_items - header_sum, 2)
-    
+
     if abs(diff) >= 0.01:
         doc_number = invoice.header.invoice_number or "—"
         supplier = invoice.header.supplier_name or "—"
@@ -281,8 +280,8 @@ async def cb_act_save(
         if auto_text not in comments:
             invoice.comments.append(InvoiceComment(message=auto_text))
 
-    inv_id = await container.invoice_service_module.save_invoice(invoice, user_id=uid)
-    await container.draft_service_module.clear_current_draft(uid)
+    inv_id = await invoice_service.save_invoice(invoice, user_id=uid)
+    await draft_service.clear_current_draft(uid)
     if call.message is not None:
         await call.message.answer(f"Сохранено в БД. ID счета: {inv_id}")
     await call.answer()
@@ -290,7 +289,7 @@ async def cb_act_save(
 
 
 @router.callback_query(F.data == "act_period")
-async def cb_act_period(call: CallbackQuery, state: FSMContext):
+async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
     """Handle period action callback - prompt for date range input."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -304,7 +303,7 @@ async def cb_act_period(call: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "act_upload")
-async def cb_act_upload(call: CallbackQuery):
+async def cb_act_upload(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle upload action callback - prompt for file upload."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
@@ -313,12 +312,12 @@ async def cb_act_upload(call: CallbackQuery):
     if call.message is not None:
         await call.message.answer("Пришлите файл: PDF или фото накладной. Бот распознаёт и покажет черновик.")
         await call.answer()
-    
+
     logger.info(f"[TG] update done req={req} h=cb_act_upload")
 
 
 @router.callback_query(F.data == "act_help")
-async def cb_act_help(call: CallbackQuery):
+async def cb_act_help(call: CallbackQuery, data: Dict[str, Any]) -> None:
     """Handle help action callback - show help message."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)

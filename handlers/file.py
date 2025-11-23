@@ -2,13 +2,14 @@ import os
 import time
 import uuid
 from pathlib import Path
+from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
 from PIL import Image, ImageOps
 
-from core.container import AppContainer
 from domain.drafts import InvoiceDraft
+from handlers.deps import get_container, get_draft_service, get_invoice_service
 from handlers.utils import (
     MAX_MSG,
     actions_kb,
@@ -20,15 +21,13 @@ from handlers.utils import (
     send_chunked,
 )
 from ocr.engine.util import get_logger, save_file, set_request_id
-from storage.db import init_db
 
 router = Router()
-init_db()
 logger = get_logger("ocr.engine")
 
 
 @router.message(F.text == "/start")
-async def cmd_start(message: Message):
+async def cmd_start(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_start")
@@ -43,7 +42,7 @@ async def cmd_start(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_start")
 
 @router.message(F.text == "/help")
-async def cmd_help(message: Message):
+async def cmd_help(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_help")
@@ -61,7 +60,7 @@ async def cmd_help(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_help")
 
 @router.message(F.gif | F.animation)
-async def cmd_gif(message: Message):
+async def cmd_gif(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_gif")
@@ -71,13 +70,13 @@ async def cmd_gif(message: Message):
     logger.info(f"[TG] update done req={req} h=cmd_gif")
 
 @router.message(F.document | F.photo)
-async def handle_doc_or_photo(
-    message: Message,
-    container: AppContainer,
-):
+async def handle_doc_or_photo(message: Message, data: Dict[str, Any]) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=handle_doc_or_photo")
+    container = get_container(data)
+    invoice_service = get_invoice_service(container)
+    draft_service = get_draft_service(container)
 
     file = None
     if message.document:
@@ -88,16 +87,16 @@ async def handle_doc_or_photo(
     if not file:
         await message.answer("Не удалось получить файл.")
         return
-    
+
     if message.bot is None:
         await message.answer("Ошибка: бот недоступен")
         return
-    
-    path = await save_file(file, message.bot) 
+
+    path = await save_file(file, message.bot)
     if path is None:
         await message.answer("Ошибка при сохранении файла")
         return
-    
+
     ext = os.path.splitext(path)[1].lower()
     if ext in {".heic", ".heif", ".webp"}:
         try:
@@ -109,7 +108,7 @@ async def handle_doc_or_photo(
             logger.exception(f"[TG] Failed to convert {ext} file to JPEG: {e}")
             await message.answer("Не удалось обработать файл. Попробуйте другой формат (PDF, JPG, PNG).")
             return
-        
+
     if not path.lower().endswith(".pdf"):
         try:
             img = Image.open(path)
@@ -126,7 +125,7 @@ async def handle_doc_or_photo(
     await message.answer("📥 Получил файл. Распознаю…")
 
     try:
-        invoice = await container.invoice_service_module.process_invoice_file(
+        invoice = await invoice_service.process_invoice_file(
             pdf_path=path, fast=True, max_pages=12
         )
     except Exception as e:
@@ -141,7 +140,7 @@ async def handle_doc_or_photo(
         raw_text="",
         comments=[],
     )
-    await container.draft_service_module.set_current_draft(user_id=uid, draft=draft)
+    await draft_service.set_current_draft(user_id=uid, draft=draft)
 
     full_text = format_invoice_full(invoice)
 
