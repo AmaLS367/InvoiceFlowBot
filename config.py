@@ -9,10 +9,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Application configuration loaded from environment variables and optional .env file.
-    """
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -32,7 +28,6 @@ class Settings(BaseSettings):
     LOG_CONSOLE: str = "0"
     LOG_DIR: Optional[str] = None
 
-    # Database configuration
     DB_FILENAME: str = Field("data.sqlite", alias="INVOICE_DB_PATH")
     DB_DIR: Path = Field(
         default_factory=lambda: Path(__file__).resolve().parent,

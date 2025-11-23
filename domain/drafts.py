@@ -8,13 +8,6 @@ from domain.invoices import Invoice
 
 @dataclass
 class InvoiceDraft:
-    """
-    In-progress invoice draft for a user.
-
-    Keeps the parsed Invoice together with source file path,
-    optional raw OCR text and user comments that are not yet persisted.
-    """
-
     invoice: Invoice
     path: str
     raw_text: str = ""

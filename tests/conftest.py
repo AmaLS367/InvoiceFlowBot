@@ -11,12 +11,14 @@ project_root_str = str(project_root)
 if project_root_str not in sys.path:
     sys.path.insert(0, project_root_str)
 
-from typing import Any, Dict  # noqa: E402
+from datetime import date  # noqa: E402
+from typing import Any, Dict, List, Optional  # noqa: E402
 
 import pytest  # noqa: E402
 
 from config import Settings  # noqa: E402
 from core.container import AppContainer  # noqa: E402
+from domain.invoices import Invoice  # noqa: E402
 from handlers.di_middleware import ContainerMiddleware  # noqa: E402
 from storage.db_async import AsyncInvoiceStorage  # noqa: E402
 from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor  # noqa: E402
@@ -213,3 +215,45 @@ def file_handlers_data(file_handlers_container: AppContainer) -> Dict[str, Any]:
     This fixture provides the data dict that handlers expect from ContainerMiddleware.
     """
     return {"container": file_handlers_container}
+
+
+@pytest.fixture()
+def integration_flow_container(
+    app_config_with_test_db: Settings,
+    async_storage_with_migrations: AsyncInvoiceStorage,
+) -> AppContainer:
+    """
+    Create an AppContainer for integration flow testing.
+
+    Uses real AsyncInvoiceStorage with migrated database, but fake OCR.
+    All services (InvoiceService, DraftService) are created with real dependencies.
+    """
+    # Create fake OCR
+    fake_ocr = FakeOcr()
+
+    # Create a single FakeStorage instance for drafts to ensure data persistence
+    fake_draft_storage = FakeStorage()
+
+    # Create wrapper functions for storage methods
+    async def save_invoice_wrapper(invoice: Invoice, user_id: int) -> int:
+        return await async_storage_with_migrations.save_invoice(invoice, user_id)
+
+    async def fetch_invoices_wrapper(
+        from_date: Optional[date],
+        to_date: Optional[date],
+        supplier: Optional[str],
+    ) -> List[Invoice]:
+        return await async_storage_with_migrations.fetch_invoices(from_date, to_date, supplier)
+
+    # Create container with real storage but fake OCR
+    container = AppContainer(
+        config=app_config_with_test_db,
+        ocr_extractor=make_fake_ocr_extractor(fake_ocr=fake_ocr),
+        save_invoice_func=save_invoice_wrapper,
+        fetch_invoices_func=fetch_invoices_wrapper,
+        load_draft_func=make_fake_load_draft_func(fake_storage=fake_draft_storage),
+        save_draft_func=make_fake_save_draft_func(fake_storage=fake_draft_storage),
+        delete_draft_func=make_fake_delete_draft_func(fake_storage=fake_draft_storage),
+    )
+
+    return container

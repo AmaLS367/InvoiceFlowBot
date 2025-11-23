@@ -34,11 +34,6 @@ async def _run_bot() -> None:
 
 
 def main() -> None:
-    """
-    Sync entrypoint used by the console script.
-
-    It wraps the async bot runner into asyncio.run.
-    """
     asyncio.run(_run_bot())
 
 
