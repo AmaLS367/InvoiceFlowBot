@@ -1,6 +1,8 @@
 # InvoiceFlowBot
 [![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
 
+For Russian documentation see [README.ru.md](README.ru.md) and [docs/ru/index.md](docs/ru/index.md).
+
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
 ## Features
@@ -15,7 +17,7 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.11+
 - Telegram Bot Token
 - Mindee API Key
 
@@ -71,22 +73,7 @@ MINDEE_MODEL_ID=mindee/invoices/v4
 DB_FILENAME=data.sqlite
 ```
 
-At runtime the application reads values from the environment and `.env` through the `config.Settings` model.
-
-### Конфигурация
-
-Бот настраивается через переменные окружения, которые собираются в `config.py` через pydantic settings.
-
-Для локальной разработки можно создать файл `.env` в корне проекта:
-
-```env
-BOT_TOKEN=123456:ABCDEF_your_bot_token
-MINDEE_API_KEY=your-mindee-api-key
-MINDEE_MODEL_ID=mindee/invoices/v4
-DB_FILENAME=data.sqlite
-```
-
-Во время запуска приложение читает эти значения через модель `Settings`.
+On startup the application reads these values into the `Settings` model.
 
 5. Run the bot:
 ```powershell
@@ -201,18 +188,6 @@ python -m alembic upgrade head
 
 The application entrypoints call `storage.db.init_db()`, which will also upgrade the database to the latest migration.
 
-### Настройка базы данных
-
-Схема базы управляется через Alembic.
-
-Перед запуском бота или тестов убедитесь, что применены все миграции:
-
-```powershell
-python -m alembic upgrade head
-```
-
-Точка входа вызывает `storage.db.init_db()`, внутри которого выполняется миграция до актуальной версии.
-
 The database tables include:
 - Invoices (header information)
 - Items (line items for each invoice)
@@ -234,7 +209,7 @@ Logs are written to the `logs/` directory by default:
 
 ## Screenshots
 
-- [Скриншоты работы бота (RU)](docs/ru/screenshots.md)
+- [Screenshots (RU)](docs/ru/screenshots.md)
 - [Bot screenshots (EN)](docs/en/screenshots.md)
 
 ## License
