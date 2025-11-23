@@ -1,3 +1,0 @@
-# Runtime installation of InvoiceFlowBot.
-# All dependency versions are defined in pyproject.toml.
-.

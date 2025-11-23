@@ -1,6 +1,7 @@
 """
 Happy path tests for file upload handlers: documents and photos.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -66,9 +67,7 @@ async def test_handle_invoice_document_happy_path(
 
     # Verify draft service was called
     assert len(draft_service.calls) >= 1
-    set_draft_calls = [
-        c for c in draft_service.calls if c.get("method") == "set_current_draft"
-    ]
+    set_draft_calls = [c for c in draft_service.calls if c.get("method") == "set_current_draft"]
     assert len(set_draft_calls) >= 1
 
     # Verify message was sent
@@ -119,14 +118,14 @@ async def test_handle_invoice_photo_happy_path(
             # Mock Path operations
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("pathlib.Path.suffix", return_value=".jpg"):
-                    with patch("pathlib.Path.with_suffix", return_value=Path("temp/test_photo.jpg")):
+                    with patch(
+                        "pathlib.Path.with_suffix", return_value=Path("temp/test_photo.jpg")
+                    ):
                         await handle_invoice_photo(message, file_handlers_data)
 
     # Verify draft service was called
     assert len(draft_service.calls) >= 1
-    set_draft_calls = [
-        c for c in draft_service.calls if c.get("method") == "set_current_draft"
-    ]
+    set_draft_calls = [c for c in draft_service.calls if c.get("method") == "set_current_draft"]
     assert len(set_draft_calls) >= 1
 
     # Verify message was sent
@@ -134,4 +133,3 @@ async def test_handle_invoice_photo_happy_path(
     first_answer = message.answers[0]["text"]
     assert isinstance(first_answer, str)
     assert first_answer != ""
-

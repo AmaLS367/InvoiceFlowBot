@@ -4,6 +4,7 @@ Async data access layer built on top of aiosqlite.
 Provides high-level operations for reading and writing invoice-related data.
 All SQL logic is centralized in the AsyncInvoiceStorage class.
 """
+
 from __future__ import annotations
 
 from datetime import date

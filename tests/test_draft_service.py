@@ -94,4 +94,3 @@ async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     await service.clear_current_draft(user_id)
     loaded_after_clear = await service.get_current_draft(user_id)
     assert loaded_after_clear is None
-

@@ -44,4 +44,3 @@ docker-compose up --build -d
 - `./logs:/app/logs` — OCR and error logs accessible outside the container.
 
 Keep backups of both paths before upgrades to avoid data loss.
-

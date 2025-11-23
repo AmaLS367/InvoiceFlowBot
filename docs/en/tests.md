@@ -1,6 +1,6 @@
 # Tests
 
-InvoiceFlowBot uses pytest, with development dependencies listed in `requirements-dev.txt`.
+InvoiceFlowBot uses pytest, with development dependencies defined in `pyproject.toml` under the `[project.optional-dependencies]` section.
 
 ## How to run
 
@@ -9,7 +9,7 @@ git clone https://github.com/AmaLS367/InvoiceFlowBot.git
 cd InvoiceFlowBot
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 pytest
 ```
 
@@ -36,8 +36,7 @@ The project uses automated code quality checks:
 
 ```powershell
 # Install development dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 
 # Run linter
 python -m ruff check .
@@ -63,4 +62,3 @@ The CI pipeline automatically runs `ruff`, `mypy`, and `pytest` on every push an
 - Run `pytest` locally (or rely on CI) before submitting pull requests.
 - Provide anonymized fixtures for tricky OCR cases to prevent regressions.
 - Ensure code passes `ruff` and `mypy` checks before submitting pull requests.
-

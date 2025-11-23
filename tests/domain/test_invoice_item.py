@@ -1,6 +1,7 @@
 """
 Unit tests for InvoiceItem domain entity.
 """
+
 from decimal import Decimal
 
 from domain.invoices import InvoiceItem

@@ -1,6 +1,7 @@
 """
 Smoke tests for handlers wiring and router structure.
 """
+
 from aiogram import Router
 
 from handlers import callbacks, commands
@@ -16,4 +17,3 @@ def test_callbacks_router_is_defined() -> None:
     """Test that callbacks router is defined and is a Router instance."""
     assert hasattr(callbacks, "router")
     assert isinstance(callbacks.router, Router)
-

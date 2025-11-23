@@ -1,6 +1,7 @@
 """
 Command handlers for working with invoices (listing, filtering, etc.).
 """
+
 import time
 import uuid
 from datetime import date
@@ -52,7 +53,7 @@ async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
     f_str, t_str = parts[1], parts[2]
     supplier = None
     if len(parts) >= 4 and parts[3].lower().startswith("supplier="):
-        supplier = parts[3].split("=",1)[1]
+        supplier = parts[3].split("=", 1)[1]
 
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
@@ -67,8 +68,12 @@ async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
     lines = []
     total = 0.0
     for invoice in invoices:
-        invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
-        invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        invoice_date_str = (
+            invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
+        )
+        invoice_total = (
+            float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        )
         total += invoice_total
         items_count_val = len(invoice.items)
         lines.append(
@@ -76,9 +81,13 @@ async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
             f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
             f"(items: {items_count_val})"
         )
-    head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
+    head = f"Счета с {f_str} по {t_str}" + (
+        f" | Поставщик содержит: {supplier}" if supplier else ""
+    )
     text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
-    await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
+    await message.answer(
+        text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр.")
+    )
     logger.info(f"[TG] update done req={req} h=cmd_invoices")
 
 
@@ -109,7 +118,9 @@ def setup(router: Router) -> None:
                 period["from"] = iso
                 await state.update_data({"period": period})
                 await state.set_state(InvoicesPeriodState.waiting_for_to_date)
-                await message.answer("По дату (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
+                await message.answer(
+                    "По дату (YYYY-MM-DD):", reply_markup=ForceReply(selective=True)
+                )
                 return
 
         if current_state == InvoicesPeriodState.waiting_for_to_date:
@@ -121,8 +132,10 @@ def setup(router: Router) -> None:
                 period["to"] = iso
                 await state.update_data({"period": period})
                 await state.set_state(InvoicesPeriodState.waiting_for_supplier)
-                await message.answer("Фильтр по поставщику (опционально). Введите текст или «-» чтобы пропустить:",
-                                     reply_markup=ForceReply(selective=True))
+                await message.answer(
+                    "Фильтр по поставщику (опционально). Введите текст или «-» чтобы пропустить:",
+                    reply_markup=ForceReply(selective=True),
+                )
                 return
 
         if current_state == InvoicesPeriodState.waiting_for_supplier:
@@ -152,8 +165,16 @@ def setup(router: Router) -> None:
                 lines = []
                 total = 0.0
                 for invoice in invoices:
-                    invoice_date_str = invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
-                    invoice_total = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+                    invoice_date_str = (
+                        invoice.header.invoice_date.isoformat()
+                        if invoice.header.invoice_date
+                        else "—"
+                    )
+                    invoice_total = (
+                        float(invoice.header.total_amount)
+                        if invoice.header.total_amount is not None
+                        else 0.0
+                    )
                     total += invoice_total
                     items_count_val = len(invoice.items)
                     lines.append(
@@ -161,9 +182,18 @@ def setup(router: Router) -> None:
                         f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
                         f"(items: {items_count_val})"
                     )
-                head = f"Счета с {f_str} по {t_str}" + (f" | Поставщик содержит: {supplier}" if supplier else "")
-                text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
-                await message.answer(text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр."))
+                head = f"Счета с {f_str} по {t_str}" + (
+                    f" | Поставщик содержит: {supplier}" if supplier else ""
+                )
+                text = (
+                    head
+                    + "\n"
+                    + "\n".join(lines[:150])
+                    + f"\n—\nИтого суммарно: {format_money(total)}"
+                )
+                await message.answer(
+                    text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр.")
+                )
                 return
 
     @router.callback_query(F.data == "act_period")
@@ -175,7 +205,8 @@ def setup(router: Router) -> None:
         await state.set_state(InvoicesPeriodState.waiting_for_from_date)
         await state.update_data({"period": {}})
         if call.message is not None:
-            await call.message.answer("С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
+            await call.message.answer(
+                "С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True)
+            )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")
-

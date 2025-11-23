@@ -29,4 +29,3 @@ class OcrProvider(ABC):
             ExtractionResult containing extracted invoice data.
         """
         raise NotImplementedError("extract_invoice must be implemented by subclasses.")
-

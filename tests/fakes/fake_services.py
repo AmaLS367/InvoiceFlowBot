@@ -1,6 +1,7 @@
 """
 Fake service implementations for testing handlers.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -26,4 +27,3 @@ class FakeInvoiceService:
         call_str = f"list_invoices:from_date={from_date},to_date={to_date},supplier={supplier}"
         self.calls.append(call_str)
         return self.return_invoices
-

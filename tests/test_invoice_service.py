@@ -260,4 +260,3 @@ async def test_list_invoices_delegates_to_storage() -> None:
     assert captured["from_date"] == from_date
     assert captured["to_date"] == to_date
     assert captured["supplier"] == supplier
-

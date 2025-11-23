@@ -28,7 +28,9 @@ class AppContainer:
         config: Optional[Settings] = None,
         ocr_extractor: Optional[Callable[[str, bool, int], Awaitable[ExtractionResult]]] = None,
         save_invoice_func: Optional[Callable[[Invoice, int], Awaitable[int]]] = None,
-        fetch_invoices_func: Optional[Callable[[Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]]] = None,
+        fetch_invoices_func: Optional[
+            Callable[[Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]]
+        ] = None,
         load_draft_func: Optional[Callable[[int], Awaitable[Optional[InvoiceDraft]]]] = None,
         save_draft_func: Optional[Callable[[int, InvoiceDraft], Awaitable[None]]] = None,
         delete_draft_func: Optional[Callable[[int], Awaitable[None]]] = None,
@@ -37,12 +39,24 @@ class AppContainer:
     ) -> None:
         self.config: Settings = config or get_settings()
 
-        self._ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]] = ocr_extractor or extract_invoice_async
-        self._save_invoice_func: Callable[[Invoice, int], Awaitable[int]] = save_invoice_func or save_invoice_domain_async
-        self._fetch_invoices_func: Callable[[Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]] = fetch_invoices_func or fetch_invoices_domain_async
-        self._load_draft_func: Callable[[int], Awaitable[Optional[InvoiceDraft]]] = load_draft_func or load_draft_invoice
-        self._save_draft_func: Callable[[int, InvoiceDraft], Awaitable[None]] = save_draft_func or save_draft_invoice
-        self._delete_draft_func: Callable[[int], Awaitable[None]] = delete_draft_func or delete_draft_invoice
+        self._ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]] = (
+            ocr_extractor or extract_invoice_async
+        )
+        self._save_invoice_func: Callable[[Invoice, int], Awaitable[int]] = (
+            save_invoice_func or save_invoice_domain_async
+        )
+        self._fetch_invoices_func: Callable[
+            [Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
+        ] = fetch_invoices_func or fetch_invoices_domain_async
+        self._load_draft_func: Callable[[int], Awaitable[Optional[InvoiceDraft]]] = (
+            load_draft_func or load_draft_invoice
+        )
+        self._save_draft_func: Callable[[int, InvoiceDraft], Awaitable[None]] = (
+            save_draft_func or save_draft_invoice
+        )
+        self._delete_draft_func: Callable[[int], Awaitable[None]] = (
+            delete_draft_func or delete_draft_invoice
+        )
 
         self.invoice_service: InvoiceService = invoice_service or InvoiceService(
             ocr_extractor=self._ocr_extractor,
@@ -71,4 +85,3 @@ def create_app_container() -> AppContainer:
 
 
 __all__ = ["AppContainer", "create_app_container"]
-

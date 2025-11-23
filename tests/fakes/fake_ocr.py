@@ -1,6 +1,7 @@
 """
 Fake OCR functions for testing.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -61,4 +62,3 @@ __all__ = [
     "FakeOcr",
     "make_fake_ocr_extractor",
 ]
-

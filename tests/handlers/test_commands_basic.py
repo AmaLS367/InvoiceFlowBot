@@ -1,6 +1,7 @@
 """
 Basic tests for command handlers: /start, /help, /invoices.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -101,4 +102,3 @@ async def test_cmd_invoices_handles_invalid_format(
     assert len(message.answers) >= 1
     first_answer = message.answers[0]["text"]
     assert "Формат" in first_answer or "формат" in first_answer.lower()
-

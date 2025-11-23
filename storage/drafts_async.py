@@ -106,8 +106,7 @@ def _payload_to_draft(payload_str: str) -> Optional[InvoiceDraft]:
     items_list = restored_invoice_dict.get("items")
     if isinstance(items_list, list):
         restored_invoice_dict["items"] = [
-            InvoiceItem(**item) if isinstance(item, dict) else item
-            for item in items_list
+            InvoiceItem(**item) if isinstance(item, dict) else item for item in items_list
         ]
 
     comments_list = restored_invoice_dict.get("comments")
@@ -205,4 +204,3 @@ __all__ = [
     "load_draft_invoice",
     "delete_draft_invoice",
 ]
-

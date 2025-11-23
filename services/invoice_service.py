@@ -3,6 +3,7 @@ High-level business logic for invoice processing.
 
 Coordinates OCR results, domain models and persistence layer.
 """
+
 from __future__ import annotations
 
 import logging
@@ -105,14 +106,15 @@ class InvoiceService:
         self,
         ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]],
         save_invoice_func: Callable[[Invoice, int], Awaitable[int]],
-        fetch_invoices_func: Callable[[Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]],
+        fetch_invoices_func: Callable[
+            [Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
+        ],
         logger: logging.Logger,
     ) -> None:
         self._ocr_extractor = ocr_extractor
         self._save_invoice_func = save_invoice_func
         self._fetch_invoices_func = fetch_invoices_func
         self._logger = logger
-
 
     async def process_invoice_file(
         self,
@@ -183,4 +185,3 @@ __all__ = [
     "InvoiceService",
     "build_invoice_from_extraction",
 ]
-

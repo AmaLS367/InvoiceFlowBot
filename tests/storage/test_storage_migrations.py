@@ -1,6 +1,7 @@
 """
 Integration tests for AsyncInvoiceStorage with Alembic migrations.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -98,4 +99,3 @@ async def test_async_storage_works_with_migrated_schema(
         assert fetched.source is not None
         assert fetched.source.file_path == invoice.source.file_path
         # provider is not persisted in the database, so it will be None after fetch
-

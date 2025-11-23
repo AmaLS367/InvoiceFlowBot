@@ -1,6 +1,7 @@
 """
 Fake Telegram entities for testing handlers without real Telegram API.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional

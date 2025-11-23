@@ -45,7 +45,9 @@ def make_fake_container() -> AppContainer:
 
 async def fake_handler(event: TelegramObject, data: Dict[str, Any]) -> str:
     container = data["container"]
-    result: str = await container.invoice_service_module.process_invoice_file("tests/data/sample.pdf")
+    result: str = await container.invoice_service_module.process_invoice_file(
+        "tests/data/sample.pdf"
+    )
     return result
 
 
@@ -69,4 +71,3 @@ async def test_container_middleware_injects_container_and_calls_fake_service() -
     assert isinstance(invoice_service, FakeInvoiceService)
     assert len(invoice_service.calls) == 1
     assert invoice_service.calls[0]["pdf_path"] == "tests/data/sample.pdf"
-

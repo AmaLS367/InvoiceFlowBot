@@ -4,6 +4,7 @@ Domain-to-database mapping functions.
 This module provides functions to convert between domain models (Invoice, InvoiceItem)
 and database row representations (dicts with column names as keys).
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -152,4 +153,3 @@ __all__ = [
     "db_row_to_invoice_item",
     "db_row_to_invoice",
 ]
-

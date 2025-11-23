@@ -25,4 +25,3 @@ Commands and buttons let you adjust header fields, line items, or add comments b
 `/invoices` produces a summary list for the selected period plus the aggregated amount.
 
 ![Invoices for period](../assets/screenshots/04_invoices_period.png)
-

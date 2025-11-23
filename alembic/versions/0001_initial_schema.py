@@ -72,4 +72,3 @@ def downgrade() -> None:
     op.execute("DROP TABLE IF EXISTS comments;")
     op.execute("DROP TABLE IF EXISTS invoice_items;")
     op.execute("DROP TABLE IF EXISTS invoices;")
-

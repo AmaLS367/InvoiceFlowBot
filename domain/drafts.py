@@ -15,4 +15,3 @@ class InvoiceDraft:
 
 
 __all__ = ["InvoiceDraft"]
-

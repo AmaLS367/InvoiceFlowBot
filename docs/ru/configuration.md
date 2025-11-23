@@ -8,40 +8,40 @@
 
 Модель `config.Settings` читает следующие ключи:
 
-- `BOT_TOKEN`  
+- `BOT_TOKEN`
   Токен Telegram бота. Обязательный параметр.
 
-- `MINDEE_API_KEY`  
+- `MINDEE_API_KEY`
   API ключ Mindee для OCR. Обязательный параметр.
 
-- `MINDEE_MODEL_ID`  
+- `MINDEE_MODEL_ID`
   Идентификатор модели Mindee. Обязательный параметр.
 
-- `DB_FILENAME` (или `INVOICE_DB_PATH`)  
+- `DB_FILENAME` (или `INVOICE_DB_PATH`)
   Имя файла базы данных SQLite. По умолчанию `data.sqlite`.
 
-- `DB_DIR`  
+- `DB_DIR`
   Каталог для файла базы данных. По умолчанию каталог, где находится `config.py` (корень проекта).
 
-- `UPLOAD_FOLDER`  
+- `UPLOAD_FOLDER`
   Каталог для загруженных файлов. По умолчанию `data/uploads`.
 
-- `ARTIFACTS_DIR`  
+- `ARTIFACTS_DIR`
   Каталог для артефактов OCR. По умолчанию `data/artifacts`.
 
-- `LOG_LEVEL`  
+- `LOG_LEVEL`
   Уровень логирования (DEBUG, INFO, WARNING, ERROR). По умолчанию `INFO`.
 
-- `LOG_ROTATE_MB`  
+- `LOG_ROTATE_MB`
   Максимальный размер файла лога в МБ перед ротацией. По умолчанию `10`.
 
-- `LOG_BACKUPS`  
+- `LOG_BACKUPS`
   Количество резервных копий логов. По умолчанию `5`.
 
-- `LOG_CONSOLE`  
+- `LOG_CONSOLE`
   Включить вывод в консоль (0 или 1). По умолчанию `0`.
 
-- `LOG_DIR`  
+- `LOG_DIR`
   Пользовательский каталог для логов. Необязательный параметр.
 
 Экземпляр настроек создается один раз через `get_settings()` с кешированием, а модуль `config` экспортирует удобные константы вроде `BOT_TOKEN`, `MINDEE_API_KEY` и `DB_PATH`.
@@ -111,4 +111,3 @@ LOG_DIR=logs
   ```
 
 В прикладном коде не следует вызывать `os.getenv` напрямую. Вместо этого все настройки нужно получать через модуль `config`. Это упрощает тестирование и удерживает конфигурацию в одном месте.
-

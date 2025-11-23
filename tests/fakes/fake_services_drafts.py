@@ -1,6 +1,7 @@
 """
 Fake DraftService for testing handlers.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
@@ -37,4 +38,3 @@ class FakeDraftService:
         if self.raise_error:
             raise RuntimeError("Draft deletion failed")
         self._drafts.pop(user_id, None)
-

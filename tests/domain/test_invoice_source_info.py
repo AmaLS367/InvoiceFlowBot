@@ -1,6 +1,7 @@
 """
 Unit tests for InvoiceSourceInfo domain entity.
 """
+
 from domain.invoices import InvoiceSourceInfo
 
 

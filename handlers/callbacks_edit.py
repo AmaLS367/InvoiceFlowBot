@@ -1,6 +1,7 @@
 """
 Callback handlers for invoice editing.
 """
+
 import time
 import uuid
 from typing import Any, Dict
@@ -47,7 +48,9 @@ def setup(router: Router) -> None:
         head_text = format_invoice_header(invoice)
 
         if call.message is not None:
-            await call.message.answer(head_text + "\nВыберите поле для редактирования:", reply_markup=header_kb())
+            await call.message.answer(
+                head_text + "\nВыберите поле для редактирования:", reply_markup=header_kb()
+            )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_edit")
 
@@ -70,8 +73,14 @@ def setup(router: Router) -> None:
             return
 
         if call.data is not None:
-            field = call.data.split(":",1)[1]
-            nice = {"supplier":"Поставщик","client":"Клиент","date":"Дата","doc_number":"Номер","total_sum":"Итого"}[field]
+            field = call.data.split(":", 1)[1]
+            nice = {
+                "supplier": "Поставщик",
+                "client": "Клиент",
+                "date": "Дата",
+                "doc_number": "Номер",
+                "total_sum": "Итого",
+            }[field]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -82,7 +91,9 @@ def setup(router: Router) -> None:
             }
         )
         if call.message is not None:
-            await call.message.answer(f"Введите новое значение для «{nice}»:", reply_markup=ForceReply(selective=True))
+            await call.message.answer(
+                f"Введите новое значение для «{nice}»:", reply_markup=ForceReply(selective=True)
+            )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_hed_field")
 
@@ -110,7 +121,10 @@ def setup(router: Router) -> None:
             return
 
         if call.message is not None:
-            await call.message.answer(f"Выберите позицию для редактирования (всего: {n}):", reply_markup=items_index_kb(n, 1))
+            await call.message.answer(
+                f"Выберите позицию для редактирования (всего: {n}):",
+                reply_markup=items_index_kb(n, 1),
+            )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_items")
 
@@ -135,6 +149,7 @@ def setup(router: Router) -> None:
 
             if call.message is not None:
                 from aiogram.types import Message
+
                 if isinstance(call.message, Message):
                     await call.message.edit_reply_markup(reply_markup=items_index_kb(n, page))
                     await call.answer()
@@ -162,7 +177,7 @@ def setup(router: Router) -> None:
         if not (1 <= idx <= len(items)):
             await call.answer()
             return
-        item = items[idx-1]
+        item = items[idx - 1]
         text = (
             f"#{idx}\n"
             f"Название: {item.description or ''}\n"
@@ -191,7 +206,7 @@ def setup(router: Router) -> None:
         parts = call.data.split(":")
         idx = int(parts[1])
         key = parts[2]  # name/qty/price/total
-        nice = {"name":"Название","qty":"Кол-во","price":"Цена","total":"Сумма"}[key]
+        nice = {"name": "Название", "qty": "Кол-во", "price": "Цена", "total": "Сумма"}[key]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -203,7 +218,10 @@ def setup(router: Router) -> None:
             }
         )
         if call.message is not None:
-            await call.message.answer(f"Введите новое значение для «{nice}» у позиции #{idx}:", reply_markup=ForceReply(selective=True))
+            await call.message.answer(
+                f"Введите новое значение для «{nice}» у позиции #{idx}:",
+                reply_markup=ForceReply(selective=True),
+            )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_itm_field")
 
@@ -236,7 +254,9 @@ def setup(router: Router) -> None:
             }
         )
         if call.message is not None:
-            await call.message.answer("Комментарий к счёту:", reply_markup=ForceReply(selective=True))
+            await call.message.answer(
+                "Комментарий к счёту:", reply_markup=ForceReply(selective=True)
+            )
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_comment")
 
@@ -261,7 +281,9 @@ def setup(router: Router) -> None:
         comments = list(draft.comments)
 
         # Auto-comment for sum mismatch
-        header_sum = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        header_sum = (
+            float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        )
         sum_items = sum(float(item.line_total) for item in invoice.items)
         diff = round(sum_items - header_sum, 2)
 
@@ -282,4 +304,3 @@ def setup(router: Router) -> None:
             await call.message.answer(f"Сохранено в БД. ID счета: {inv_id}")
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_save")
-

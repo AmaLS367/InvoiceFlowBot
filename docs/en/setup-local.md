@@ -22,7 +22,7 @@ python -m venv .venv
 
 3. **Install runtime dependencies:**
 ```powershell
-pip install -r requirements.txt
+pip install -e .
 ```
 
 4. **Create `.env` from the template and set required variables:**
@@ -45,4 +45,3 @@ python bot.py
 
 - A successful launch prints log lines about Aiogram startup. If something fails, check the console or log files for stack traces.
 - When the bot does not connect to Telegram, double-check `BOT_TOKEN`, confirm internet access, and restart the process after fixing the `.env`.
-

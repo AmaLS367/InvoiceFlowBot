@@ -1,4 +1,3 @@
 """
 Domain layer unit tests.
 """
-

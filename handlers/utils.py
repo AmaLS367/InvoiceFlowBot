@@ -24,7 +24,7 @@ def format_invoice_header(invoice: Invoice) -> str:
     header = invoice.header
     date_str = header.invoice_date.isoformat() if header.invoice_date else "—"
     total_str = format_money(header.total_amount) if header.total_amount is not None else "—"
-    
+
     return (
         f"📑 Документ: {header.invoice_number or '—'}\n"
         f"📅 Дата: {date_str}\n"
@@ -40,7 +40,7 @@ def format_invoice_items(items: List[InvoiceItem]) -> str:
     """
     if not items:
         return "Позиции не распознаны."
-    
+
     blocks = []
     for i, item in enumerate(items, 1):
         name = (item.description or "").strip() or "—"
@@ -59,7 +59,7 @@ def format_invoice_summary(invoice: Invoice) -> str:
     """
     header = invoice.header
     lines = []
-    
+
     if header.subtotal is not None:
         lines.append(f"Подытог: {format_money(header.subtotal)}")
     if header.tax_amount is not None:
@@ -68,7 +68,7 @@ def format_invoice_summary(invoice: Invoice) -> str:
         lines.append(f"Итого: {format_money(header.total_amount)}")
     if header.currency:
         lines.append(f"Валюта: {header.currency}")
-    
+
     return "\n".join(lines) if lines else ""
 
 
@@ -79,7 +79,7 @@ def format_invoice_full(invoice: Invoice) -> str:
     header_text = format_invoice_header(invoice)
     items_text = format_invoice_items(invoice.items)
     summary_text = format_invoice_summary(invoice)
-    
+
     parts = [header_text]
     if items_text:
         parts.append("—" * 34)
@@ -87,7 +87,7 @@ def format_invoice_full(invoice: Invoice) -> str:
     if summary_text:
         parts.append("—" * 34)
         parts.append(summary_text)
-    
+
     return "\n\n".join(parts)
 
 
@@ -111,7 +111,7 @@ def fmt_items(items: list[dict]) -> str:
     """
     if not items:
         return "Позиции не распознаны."
-    
+
     blocks = []
     for i, it in enumerate(items, 1):
         name = (it.get("name") or "").strip() or "—"
@@ -127,7 +127,7 @@ def fmt_items(items: list[dict]) -> str:
 async def send_chunked(message: Message, text: str):
     """Send long text in chunks (respecting Telegram message limit)."""
     for i in range(0, len(text), MAX_MSG):
-        await message.answer(text[i:i+MAX_MSG])
+        await message.answer(text[i : i + MAX_MSG])
 
 
 def csv_bytes_from_items(items: List[InvoiceItem]) -> bytes:
@@ -135,16 +135,18 @@ def csv_bytes_from_items(items: List[InvoiceItem]) -> bytes:
     Generate CSV bytes from list of InvoiceItem domain entities.
     """
     sio = io.StringIO()
-    w = csv.writer(sio, delimiter=';')
+    w = csv.writer(sio, delimiter=";")
     w.writerow(["#", "name", "qty", "price", "total"])
     for i, item in enumerate(items, 1):
-        w.writerow([
-            i,
-            item.description or "",
-            format_money(item.quantity),
-            format_money(item.unit_price),
-            format_money(item.line_total),
-        ])
+        w.writerow(
+            [
+                i,
+                item.description or "",
+                format_money(item.quantity),
+                format_money(item.unit_price),
+                format_money(item.line_total),
+            ]
+        )
     data = sio.getvalue().encode("utf-8-sig")
     sio.close()
     return data
@@ -155,16 +157,18 @@ def csv_bytes(items: list[dict]) -> bytes:
     Backwards compatible adapter: generate CSV bytes from list of dicts.
     """
     sio = io.StringIO()
-    w = csv.writer(sio, delimiter=';')
+    w = csv.writer(sio, delimiter=";")
     w.writerow(["#", "name", "qty", "price", "total"])
     for i, it in enumerate(items, 1):
-        w.writerow([
-            i,
-            it.get("name", ""),
-            format_money(it.get("qty", 0)),
-            format_money(it.get("price", 0)),
-            format_money(it.get("total", 0)),
-        ])
+        w.writerow(
+            [
+                i,
+                it.get("name", ""),
+                format_money(it.get("qty", 0)),
+                format_money(it.get("price", 0)),
+                format_money(it.get("total", 0)),
+            ]
+        )
     data = sio.getvalue().encode("utf-8-sig")
     sio.close()
     return data
@@ -172,45 +176,63 @@ def csv_bytes(items: list[dict]) -> bytes:
 
 def main_kb() -> InlineKeyboardMarkup:
     """Main menu keyboard."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📄 Загрузить счёт", callback_data="act_upload")],
-        [InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
-         InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment")],
-        [InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
-         InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period")],
-        [InlineKeyboardButton(text="ℹ️ Помощь", callback_data="act_help")]
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📄 Загрузить счёт", callback_data="act_upload")],
+            [
+                InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
+                InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment"),
+            ],
+            [
+                InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
+                InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period"),
+            ],
+            [InlineKeyboardButton(text="ℹ️ Помощь", callback_data="act_help")],
+        ]
+    )
 
 
 def actions_kb() -> InlineKeyboardMarkup:
     """Actions keyboard (after file upload)."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
-         InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment")],
-        [InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
-         InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period")]
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✏️ Редактировать", callback_data="act_edit"),
+                InlineKeyboardButton(text="💬 Комментарий", callback_data="act_comment"),
+            ],
+            [
+                InlineKeyboardButton(text="💾 Сохранить", callback_data="act_save"),
+                InlineKeyboardButton(text="📊 Счета за период", callback_data="act_period"),
+            ],
+        ]
+    )
 
 
 def header_kb() -> InlineKeyboardMarkup:
     """Header fields editing keyboard."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🏭 Поставщик", callback_data="hed:supplier"),
-         InlineKeyboardButton(text="👤 Клиент", callback_data="hed:client")],
-        [InlineKeyboardButton(text="📅 Дата", callback_data="hed:date"),
-         InlineKeyboardButton(text="📑 Номер", callback_data="hed:doc_number")],
-        [InlineKeyboardButton(text="💰 Итого", callback_data="hed:total_sum")],
-        [InlineKeyboardButton(text="📦 Позиции", callback_data="act_items")]
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🏭 Поставщик", callback_data="hed:supplier"),
+                InlineKeyboardButton(text="👤 Клиент", callback_data="hed:client"),
+            ],
+            [
+                InlineKeyboardButton(text="📅 Дата", callback_data="hed:date"),
+                InlineKeyboardButton(text="📑 Номер", callback_data="hed:doc_number"),
+            ],
+            [InlineKeyboardButton(text="💰 Итого", callback_data="hed:total_sum")],
+            [InlineKeyboardButton(text="📦 Позиции", callback_data="act_items")],
+        ]
+    )
 
 
 def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardMarkup:
     """Items pagination keyboard."""
-    start = (page-1)*per_page + 1
-    end = min(n, page*per_page)
+    start = (page - 1) * per_page + 1
+    end = min(n, page * per_page)
     rows = []
     row = []
-    for i in range(start, end+1):
+    for i in range(start, end + 1):
         row.append(InlineKeyboardButton(text=str(i), callback_data=f"item_pick:{i}"))
         if len(row) == 5:
             rows.append(row)
@@ -230,11 +252,14 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
 
 def item_fields_kb(idx: int) -> InlineKeyboardMarkup:
     """Item fields editing keyboard."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✏️ Название", callback_data=f"itm_field:{idx}:name")],
-        [InlineKeyboardButton(text="🔢 Кол-во", callback_data=f"itm_field:{idx}:qty"),
-         InlineKeyboardButton(text="💵 Цена", callback_data=f"itm_field:{idx}:price"),
-         InlineKeyboardButton(text="🧮 Сумма", callback_data=f"itm_field:{idx}:total")],
-        [InlineKeyboardButton(text="⬅️ К списку", callback_data="act_items")]
-    ])
-
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✏️ Название", callback_data=f"itm_field:{idx}:name")],
+            [
+                InlineKeyboardButton(text="🔢 Кол-во", callback_data=f"itm_field:{idx}:qty"),
+                InlineKeyboardButton(text="💵 Цена", callback_data=f"itm_field:{idx}:price"),
+                InlineKeyboardButton(text="🧮 Сумма", callback_data=f"itm_field:{idx}:total"),
+            ],
+            [InlineKeyboardButton(text="⬅️ К списку", callback_data="act_items")],
+        ]
+    )

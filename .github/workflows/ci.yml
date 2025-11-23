@@ -28,6 +28,9 @@ jobs:
       - name: Run DB migrations
         run: python -m alembic upgrade head
 
+      - name: Pre-commit (ruff, format, mypy)
+        run: pre-commit run --all-files
+
       - name: Run ruff
         run: |
           python -m ruff check .
@@ -41,4 +44,3 @@ jobs:
 
       - name: Run storage DB integration tests
         run: pytest --import-mode=importlib -m "storage_db"
-

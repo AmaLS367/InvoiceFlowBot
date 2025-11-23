@@ -97,4 +97,3 @@ def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Ex
     )
 
     return result
-

@@ -112,4 +112,3 @@ async def test_fetch_invoices_domain_async_matches_sync(tmp_path, monkeypatch) -
         assert async_invoice.header.total_amount == sync_invoice.header.total_amount
         assert len(async_invoice.items) == len(sync_invoice.items)
         assert async_invoice.items[0].description == sync_invoice.items[0].description
-

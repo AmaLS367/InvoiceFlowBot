@@ -3,6 +3,7 @@ Synchronous database utilities and Alembic-based schema initialization.
 
 This module exposes DB_PATH and init_db used by the rest of the application.
 """
+
 from __future__ import annotations
 
 import re
@@ -41,6 +42,7 @@ def _conn():
     con.row_factory = sqlite3.Row
     return con
 
+
 def init_db() -> None:
     """
     Apply all Alembic migrations and ensure the SQLite schema is up to date.
@@ -51,14 +53,52 @@ def init_db() -> None:
     config.set_main_option("sqlalchemy.url", database_url)
     command.upgrade(config, "head")
 
+
 _MONTHS = {
     # Russian
-    "января":1,"февраля":2,"марта":3,"апреля":4,"мая":5,"июня":6,"июля":7,"августа":8,"сентября":9,"октября":10,"ноября":11,"декабря":12,
+    "января": 1,
+    "февраля": 2,
+    "марта": 3,
+    "апреля": 4,
+    "мая": 5,
+    "июня": 6,
+    "июля": 7,
+    "августа": 8,
+    "сентября": 9,
+    "октября": 10,
+    "ноября": 11,
+    "декабря": 12,
     # English
-    "january":1,"february":2,"march":3,"april":4,"may":5,"june":6,"july":7,"august":8,"september":9,"october":10,"november":11,"december":12,
+    "january": 1,
+    "february": 2,
+    "march": 3,
+    "april": 4,
+    "may": 5,
+    "june": 6,
+    "july": 7,
+    "august": 8,
+    "september": 9,
+    "october": 10,
+    "november": 11,
+    "december": 12,
     # French
-    "janvier":1,"février":2,"fevrier":2,"mars":3,"avril":4,"mai":5,"juin":6,"juillet":7,"août":8,"aout":8,"septembre":9,"octobre":10,"novembre":11,"décembre":12,"decembre":12,
+    "janvier": 1,
+    "février": 2,
+    "fevrier": 2,
+    "mars": 3,
+    "avril": 4,
+    "mai": 5,
+    "juin": 6,
+    "juillet": 7,
+    "août": 8,
+    "aout": 8,
+    "septembre": 9,
+    "octobre": 10,
+    "novembre": 11,
+    "décembre": 12,
+    "decembre": 12,
 }
+
 
 def to_iso(d: Optional[str]) -> Optional[str]:
     """
@@ -81,7 +121,11 @@ def to_iso(d: Optional[str]) -> Optional[str]:
             y += 2000 if y <= 68 else 1900
         return f"{y:04d}-{mo:02d}-{da:02d}"
     # 2) 12 June 2025 / 12 juin 2025
-    m = re.match(r"^(\d{1,2})\s+([A-Za-z\u00E9\u00EA\u00FB\u00EE\u00F4\u00E8\u00E0\u00F9\u00EF\u00EB\u00E7]+)\s+(\d{2,4})$", s, flags=re.I)
+    m = re.match(
+        r"^(\d{1,2})\s+([A-Za-z\u00E9\u00EA\u00FB\u00EE\u00F4\u00E8\u00E0\u00F9\u00EF\u00EB\u00E7]+)\s+(\d{2,4})$",
+        s,
+        flags=re.I,
+    )
     if m:
         da = int(m.group(1))
         mon = m.group(2).lower()
@@ -93,43 +137,73 @@ def to_iso(d: Optional[str]) -> Optional[str]:
             return f"{y:04d}-{month_num:02d}-{da:02d}"
     return None
 
-def save_invoice(user_id: int, parsed: Dict[str, Any], source_path: str, raw_text: Optional[str] = None, comments: Optional[List[str]] = None) -> int:
+
+def save_invoice(
+    user_id: int,
+    parsed: Dict[str, Any],
+    source_path: str,
+    raw_text: Optional[str] = None,
+    comments: Optional[List[str]] = None,
+) -> int:
     con = _conn()
     cur = con.cursor()
     iso = to_iso(parsed.get("date"))
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO invoices(user_id, supplier, client, doc_number, date, date_iso, total_sum, raw_text, source_path)
         VALUES(?,?,?,?,?,?,?,?,?)
-    """, (
-        user_id,
-        parsed.get("supplier"),
-        parsed.get("client"),
-        parsed.get("doc_number"),
-        parsed.get("date"),
-        iso,
-        parsed.get("total_sum"),
-        raw_text or "",
-        source_path,
-    ))
+    """,
+        (
+            user_id,
+            parsed.get("supplier"),
+            parsed.get("client"),
+            parsed.get("doc_number"),
+            parsed.get("date"),
+            iso,
+            parsed.get("total_sum"),
+            raw_text or "",
+            source_path,
+        ),
+    )
     invoice_id = cur.lastrowid
     for i, it in enumerate(parsed.get("items") or [], 1):
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO invoice_items(invoice_id, idx, code, name, qty, price, total)
             VALUES(?,?,?,?,?,?,?)
-        """, (invoice_id, i, it.get("code") or "", it.get("name") or "", float(it.get("qty") or 0), float(it.get("price") or 0), float(it.get("total") or 0)))
-    for text in (comments or []):
-        cur.execute("INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)", (invoice_id, user_id, text))
+        """,
+            (
+                invoice_id,
+                i,
+                it.get("code") or "",
+                it.get("name") or "",
+                float(it.get("qty") or 0),
+                float(it.get("price") or 0),
+                float(it.get("total") or 0),
+            ),
+        )
+    for text in comments or []:
+        cur.execute(
+            "INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)",
+            (invoice_id, user_id, text),
+        )
     con.commit()
     con.close()
     return int(invoice_id or 0)
 
+
 def add_comment(invoice_id: int, user_id: int, text: str) -> None:
     con = _conn()
-    con.execute("INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)", (invoice_id, user_id, text))
+    con.execute(
+        "INSERT INTO comments(invoice_id, user_id, text) VALUES(?,?,?)", (invoice_id, user_id, text)
+    )
     con.commit()
     con.close()
 
-def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optional[str] = None) -> List[sqlite3.Row]:
+
+def query_invoices(
+    user_id: int, date_from: str, date_to: str, supplier: Optional[str] = None
+) -> List[sqlite3.Row]:
     f_iso, t_iso = to_iso(date_from), to_iso(date_to)
     con = _conn()
     if f_iso and t_iso:
@@ -139,7 +213,7 @@ def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optiona
                 "WHERE user_id=? AND COALESCE(date_iso, date) IS NOT NULL "
                 "AND date_iso BETWEEN ? AND ? AND supplier LIKE ? "
                 "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (user_id, f_iso, t_iso, f"%{supplier}%")
+                (user_id, f_iso, t_iso, f"%{supplier}%"),
             ).fetchall()
         else:
             rows = con.execute(
@@ -147,7 +221,7 @@ def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optiona
                 "WHERE user_id=? AND COALESCE(date_iso, date) IS NOT NULL "
                 "AND date_iso BETWEEN ? AND ? "
                 "ORDER BY COALESCE(date_iso, date) ASC, id ASC",
-                (user_id, f_iso, t_iso)
+                (user_id, f_iso, t_iso),
             ).fetchall()
     else:
         if supplier:
@@ -155,21 +229,24 @@ def query_invoices(user_id: int, date_from: str, date_to: str, supplier: Optiona
                 "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
                 "WHERE user_id=? AND created_at BETWEEN ? AND datetime(?, '+1 day') AND supplier LIKE ? "
                 "ORDER BY created_at ASC, id ASC",
-                (user_id, date_from, date_to, f"%{supplier}%")
+                (user_id, date_from, date_to, f"%{supplier}%"),
             ).fetchall()
         else:
             rows = con.execute(
                 "SELECT id, date, date_iso, doc_number, supplier, client, total_sum FROM invoices "
                 "WHERE user_id=? AND created_at BETWEEN ? AND datetime(?, '+1 day') "
                 "ORDER BY created_at ASC, id ASC",
-                (user_id, date_from, date_to)
+                (user_id, date_from, date_to),
             ).fetchall()
     con.close()
     return cast(List[sqlite3.Row], rows)
 
+
 def items_count(invoice_id: int) -> int:
     con = _conn()
-    n = con.execute("SELECT COUNT(1) FROM invoice_items WHERE invoice_id=?", (invoice_id,)).fetchone()[0]
+    n = con.execute(
+        "SELECT COUNT(1) FROM invoice_items WHERE invoice_id=?", (invoice_id,)
+    ).fetchone()[0]
     con.close()
     return int(n)
 
@@ -251,4 +328,7 @@ def fetch_invoices_domain(
     from storage.db_async import AsyncInvoiceStorage
 
     storage = AsyncInvoiceStorage(database_path=DB_PATH)
-    return cast(List[Invoice], _run_async(storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)))
+    return cast(
+        List[Invoice],
+        _run_async(storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)),
+    )

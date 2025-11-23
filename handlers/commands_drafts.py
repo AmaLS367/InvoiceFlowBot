@@ -1,6 +1,7 @@
 """
 Command handlers for working with invoice drafts.
 """
+
 import re
 import time
 import uuid
@@ -124,11 +125,17 @@ def setup(router: Router) -> None:
                         ok = True
                     except (ValueError, TypeError, Exception):
                         ok = False
-                    await message.answer('Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.' if ok else "Итого обновлено как текст (не число).")
+                    await message.answer(
+                        'Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+                        if ok
+                        else "Итого обновлено как текст (не число)."
+                    )
                     await draft_service.set_current_draft(uid, draft)
                     await state.clear()
                     return
-                await message.answer('Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+                await message.answer(
+                    'Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+                )
             elif kind == "item":
                 idx_raw = edit_config.get("idx")
                 if not isinstance(idx_raw, int):
@@ -165,7 +172,9 @@ def setup(router: Router) -> None:
                     except (ValueError, TypeError, Exception):
                         await message.answer("Не число. Повторите.")
                         return
-                await message.answer('Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.')
+                await message.answer(
+                    'Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+                )
 
             await draft_service.set_current_draft(uid, draft)
             await state.clear()
@@ -214,7 +223,9 @@ def setup(router: Router) -> None:
         comments = draft.comments
 
         # Auto-comment for sum mismatch
-        header_sum = float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        header_sum = (
+            float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
+        )
         sum_items = sum(float(item.line_total) for item in invoice.items)
         diff = round(sum_items - header_sum, 2)
 
@@ -253,11 +264,15 @@ def setup(router: Router) -> None:
             await message.answer("Нет черновика. Загрузите документ.")
             return
         if message.text is None:
-            await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45")
+            await message.answer(
+                "Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"
+            )
             return
         args = message.text.split(" ", 1)
         if len(args) < 2:
-            await message.answer("Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45")
+            await message.answer(
+                "Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"
+            )
             return
 
         invoice = draft.invoice
@@ -319,7 +334,7 @@ def setup(router: Router) -> None:
             await message.answer("Индекс вне диапазона.")
             return
 
-        item = items[idx-1]
+        item = items[idx - 1]
         updates = args[2]
         for part in re.split(r"[;,]\s*|\s{2,}", updates.strip()):
             if "=" in part:
@@ -347,4 +362,3 @@ def setup(router: Router) -> None:
         await draft_service.set_current_draft(uid, draft)
         await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
         logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")
-

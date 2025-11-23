@@ -39,4 +39,3 @@ class MindeeOcrProvider(OcrProvider):
         )
 
         return result
-

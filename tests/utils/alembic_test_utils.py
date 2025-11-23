@@ -1,6 +1,7 @@
 """
 Utilities for running Alembic migrations in tests.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -56,4 +57,3 @@ def run_migrations_for_url(database_url: str) -> None:
     config = _create_alembic_config(database_url)
 
     command.upgrade(config, "head")
-

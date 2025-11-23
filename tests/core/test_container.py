@@ -1,6 +1,7 @@
 """
 Tests for AppContainer dependency injection.
 """
+
 from __future__ import annotations
 
 import logging
@@ -106,4 +107,3 @@ def test_create_app_container_returns_default_container() -> None:
     assert isinstance(container.invoice_service, InvoiceService)
     assert isinstance(container.draft_service, DraftService)
     assert container.config is not None
-

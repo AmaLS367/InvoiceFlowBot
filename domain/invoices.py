@@ -1,6 +1,7 @@
 """
 Domain models and value objects describing invoices and their items.
 """
+
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
@@ -12,6 +13,7 @@ class InvoiceItem:
     """
     Single line item in an invoice.
     """
+
     description: str
     sku: Optional[str] = None
     quantity: Decimal = Decimal("0")
@@ -25,6 +27,7 @@ class InvoiceHeader:
     """
     Invoice header information: supplier, customer, dates, totals.
     """
+
     supplier_name: Optional[str] = None
     supplier_tax_id: Optional[str] = None
     customer_name: Optional[str] = None
@@ -43,6 +46,7 @@ class InvoiceComment:
     """
     Comment attached to an invoice.
     """
+
     message: str
     author: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -53,6 +57,7 @@ class InvoiceSourceInfo:
     """
     Source metadata for invoice data: OCR provider, file paths.
     """
+
     file_path: Optional[str] = None
     file_sha256: Optional[str] = None
     provider: Optional[str] = None
@@ -64,6 +69,7 @@ class Invoice:
     """
     Canonical invoice representation used across the application.
     """
+
     header: InvoiceHeader
     items: List[InvoiceItem] = field(default_factory=list)
     comments: List[InvoiceComment] = field(default_factory=list)
@@ -83,4 +89,3 @@ __all__ = [
     "InvoiceSourceInfo",
     "Invoice",
 ]
-

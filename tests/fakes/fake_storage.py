@@ -1,6 +1,7 @@
 """
 Fake storage functions for testing.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -117,4 +118,3 @@ __all__ = [
     "make_fake_save_draft_func",
     "make_fake_delete_draft_func",
 ]
-

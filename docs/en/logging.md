@@ -26,4 +26,3 @@ Handlers use `RotatingFileHandler`, so once a file reaches the limit it is renam
 - Enable `LOG_LEVEL=DEBUG` only on staging or when investigating issues; production logs will grow quickly otherwise.
 - For containers, set `LOG_CONSOLE=1` and watch `docker logs -f <container>` while debugging.
 - Ensure the log directory is writable; permission errors will prevent the bot from booting.
-

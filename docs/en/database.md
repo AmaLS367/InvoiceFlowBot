@@ -24,4 +24,3 @@ Copy-Item .\data.sqlite .\backup\data-$(Get-Date -Format yyyyMMddHHmmss).sqlite
 ## Restore and migrate
 
 To move InvoiceFlowBot to another host, stop the bot, copy `data.sqlite`, place it on the new server, and start the bot again. `init_db()` will create any missing tables automatically.
-

@@ -28,6 +28,7 @@ logger = get_logger("ocr.engine")
 # Note: /start, /help, and /gif handlers are now in handlers/commands_common.py
 # This file only handles file uploads (documents and photos)
 
+
 async def _process_file_and_create_draft(
     message: Message,
     file_path: str,
@@ -45,7 +46,9 @@ async def _process_file_and_create_draft(
             file_path = new_path
         except Exception as e:
             logger.exception(f"[TG] Failed to convert {ext} file to JPEG: {e}")
-            await message.answer("Не удалось обработать файл. Попробуйте другой формат (PDF, JPG, PNG).")
+            await message.answer(
+                "Не удалось обработать файл. Попробуйте другой формат (PDF, JPG, PNG)."
+            )
             return
 
     if not file_path.lower().endswith(".pdf"):
@@ -53,7 +56,11 @@ async def _process_file_and_create_draft(
             img: Image.Image = Image.open(file_path)
             img = ImageOps.exif_transpose(img).convert("RGB")
             ext = Path(file_path).suffix.lower()
-            new_path = file_path if ext in {".jpg", ".jpeg", ".png"} else str(Path(file_path).with_suffix(".jpg"))
+            new_path = (
+                file_path
+                if ext in {".jpg", ".jpeg", ".png"}
+                else str(Path(file_path).with_suffix(".jpg"))
+            )
             img.save(new_path, format="JPEG", quality=95, optimize=True)
             file_path = new_path
         except Exception as e:
@@ -163,4 +170,3 @@ async def handle_invoice_photo(message: Message, data: Dict[str, Any]) -> None:
 # Register handlers on router
 router.message.register(handle_invoice_document, F.document)
 router.message.register(handle_invoice_photo, F.photo)
-

@@ -87,21 +87,22 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
                 flds = inf.get("fields")
 
         if isinstance(flds, dict) and flds:
+
             def _v(key):
                 x = flds.get(key)
                 return x.get("value") if isinstance(x, dict) else None
 
             prediction = {
-                "supplier":       {"value": _v("supplier_name")},
-                "customer":       {"value": (_v("customer_id") or _v("customer_name"))},
+                "supplier": {"value": _v("supplier_name")},
+                "customer": {"value": (_v("customer_id") or _v("customer_name"))},
                 "invoice_number": {"value": _v("invoice_number")},
-                "invoice_date":   {"value": _v("date")},
-                "total_amount":   {"value": _v("total_amount")},
+                "invoice_date": {"value": _v("date")},
+                "total_amount": {"value": _v("total_amount")},
             }
 
             items_norm: List[Dict[str, Any]] = []
             li = flds.get("line_items") or {}
-            for it in (li.get("items") or []):
+            for it in li.get("items") or []:
                 fields_map = it.get("fields", {})
                 product_code = _field_value(fields_map.get("product_code"))
                 description = _field_value(fields_map.get("description"))
@@ -109,13 +110,15 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
                 unit_price = _field_value(fields_map.get("unit_price"))
                 total_price = _field_value(fields_map.get("total_price"))
                 total_amount = _field_value(fields_map.get("total_amount"))
-                items_norm.append({
-                    "product_code": {"value": product_code},
-                    "description":  {"value": description},
-                    "quantity":     {"value": quantity},
-                    "unit_price":   {"value": unit_price},
-                    "total_amount": {"value": (total_price or total_amount)},
-                })
+                items_norm.append(
+                    {
+                        "product_code": {"value": product_code},
+                        "description": {"value": description},
+                        "quantity": {"value": quantity},
+                        "unit_price": {"value": unit_price},
+                        "total_amount": {"value": (total_price or total_amount)},
+                    }
+                )
             prediction["line_items"] = items_norm
 
         if pages and isinstance(pages, list) and pages and "prediction" in pages[0]:
@@ -147,41 +150,61 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
 
     def _line_items(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         items = []
-        for li in (doc.get("line_items") or []):
+        for li in doc.get("line_items") or []:
+
             def _gv(field):
                 v = li.get(field) or {}
                 if isinstance(v, dict):
                     return v.get("value")
                 return None
 
-            items.append({
-                "code":  _gv("product_code"),
-                "name":  _gv("description") or "",
-                "qty":   _gv("quantity"),
-                "price": _gv("unit_price"),
-                "total": _gv("total_amount"),
-            })
+            items.append(
+                {
+                    "code": _gv("product_code"),
+                    "name": _gv("description") or "",
+                    "qty": _gv("quantity"),
+                    "price": _gv("unit_price"),
+                    "total": _gv("total_amount"),
+                }
+            )
         return items
 
     doc = _extract_prediction(raw)
 
-    items = [{
-        "code": it.get("code") or "",
-        "name": (it.get("name") or "").strip(),
-        "qty": float(it.get("qty") or 0) if it.get("qty") is not None else 0.0,
-        "price": float(it.get("price") or 0) if it.get("price") is not None else 0.0,
-        "total": float(it.get("total") or 0) if it.get("total") is not None else 0.0,
-    } for it in _line_items(doc) if (
-        it.get("name") and (it.get("qty") or 0) > 0 and (it.get("price") or 0) > 0 and (it.get("total") or 0) > 0
-    )]
+    items = [
+        {
+            "code": it.get("code") or "",
+            "name": (it.get("name") or "").strip(),
+            "qty": float(it.get("qty") or 0) if it.get("qty") is not None else 0.0,
+            "price": float(it.get("price") or 0) if it.get("price") is not None else 0.0,
+            "total": float(it.get("total") or 0) if it.get("total") is not None else 0.0,
+        }
+        for it in _line_items(doc)
+        if (
+            it.get("name")
+            and (it.get("qty") or 0) > 0
+            and (it.get("price") or 0) > 0
+            and (it.get("total") or 0) > 0
+        )
+    ]
 
     data: Dict[str, Any] = {
-        "supplier":   (doc.get("supplier") or {}).get("value") if isinstance(doc.get("supplier"), dict) else None,
-        "client":     (doc.get("customer") or {}).get("value") if isinstance(doc.get("customer"), dict) else None,
-        "doc_number": (doc.get("invoice_number") or {}).get("value") if isinstance(doc.get("invoice_number"), dict) else None,
-        "date":       (doc.get("invoice_date") or {}).get("value") if isinstance(doc.get("invoice_date"), dict) else None,
+        "supplier": (doc.get("supplier") or {}).get("value")
+        if isinstance(doc.get("supplier"), dict)
+        else None,
+        "client": (doc.get("customer") or {}).get("value")
+        if isinstance(doc.get("customer"), dict)
+        else None,
+        "doc_number": (doc.get("invoice_number") or {}).get("value")
+        if isinstance(doc.get("invoice_number"), dict)
+        else None,
+        "date": (doc.get("invoice_date") or {}).get("value")
+        if isinstance(doc.get("invoice_date"), dict)
+        else None,
         "items": items,
-        "total_sum":  (doc.get("total_amount") or {}).get("value") if isinstance(doc.get("total_amount"), dict) else None,
+        "total_sum": (doc.get("total_amount") or {}).get("value")
+        if isinstance(doc.get("total_amount"), dict)
+        else None,
     }
 
     if not data["date"]:
@@ -256,14 +279,16 @@ def build_extraction_result(
     items_raw = data.get("items") or []
     items_out: List[Item] = []
     for it in items_raw:
-        items_out.append(Item(
-            code=it.get("code"),
-            name=(it.get("name") or "").strip(),
-            qty=float(it.get("qty") or 0),
-            price=float(it.get("price") or 0),
-            total=float(it.get("total") or 0),
-            page_no=it.get("page_no"),
-        ))
+        items_out.append(
+            Item(
+                code=it.get("code"),
+                name=(it.get("name") or "").strip(),
+                qty=float(it.get("qty") or 0),
+                price=float(it.get("price") or 0),
+                total=float(it.get("total") or 0),
+                page_no=it.get("page_no"),
+            )
+        )
 
     total_sum_raw = data.get("total_sum")
     try:

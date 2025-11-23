@@ -1,6 +1,7 @@
 """
 Negative test cases for file upload handlers: error handling.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -154,7 +155,13 @@ async def test_handle_invoice_document_draft_failure_sends_error(
     # Verify error message was sent
     assert len(message.answers) >= 1
     # Should have at least the "Получил файл" message and error message
-    error_messages = [ans["text"] for ans in message.answers if "черновик" in ans["text"].lower() or "ошибка" in ans["text"].lower() or "не удалось" in ans["text"].lower()]
+    error_messages = [
+        ans["text"]
+        for ans in message.answers
+        if "черновик" in ans["text"].lower()
+        or "ошибка" in ans["text"].lower()
+        or "не удалось" in ans["text"].lower()
+    ]
     assert len(error_messages) >= 1
 
 
@@ -226,7 +233,9 @@ async def test_handle_invoice_photo_ocr_failure_sends_error(
 
                 with patch("pathlib.Path.exists", return_value=True):
                     with patch("pathlib.Path.suffix", return_value=".jpg"):
-                        with patch("pathlib.Path.with_suffix", return_value=Path("temp/photo_fail.jpg")):
+                        with patch(
+                            "pathlib.Path.with_suffix", return_value=Path("temp/photo_fail.jpg")
+                        ):
                             await handle_invoice_photo(message, file_handlers_data)
         finally:
             # Restore original extractor
@@ -292,12 +301,19 @@ async def test_handle_invoice_photo_draft_failure_sends_error(
 
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("pathlib.Path.suffix", return_value=".jpg"):
-                    with patch("pathlib.Path.with_suffix", return_value=Path("temp/photo_draft_fail.jpg")):
+                    with patch(
+                        "pathlib.Path.with_suffix", return_value=Path("temp/photo_draft_fail.jpg")
+                    ):
                         await handle_invoice_photo(message, file_handlers_data)
 
     # Verify error message was sent
     assert len(message.answers) >= 1
     # Should have at least the "Получил файл" message and error message
-    error_messages = [ans["text"] for ans in message.answers if "черновик" in ans["text"].lower() or "ошибка" in ans["text"].lower() or "не удалось" in ans["text"].lower()]
+    error_messages = [
+        ans["text"]
+        for ans in message.answers
+        if "черновик" in ans["text"].lower()
+        or "ошибка" in ans["text"].lower()
+        or "не удалось" in ans["text"].lower()
+    ]
     assert len(error_messages) >= 1
-

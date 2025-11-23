@@ -1,6 +1,7 @@
 """
 Tests for ContainerMiddleware.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -68,4 +69,3 @@ async def test_container_middleware_preserves_existing_data(app_container: AppCo
     assert "container" in data
     assert data["container"] is app_container
     assert data["existing_key"] == "existing_value"
-

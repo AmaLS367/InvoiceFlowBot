@@ -3,6 +3,7 @@ FSM state definitions used by the Telegram handlers.
 
 Keeps all conversation states in a single place.
 """
+
 from __future__ import annotations
 
 from aiogram.fsm.state import State, StatesGroup
@@ -31,4 +32,3 @@ __all__ = [
     "EditInvoiceState",
     "InvoicesPeriodState",
 ]
-

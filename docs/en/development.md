@@ -6,7 +6,7 @@ The project uses Alembic to manage the SQLite schema.
 
 ### How the schema is applied
 
-At runtime the database schema is created or upgraded by calling `storage.db.init_db()`.  
+At runtime the database schema is created or upgraded by calling `storage.db.init_db()`.
 This function is a thin wrapper around:
 
 ```powershell
@@ -79,8 +79,7 @@ The GitHub Actions workflow runs the following steps:
 1. Installs development dependencies and the package itself in editable mode:
 
    ```powershell
-   python -m pip install -r requirements-dev.txt
-   python -m pip install -e .
+   python -m pip install -e .[dev]
    ```
 
 2. Applies Alembic migrations:
@@ -96,4 +95,3 @@ The GitHub Actions workflow runs the following steps:
    python -m mypy domain services ocr storage
    python -m pytest
    ```
-

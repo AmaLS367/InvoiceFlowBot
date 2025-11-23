@@ -6,7 +6,7 @@
 
 ### Как поднимается схема
 
-Во время запуска схема БД создается или обновляется через вызов `storage.db.init_db()`.  
+Во время запуска схема БД создается или обновляется через вызов `storage.db.init_db()`.
 Эта функция внутри выполняет команду:
 
 ```powershell
@@ -79,8 +79,7 @@ python bot.py
 1. Установка dev-зависимостей и пакета в editable-режиме:
 
    ```powershell
-   python -m pip install -r requirements-dev.txt
-   python -m pip install -e .
+   python -m pip install -e .[dev]
    ```
 
 2. Применение миграций Alembic:
@@ -96,4 +95,3 @@ python bot.py
    python -m mypy domain services ocr storage
    python -m pytest
    ```
-

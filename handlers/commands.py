@@ -3,6 +3,7 @@ Command handlers orchestrator.
 
 Registers all command handlers from submodules.
 """
+
 from aiogram import Router
 
 from handlers.commands_common import setup as setup_common

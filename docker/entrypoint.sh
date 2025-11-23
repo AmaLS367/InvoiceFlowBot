@@ -6,4 +6,3 @@ python -m alembic upgrade head
 
 # Start the bot
 python bot.py
-

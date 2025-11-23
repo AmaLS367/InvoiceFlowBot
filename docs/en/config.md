@@ -30,4 +30,3 @@ These variables are mandatory. If they are not set, the application will termina
 - Do not commit `.env`; use `.env.example` as the shared template.
 - Restart the bot or recreate the Docker container after updating variables.
 - Keep separate `.env` files for each environment (development, staging, production) with their own tokens and database paths.
-

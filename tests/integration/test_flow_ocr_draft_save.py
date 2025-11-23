@@ -6,6 +6,7 @@ This test verifies the complete flow without Telegram layer, using:
 - Fake OCR provider
 - Real service instances
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -83,7 +84,9 @@ async def test_full_flow_ocr_draft_save_and_query(
     )
 
     # Create a custom extractor function that returns our test result
-    async def test_extractor(pdf_path: str, fast: bool = True, max_pages: int = 12) -> ExtractionResult:
+    async def test_extractor(
+        pdf_path: str, fast: bool = True, max_pages: int = 12
+    ) -> ExtractionResult:
         return expected_extraction_result
 
     # Replace the extractor in the container
@@ -173,4 +176,3 @@ async def test_full_flow_ocr_draft_save_and_query(
     assert loaded_invoice.items[1].quantity == Decimal("1.0")
     assert loaded_invoice.items[1].unit_price == Decimal("5.0")
     assert loaded_invoice.items[1].line_total == Decimal("5.0")
-

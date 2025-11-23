@@ -3,6 +3,7 @@ Callback handlers orchestrator.
 
 Registers all callback handlers from submodules.
 """
+
 from aiogram import Router
 
 from handlers.callbacks_edit import setup as setup_edit

@@ -11,16 +11,11 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends gcc libc-dev; \
     rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
-COPY requirements.txt /app/requirements.txt
-
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
 # Copy application code
 COPY . /app
 
-# Install application in editable mode
+# Install Python dependencies and application
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -e .
 
 # Create data directory for SQLite database

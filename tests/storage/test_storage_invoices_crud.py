@@ -4,6 +4,7 @@ Integration tests for CRUD operations on invoices using AsyncInvoiceStorage.
 These tests verify the full flow of creating, reading, updating, and querying invoices
 against a real SQLite database with Alembic migrations applied.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -215,9 +216,7 @@ async def test_fetch_invoices_by_supplier_filters_results(
     )
 
     assert len(supplier_a_invoices) >= 1
-    assert all(
-        inv.header.supplier_name == "Supplier A" for inv in supplier_a_invoices
-    )
+    assert all(inv.header.supplier_name == "Supplier A" for inv in supplier_a_invoices)
 
     # Verify we can find our invoice
     invoice_numbers = {inv.header.invoice_number for inv in supplier_a_invoices}
@@ -309,9 +308,7 @@ async def test_save_invoice_creates_new_record_each_time(
 
     # Both should have the same invoice_number but different data
     invoices_with_number = [
-        inv
-        for inv in fetched_invoices
-        if inv.header.invoice_number == "INV-X-001"
+        inv for inv in fetched_invoices if inv.header.invoice_number == "INV-X-001"
     ]
     assert len(invoices_with_number) >= 2
 
@@ -428,4 +425,3 @@ async def test_fetch_invoices_with_date_range(
     assert "INV-DATE-001" in invoice_numbers  # June 2
     assert "INV-DATE-002" in invoice_numbers  # June 3
     assert "INV-DATE-003" in invoice_numbers  # June 4
-

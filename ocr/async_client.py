@@ -4,6 +4,7 @@ Async OCR client and mapping logic for Mindee invoice results.
 Responsible for calling the HTTP API and converting raw predictions
 into Invoice domain objects.
 """
+
 from __future__ import annotations
 
 import json

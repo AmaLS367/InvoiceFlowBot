@@ -4,6 +4,7 @@ Typed dependency accessors for handlers.
 Provides type-safe functions to extract services from the AppContainer
 injected by ContainerMiddleware.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -39,4 +40,3 @@ __all__ = [
     "get_invoice_service",
     "get_draft_service",
 ]
-

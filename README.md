@@ -41,7 +41,7 @@ python -m venv .venv
 
 3. Install dependencies:
 ```powershell
-pip install -r requirements.txt
+pip install -e .
 ```
 
 4. Create a `.env` file in the project root:
@@ -100,7 +100,7 @@ Run unit tests with `pytest`. On Windows PowerShell:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 pytest
 ```
 
@@ -266,8 +266,8 @@ The project uses the following tools for code quality:
 
 ```powershell
 # Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -e .
+pip install -e .[dev]
 
 # Run linter
 python -m ruff check .
@@ -288,4 +288,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Support
 
 For issues and questions, please open an issue on the repository.
-
