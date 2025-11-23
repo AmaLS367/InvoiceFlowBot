@@ -7,6 +7,7 @@ The workflow removes repetitive manual entry. Accountants receive a ready draft,
 ## Documentation map
 
 - [System overview](overview.md) — architecture, components, and the data path from Telegram to the database.
+- [Architecture](architecture.md) — high level architecture diagrams and component interactions.
 - [Local setup](setup-local.md) — run without Docker, configure the virtual environment and `.env`.
 - [Docker setup](setup-docker.md) — container deployment, volume mounting, and upgrades.
 - [Configuration](config.md) — every environment variable and how `config.py` reads it.
@@ -16,3 +17,4 @@ The workflow removes repetitive manual entry. Accountants receive a ready draft,
 - [Tests](tests.md) — pytest instructions and coverage areas.
 - [Troubleshooting](troubleshooting.md) — quick fixes for common issues.
 - [Screenshots](screenshots.md) — visual references for the most common bot flows.
+- [Architecture decisions (ADR)](../adr/0001-mindee-as-primary-ocr-provider.md) — design decision records for key technology choices.
