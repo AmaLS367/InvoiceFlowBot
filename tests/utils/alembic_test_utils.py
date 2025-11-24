@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
+
+from alembic import command
 
 
 def _create_alembic_config(database_url: str) -> Config:
