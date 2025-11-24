@@ -3,7 +3,8 @@ import os
 from typing import Any, Dict, List, Optional, cast
 
 import requests
-from mindee import ClientV2, InferenceParameters, PathInput
+from mindee import ClientV2, InferenceParameters
+from mindee.input import PathInput
 
 import config
 from ocr.engine.types import ExtractionResult, Item
@@ -67,9 +68,6 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
         params = InferenceParameters(
             model_id=model_id,
             rag=False,
-            raw_text=False,
-            polygon=False,
-            confidence=False,
         )
         input_source = PathInput(path)
         response = client.enqueue_and_get_inference(input_source, params)

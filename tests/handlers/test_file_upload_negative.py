@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from core.container import AppContainer
 from handlers.file import handle_invoice_document, handle_invoice_photo
 from tests.fakes.fake_services_drafts import FakeDraftService
 from tests.fakes.fake_telegram import FakeDocument, FakeMessage, FakePhotoSize
@@ -13,15 +14,14 @@ from tests.fakes.fake_telegram import FakeDocument, FakeMessage, FakePhotoSize
 
 @pytest.mark.asyncio
 async def test_handle_invoice_document_without_document_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     message = FakeMessage(
         text="",
         document=None,
     )
 
-    await handle_invoice_document(message, file_handlers_data)
+    await handle_invoice_document(message, file_handlers_container)
 
     assert len(message.answers) >= 1
     text = message.answers[0]["text"]
@@ -32,8 +32,7 @@ async def test_handle_invoice_document_without_document_sends_error(
 
 @pytest.mark.asyncio
 async def test_handle_invoice_document_ocr_failure_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
@@ -69,7 +68,7 @@ async def test_handle_invoice_document_ocr_failure_sends_error(
         try:
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("pathlib.Path.suffix", return_value=".pdf"):
-                    await handle_invoice_document(message, file_handlers_data)
+                    await handle_invoice_document(message, file_handlers_container)
         finally:
             file_handlers_container.invoice_service._ocr_extractor = original_extractor
 
@@ -91,8 +90,7 @@ async def test_handle_invoice_document_ocr_failure_sends_error(
 
 @pytest.mark.asyncio
 async def test_handle_invoice_document_draft_failure_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
@@ -122,7 +120,7 @@ async def test_handle_invoice_document_draft_failure_sends_error(
 
         with patch("pathlib.Path.exists", return_value=True):
             with patch("pathlib.Path.suffix", return_value=".pdf"):
-                await handle_invoice_document(message, file_handlers_data)
+                await handle_invoice_document(message, file_handlers_container)
 
     assert len(message.answers) >= 1
     error_messages = [
@@ -137,15 +135,14 @@ async def test_handle_invoice_document_draft_failure_sends_error(
 
 @pytest.mark.asyncio
 async def test_handle_invoice_photo_without_photo_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     message = FakeMessage(
         text="",
         photos=[],
     )
 
-    await handle_invoice_photo(message, file_handlers_data)
+    await handle_invoice_photo(message, file_handlers_container)
 
     assert len(message.answers) >= 1
     text = message.answers[0]["text"]
@@ -156,8 +153,7 @@ async def test_handle_invoice_photo_without_photo_sends_error(
 
 @pytest.mark.asyncio
 async def test_handle_invoice_photo_ocr_failure_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
@@ -200,7 +196,7 @@ async def test_handle_invoice_photo_ocr_failure_sends_error(
                         with patch(
                             "pathlib.Path.with_suffix", return_value=Path("temp/photo_fail.jpg")
                         ):
-                            await handle_invoice_photo(message, file_handlers_data)
+                            await handle_invoice_photo(message, file_handlers_container)
         finally:
             file_handlers_container.invoice_service._ocr_extractor = original_extractor
 
@@ -222,8 +218,7 @@ async def test_handle_invoice_photo_ocr_failure_sends_error(
 
 @pytest.mark.asyncio
 async def test_handle_invoice_photo_draft_failure_sends_error(
-    file_handlers_container: Any,
-    file_handlers_data: Dict[str, Any],
+    file_handlers_container: AppContainer,
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
@@ -260,7 +255,7 @@ async def test_handle_invoice_photo_draft_failure_sends_error(
                     with patch(
                         "pathlib.Path.with_suffix", return_value=Path("temp/photo_draft_fail.jpg")
                     ):
-                        await handle_invoice_photo(message, file_handlers_data)
+                        await handle_invoice_photo(message, file_handlers_container)
 
     assert len(message.answers) >= 1
     error_messages = [
