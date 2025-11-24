@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     )
 
     BOT_TOKEN: str
-    MINDEE_API_KEY: str
-    MINDEE_MODEL_ID: str
+    MINDEE_API_KEY: str = ""
+    MINDEE_MODEL_ID: str = ""
 
     UPLOAD_FOLDER: str = "data/uploads"
     ARTIFACTS_DIR: str = "data/artifacts"
@@ -45,16 +45,6 @@ settings = get_settings()
 # Validate required settings
 if not settings.BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN not found or empty. Check your .env file.")
-
-if not settings.MINDEE_API_KEY or not settings.MINDEE_API_KEY.strip():
-    raise RuntimeError(
-        "MINDEE_API_KEY is not set. Please configure it in environment or .env file."
-    )
-
-if not settings.MINDEE_MODEL_ID or not settings.MINDEE_MODEL_ID.strip():
-    raise RuntimeError(
-        "MINDEE_MODEL_ID is not set. Please configure it in environment or .env file."
-    )
 
 # Module-level constants for backward compatibility
 BOT_TOKEN: str = settings.BOT_TOKEN
