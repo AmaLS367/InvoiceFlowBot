@@ -1,0 +1,33 @@
+warning: in the working copy of 'storage/db.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/utils/alembic_test_utils.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/storage/db.py b/storage/db.py[m
+[1mindex f39aaab..d7f59d0 100644[m
+[1m--- a/storage/db.py[m
+[1m+++ b/storage/db.py[m
+[36m@@ -12,10 +12,9 @@[m [mfrom datetime import date[m
+ from pathlib import Path[m
+ from typing import Any, Dict, List, Optional[m
+ [m
+[31m-from alembic.config import Config[m
+[31m-[m
+ import config[m
+ from alembic import command[m
+[32m+[m[32mfrom alembic.config import Config[m
+ from domain.invoices import Invoice[m
+ from storage.mappers import ([m
+     db_row_to_invoice,[m
+[1mdiff --git a/tests/utils/alembic_test_utils.py b/tests/utils/alembic_test_utils.py[m
+[1mindex 1bad7bc..4b97c58 100644[m
+[1m--- a/tests/utils/alembic_test_utils.py[m
+[1m+++ b/tests/utils/alembic_test_utils.py[m
+[36m@@ -2,9 +2,8 @@[m [mfrom __future__ import annotations[m
+ [m
+ from pathlib import Path[m
+ [m
+[31m-from alembic.config import Config[m
+[31m-[m
+ from alembic import command[m
+[32m+[m[32mfrom alembic.config import Config[m
+ [m
+ [m
+ def _create_alembic_config(database_url: str) -> Config:[m
