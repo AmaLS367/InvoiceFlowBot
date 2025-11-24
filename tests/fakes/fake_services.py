@@ -7,7 +7,6 @@ from domain.invoices import Invoice
 
 
 class FakeInvoiceService:
-
     def __init__(self) -> None:
         self.calls: List[str] = []
         self.return_invoices: List[Invoice] = []

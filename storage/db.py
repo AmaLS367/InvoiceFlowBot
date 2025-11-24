@@ -199,6 +199,7 @@ def items_count(invoice_id: int) -> int:
     con.close()
     return int(n)
 
+
 # Keep old function names as aliases for backward compatibility
 _invoice_to_db_header = invoice_to_db_row
 _invoice_item_to_db_row = invoice_item_to_db_row

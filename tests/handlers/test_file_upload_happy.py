@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from handlers.file import handle_invoice_document, handle_invoice_photo
-from tests.fakes.fake_ocr import FakeOcr
 from tests.fakes.fake_services_drafts import FakeDraftService
 from tests.fakes.fake_telegram import FakeDocument, FakeMessage, FakePhotoSize
 
