@@ -1,10 +1,3 @@
-"""
-Async data access layer built on top of aiosqlite.
-
-Provides high-level operations for reading and writing invoice-related data.
-All SQL logic is centralized in the AsyncInvoiceStorage class.
-"""
-
 from __future__ import annotations
 
 from datetime import date
@@ -29,33 +22,17 @@ class AsyncInvoiceStorage:
     """
 
     def __init__(self, database_path: str) -> None:
-        """
-        Initialize storage with the database path.
-
-        Args:
-            database_path: Path to the SQLite database file.
-        """
+        """Initialize storage with the SQLite database path."""
         self._database_path = database_path
 
     async def _get_connection(self) -> aiosqlite.Connection:
-        """
-        Open an aiosqlite connection with row factory configured for dict-like access.
-        """
+        """Open an aiosqlite connection with dict-like row access."""
         connection = await aiosqlite.connect(self._database_path)
         connection.row_factory = aiosqlite.Row
         return connection
 
     async def save_invoice(self, invoice: Invoice, user_id: int = 0) -> int:
-        """
-        Insert invoice and related items in a single transaction, return the created invoice ID.
-
-        Args:
-            invoice: Domain Invoice entity to persist.
-            user_id: User ID associated with the invoice.
-
-        Returns:
-            The created invoice ID, or 0 if insertion failed.
-        """
+        """Insert invoice, items, and comments in a single transaction."""
         connection = await self._get_connection()
         try:
             cursor = await connection.cursor()
@@ -107,19 +84,7 @@ class AsyncInvoiceStorage:
         to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
-        """
-        Fetch invoices matching the date range and optional supplier filter.
-
-        Results are sorted by date (or creation time if dates are missing).
-
-        Args:
-            from_date: Start date for filtering (inclusive).
-            to_date: End date for filtering (inclusive).
-            supplier: Optional supplier name filter (LIKE pattern).
-
-        Returns:
-            List of Invoice domain entities.
-        """
+        """Fetch invoices matching the date range and optional supplier filter."""
         connection = await self._get_connection()
         try:
             from_iso = from_date.isoformat() if from_date else None
@@ -185,16 +150,13 @@ class AsyncInvoiceStorage:
             await connection.close()
 
 
-# Default storage instance for backward compatibility
-# Note: This uses DB_PATH from storage.db, which may be monkeypatched in tests
 _default_storage: AsyncInvoiceStorage | None = None
 _default_storage_path: str | None = None
 
 
 def _get_default_storage() -> AsyncInvoiceStorage:
-    """Get or create the default storage instance."""
+    """Return a cached default storage instance."""
     global _default_storage, _default_storage_path
-    # Recreate storage if DB_PATH changed (e.g., in tests)
     current_path = DB_PATH
     if _default_storage is None or _default_storage_path != current_path:
         _default_storage = AsyncInvoiceStorage(database_path=current_path)
@@ -202,13 +164,8 @@ def _get_default_storage() -> AsyncInvoiceStorage:
     return _default_storage
 
 
-# Wrapper functions for backward compatibility
 async def save_invoice_domain_async(invoice: Invoice, user_id: int = 0) -> int:
-    """
-    Save invoice domain entity to database (backward compatibility wrapper).
-
-    This function delegates to AsyncInvoiceStorage.save_invoice.
-    """
+    """Backward compatible wrapper around AsyncInvoiceStorage.save_invoice."""
     storage = _get_default_storage()
     return await storage.save_invoice(invoice, user_id=user_id)
 
@@ -218,11 +175,7 @@ async def fetch_invoices_domain_async(
     to_date: Optional[date],
     supplier: Optional[str] = None,
 ) -> List[Invoice]:
-    """
-    Fetch invoices from database (backward compatibility wrapper).
-
-    This function delegates to AsyncInvoiceStorage.fetch_invoices.
-    """
+    """Backward compatible wrapper around AsyncInvoiceStorage.fetch_invoices."""
     storage = _get_default_storage()
     return await storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
 

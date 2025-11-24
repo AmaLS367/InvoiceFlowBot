@@ -63,7 +63,6 @@ def configure_logging() -> None:
     fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | req=%(req)s | %(message)s")
     req_filter = RequestFilter()
 
-    # Root logger: common stream and errors
     root = logging.getLogger()
     root.setLevel(level)
 
@@ -90,7 +89,6 @@ def configure_logging() -> None:
         ch.addFilter(req_filter)
         root.addHandler(ch)
 
-    # Separate log channels
     router = logging.getLogger("ocr.router")
     router.setLevel(logging.DEBUG)
     h_router = RotatingFileHandler(
@@ -138,7 +136,6 @@ async def save_file(src: Any, bot: Any) -> Optional[str]:
     if not tg_file or not tg_file.file_path:
         return None
 
-    # Get filename and extension
     orig_name = getattr(src, "file_name", None)
     ext = Path(tg_file.file_path).suffix.lower()
     if not ext:

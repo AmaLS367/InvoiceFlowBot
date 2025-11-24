@@ -2,8 +2,8 @@ import json
 import os
 from typing import Any, Dict, List, Optional, cast
 
-import requests  # type: ignore[import-untyped]
-from mindee import ClientV2, InferenceParameters, PathInput  # type: ignore[attr-defined]
+import requests
+from mindee import ClientV2, InferenceParameters, PathInput
 
 import config
 from ocr.engine.types import ExtractionResult, Item
@@ -36,9 +36,6 @@ def _field_value(field: Any) -> Optional[Any]:
 
 
 def mindee_predict(path: str) -> Optional[dict]:
-    """
-    Simple HTTP call to Mindee Invoices v4 endpoint.
-    """
     api = MINDEE_API
     if not api:
         logger.warning("[Mindee HTTP] no API key in env")
@@ -67,7 +64,7 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
         return None
     try:
         client = ClientV2(api_key=api)
-        params = InferenceParameters(  # type: ignore[call-arg]
+        params = InferenceParameters(
             model_id=model_id,
             rag=False,
             raw_text=False,

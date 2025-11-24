@@ -1,16 +1,9 @@
-"""
-Unit tests for InvoiceItem domain entity.
-"""
-
 from decimal import Decimal
 
 from domain.invoices import InvoiceItem
 
 
 def test_invoice_item_basic_creation() -> None:
-    """
-    InvoiceItem should be created with correct field values and types.
-    """
     item = InvoiceItem(
         description="Test Item",
         sku="SKU-123",
@@ -33,9 +26,6 @@ def test_invoice_item_basic_creation() -> None:
 
 
 def test_invoice_item_optional_fields_defaults() -> None:
-    """
-    Optional fields for InvoiceItem should default to None when not provided.
-    """
     item = InvoiceItem(description="Minimal Item")
 
     assert item.description == "Minimal Item"
@@ -47,9 +37,6 @@ def test_invoice_item_optional_fields_defaults() -> None:
 
 
 def test_invoice_item_with_zero_values() -> None:
-    """
-    InvoiceItem should handle zero quantity and prices correctly.
-    """
     item = InvoiceItem(
         description="Free Item",
         quantity=Decimal("0"),
@@ -66,9 +53,6 @@ def test_invoice_item_with_zero_values() -> None:
 
 
 def test_invoice_item_with_large_decimal_values() -> None:
-    """
-    InvoiceItem should handle large Decimal values correctly.
-    """
     item = InvoiceItem(
         description="Expensive Item",
         quantity=Decimal("1000000"),
@@ -82,9 +66,6 @@ def test_invoice_item_with_large_decimal_values() -> None:
 
 
 def test_invoice_item_with_precise_decimal_values() -> None:
-    """
-    InvoiceItem should preserve decimal precision correctly.
-    """
     item = InvoiceItem(
         description="Precise Item",
         quantity=Decimal("1.23456789"),
@@ -98,9 +79,6 @@ def test_invoice_item_with_precise_decimal_values() -> None:
 
 
 def test_invoice_item_with_unicode_characters() -> None:
-    """
-    InvoiceItem should handle unicode characters in description and SKU.
-    """
     item = InvoiceItem(
         description="Товар №1 / Item #1 / 商品 #1",
         sku="SKU-测试-тест-テスト",
@@ -113,9 +91,6 @@ def test_invoice_item_with_unicode_characters() -> None:
 
 
 def test_invoice_item_equality() -> None:
-    """
-    InvoiceItem instances with same values should be equal (dataclass behavior).
-    """
     item1 = InvoiceItem(
         description="Test",
         sku="SKU1",

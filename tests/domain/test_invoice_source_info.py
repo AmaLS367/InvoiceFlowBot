@@ -1,14 +1,7 @@
-"""
-Unit tests for InvoiceSourceInfo domain entity.
-"""
-
 from domain.invoices import InvoiceSourceInfo
 
 
 def test_invoice_source_info_basic_creation() -> None:
-    """
-    InvoiceSourceInfo should keep file and provider metadata.
-    """
     source = InvoiceSourceInfo(
         file_path="/tmp/invoice.pdf",
         file_sha256="abc123def456",
@@ -28,9 +21,6 @@ def test_invoice_source_info_basic_creation() -> None:
 
 
 def test_invoice_source_info_defaults_are_none() -> None:
-    """
-    All fields in InvoiceSourceInfo should default to None when not provided.
-    """
     source = InvoiceSourceInfo()
 
     assert source.file_path is None
@@ -40,9 +30,6 @@ def test_invoice_source_info_defaults_are_none() -> None:
 
 
 def test_invoice_source_info_with_different_providers() -> None:
-    """
-    InvoiceSourceInfo should support different OCR providers.
-    """
     providers = ["mindee", "deepseek", "gemini", "openai", "custom"]
     for provider in providers:
         source = InvoiceSourceInfo(provider=provider)
@@ -50,9 +37,6 @@ def test_invoice_source_info_with_different_providers() -> None:
 
 
 def test_invoice_source_info_with_file_paths() -> None:
-    """
-    InvoiceSourceInfo should handle different file path formats.
-    """
     paths = [
         "/tmp/invoice.pdf",
         "C:\\Users\\Documents\\invoice.pdf",

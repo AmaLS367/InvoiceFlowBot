@@ -1,9 +1,3 @@
-"""
-Business logic for managing per-user invoice drafts.
-
-Drafts represent the in-progress state of a parsed invoice.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -26,21 +20,12 @@ class DraftService:
         self._logger = logger
 
     async def get_current_draft(self, user_id: int) -> Optional[InvoiceDraft]:
-        """
-        Retrieve the current invoice draft for the given user ID.
-        """
         return await self._load_draft_func(user_id)
 
     async def set_current_draft(self, user_id: int, draft: InvoiceDraft) -> None:
-        """
-        Persist the current invoice draft for the given user ID.
-        """
         await self._save_draft_func(user_id, draft)
 
     async def clear_current_draft(self, user_id: int) -> None:
-        """
-        Remove the current invoice draft for the given user ID.
-        """
         await self._delete_draft_func(user_id)
 
 

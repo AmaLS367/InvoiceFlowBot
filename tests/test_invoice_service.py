@@ -9,10 +9,6 @@ from services.invoice_service import InvoiceService
 
 
 class DummyItem:
-    """
-    Minimal test double for an OCR line item.
-    """
-
     def __init__(
         self,
         name: str,
@@ -29,10 +25,6 @@ class DummyItem:
 
 
 class DummyExtractionResult:
-    """
-    Minimal test double for an OCR extraction result.
-    """
-
     def __init__(
         self,
         supplier: str,
@@ -54,9 +46,6 @@ class DummyExtractionResult:
 
 @pytest.mark.asyncio
 async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
-    """
-    process_invoice_file should call OCR router and convert the result into a domain Invoice.
-    """
     import logging
 
     called = {}
@@ -119,9 +108,6 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
 
 @pytest.mark.asyncio
 async def test_save_invoice_delegates_to_storage() -> None:
-    """
-    save_invoice should delegate persistence to the storage layer and return its ID.
-    """
     import logging
 
     captured = {}
@@ -196,9 +182,6 @@ async def test_save_invoice_delegates_to_storage() -> None:
 
 @pytest.mark.asyncio
 async def test_list_invoices_delegates_to_storage() -> None:
-    """
-    list_invoices should delegate to storage.fetch_invoices_domain and return the result.
-    """
     import logging
 
     captured = {}

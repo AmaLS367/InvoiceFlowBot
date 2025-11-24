@@ -17,7 +17,6 @@ MAX_MSG = 4000  # Telegram message limit is 4096 characters
 
 
 def format_money(x) -> str:
-    """Format number to money string (2 decimal places, remove trailing zeros)."""
     try:
         return f"{float(x):.2f}".rstrip("0").rstrip(".")
     except (ValueError, TypeError):
@@ -25,9 +24,6 @@ def format_money(x) -> str:
 
 
 def format_invoice_header(invoice: Invoice) -> str:
-    """
-    Format invoice header info into a human readable text block.
-    """
     header = invoice.header
     date_str = header.invoice_date.isoformat() if header.invoice_date else "—"
     total_str = format_money(header.total_amount) if header.total_amount is not None else "—"
@@ -42,9 +38,6 @@ def format_invoice_header(invoice: Invoice) -> str:
 
 
 def format_invoice_items(items: List[InvoiceItem]) -> str:
-    """
-    Format invoice line items into a text representation.
-    """
     if not items:
         return "Позиции не распознаны."
 
@@ -61,9 +54,6 @@ def format_invoice_items(items: List[InvoiceItem]) -> str:
 
 
 def format_invoice_summary(invoice: Invoice) -> str:
-    """
-    Format invoice totals and summary information.
-    """
     header = invoice.header
     lines = []
 
@@ -80,9 +70,6 @@ def format_invoice_summary(invoice: Invoice) -> str:
 
 
 def format_invoice_full(invoice: Invoice) -> str:
-    """
-    Format the full invoice (header, items, summary) into a single text block.
-    """
     header_text = format_invoice_header(invoice)
     items_text = format_invoice_items(invoice.items)
     summary_text = format_invoice_summary(invoice)
@@ -98,11 +85,7 @@ def format_invoice_full(invoice: Invoice) -> str:
     return "\n\n".join(parts)
 
 
-# Backwards compatible wrappers for dict-based code
 def fmt_header(p: dict) -> str:
-    """
-    Backwards compatible adapter: format invoice header from dict.
-    """
     return (
         f"📑 Документ: {p.get('doc_number') or '—'}\n"
         f"📅 Дата: {p.get('date') or '—'}\n"
@@ -113,9 +96,6 @@ def fmt_header(p: dict) -> str:
 
 
 def fmt_items(items: list[dict]) -> str:
-    """
-    Backwards compatible adapter: format invoice items from list of dicts.
-    """
     if not items:
         return "Позиции не распознаны."
 
@@ -132,15 +112,11 @@ def fmt_items(items: list[dict]) -> str:
 
 
 async def send_chunked(message: Message, text: str):
-    """Send long text in chunks"""
     for i in range(0, len(text), MAX_MSG):
         await message.answer(text[i : i + MAX_MSG])
 
 
 def csv_bytes_from_items(items: List[InvoiceItem]) -> bytes:
-    """
-    Generate CSV bytes from list of InvoiceItem domain entities.
-    """
     sio = io.StringIO()
     w = csv.writer(sio, delimiter=";")
     w.writerow(["#", "name", "qty", "price", "total"])
@@ -182,7 +158,6 @@ def csv_bytes(items: list[dict]) -> bytes:
 
 
 def main_kb() -> InlineKeyboardMarkup:
-    """Main menu keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -222,7 +197,6 @@ def main_kb() -> InlineKeyboardMarkup:
 
 
 def actions_kb() -> InlineKeyboardMarkup:
-    """Actions keyboard (after file upload)."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -250,7 +224,6 @@ def actions_kb() -> InlineKeyboardMarkup:
 
 
 def header_kb() -> InlineKeyboardMarkup:
-    """Header fields editing keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -290,7 +263,6 @@ def header_kb() -> InlineKeyboardMarkup:
 
 
 def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardMarkup:
-    """Items pagination keyboard."""
     start = (page - 1) * per_page + 1
     end = min(n, page * per_page)
     rows = []
@@ -314,7 +286,6 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
 
 
 def item_fields_kb(idx: int) -> InlineKeyboardMarkup:
-    """Item fields editing keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

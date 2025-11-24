@@ -1,7 +1,3 @@
-"""
-Tests for AppContainer dependency injection.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -25,14 +21,12 @@ from tests.fakes.fake_storage import (
 
 
 def test_app_container_creates_default_dependencies() -> None:
-    """Test that AppContainer creates default dependencies when none are provided."""
     config = Settings()  # type: ignore[call-arg]
     container = AppContainer(config=config)
 
     assert isinstance(container.invoice_service, InvoiceService)
     assert isinstance(container.draft_service, DraftService)
 
-    # Check that services use the default functions
     assert container.invoice_service._ocr_extractor is extract_invoice_async
     assert container.invoice_service._save_invoice_func is save_invoice_domain_async
     assert container.invoice_service._fetch_invoices_func is fetch_invoices_domain_async
@@ -42,7 +36,6 @@ def test_app_container_creates_default_dependencies() -> None:
 
 
 def test_app_container_accepts_overridden_dependencies() -> None:
-    """Test that AppContainer accepts overridden dependencies."""
     config = Settings()  # type: ignore[call-arg]
     fake_storage = FakeStorage()
     fake_ocr = FakeOcr()
@@ -60,7 +53,6 @@ def test_app_container_accepts_overridden_dependencies() -> None:
     assert isinstance(container.invoice_service, InvoiceService)
     assert isinstance(container.draft_service, DraftService)
 
-    # Check that services use the fake functions
     assert container.invoice_service._ocr_extractor is not extract_invoice_async
     assert container.invoice_service._save_invoice_func is not save_invoice_domain_async
     assert container.invoice_service._fetch_invoices_func is not fetch_invoices_domain_async
@@ -70,7 +62,6 @@ def test_app_container_accepts_overridden_dependencies() -> None:
 
 
 def test_app_container_accepts_overridden_services() -> None:
-    """Test that AppContainer accepts pre-constructed service instances."""
     config = Settings()  # type: ignore[call-arg]
     fake_storage = FakeStorage()
     fake_ocr = FakeOcr()
@@ -100,7 +91,6 @@ def test_app_container_accepts_overridden_services() -> None:
 
 
 def test_create_app_container_returns_default_container() -> None:
-    """Test that create_app_container returns a container with default dependencies."""
     container = create_app_container()
 
     assert isinstance(container, AppContainer)

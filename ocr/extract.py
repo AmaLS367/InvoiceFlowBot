@@ -11,14 +11,12 @@ logger = get_logger("ocr.extract")
 
 
 def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Dict[str, Any]:
-    # Start and file metadata
     try:
         size = os.path.getsize(pdf_path) if os.path.exists(pdf_path) else -1
     except Exception:
         size = -1
     logger.info(f"[EXTRACT] start path={pdf_path} size={size} fast={fast} max_pages={max_pages}")
 
-    # Call router with timing and error handling
     try:
         with time_block(logger, "router.extract_invoice"):
             result: ExtractionResult = extract_invoice(
@@ -28,7 +26,6 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
         logger.exception(f"[EXTRACT] failed path={pdf_path}")
         raise
 
-    # Transform results
     items_out: List[Dict[str, Any]] = []
     for it in result.items:
         items_out.append(
@@ -65,7 +62,6 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
         "warnings": result.warnings,
     }
 
-    # Summary and useful WARN/DEBUG logs
     pages_cnt = len(result.pages or [])
     logger.info(
         f"[EXTRACT] done id={out.get('document_id')} template={out.get('template')} "
@@ -76,7 +72,6 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
     if not items_out:
         logger.warning("[EXTRACT] no_items_detected")
 
-    # Short preview for debugging
     try:
         preview_names = [i["name"] for i in items_out[:3]]
         logger.debug(f"[EXTRACT] items_preview={preview_names}")

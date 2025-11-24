@@ -1,7 +1,3 @@
-"""
-Fake storage functions for testing.
-"""
-
 from __future__ import annotations
 
 from datetime import date
@@ -12,10 +8,6 @@ from domain.invoices import Invoice
 
 
 class FakeStorage:
-    """
-    Fake storage that records all calls and returns minimal valid responses.
-    """
-
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
         self._saved_invoices: dict[int, Invoice] = {}
@@ -38,7 +30,6 @@ class FakeStorage:
     ) -> List[Invoice]:
         """Fake fetch invoices function."""
         self.calls.append(("fetch_invoices_domain_async", (from_date, to_date, supplier), {}))
-        # Return all saved invoices (simple implementation)
         return list(self._saved_invoices.values())
 
     async def load_draft_invoice(self, user_id: int) -> Optional[InvoiceDraft]:
@@ -55,10 +46,6 @@ class FakeStorage:
         """Fake delete draft function."""
         self.calls.append(("delete_draft_invoice", (user_id,), {}))
         self._saved_drafts.pop(user_id, None)
-
-
-# Create callable functions that delegate to FakeStorage instance
-# These can be passed to AppContainer as function dependencies
 
 
 def make_fake_save_invoice_func(fake_storage: FakeStorage) -> Any:

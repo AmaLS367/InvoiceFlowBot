@@ -12,8 +12,6 @@ from ocr.providers.mindee_provider import MindeeOcrProvider
 
 logger = get_logger("ocr.router")
 
-# For now the router always uses the Mindee provider.
-# The provider instance is kept at module level to allow future extension.
 _default_provider: OcrProvider = MindeeOcrProvider()
 
 
@@ -61,7 +59,6 @@ def _result_payload(result: ExtractionResult) -> Dict[str, Any]:
 
 
 def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> ExtractionResult:
-    # Parameters fast and max_pages are kept for API compatibility but not used
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(pdf_path)
 

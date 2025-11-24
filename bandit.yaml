@@ -5,6 +5,3 @@ exclude_dirs:
   - .git
   - .mypy_cache
   - .pytest_cache
-
-# Minimal config for security analysis
-# Can be extended later with specific test IDs to skip

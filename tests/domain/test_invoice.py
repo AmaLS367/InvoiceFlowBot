@@ -200,9 +200,6 @@ def test_invoice_with_mixed_currencies() -> None:
 
 
 def test_invoice_with_partial_header_fields() -> None:
-    """
-    Invoice should work with minimal header information.
-    """
     header = InvoiceHeader(
         supplier_name="Supplier",
         total_amount=Decimal("100"),
@@ -217,26 +214,20 @@ def test_invoice_with_partial_header_fields() -> None:
 
 
 def test_invoice_with_source_info_combinations() -> None:
-    """
-    Invoice should work with different combinations of source info fields.
-    """
     header = InvoiceHeader()
 
-    # Only provider
     source1 = InvoiceSourceInfo(provider="mindee")
     invoice1 = Invoice(header=header, source=source1)
     assert invoice1.source is not None
     assert invoice1.source.provider == "mindee"
     assert invoice1.source.file_path is None
 
-    # Only file path
     source2 = InvoiceSourceInfo(file_path="/tmp/invoice.pdf")
     invoice2 = Invoice(header=header, source=source2)
     assert invoice2.source is not None
     assert invoice2.source.file_path == "/tmp/invoice.pdf"
     assert invoice2.source.provider is None
 
-    # Only SHA256
     source3 = InvoiceSourceInfo(file_sha256="abc123")
     invoice3 = Invoice(header=header, source=source3)
     assert invoice3.source is not None

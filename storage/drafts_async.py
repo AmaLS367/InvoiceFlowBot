@@ -19,21 +19,12 @@ from storage.db import DB_PATH
 
 
 async def _connect() -> aiosqlite.Connection:
-    """
-    Open an aiosqlite connection for the drafts database and configure row factory.
-    """
     connection = await aiosqlite.connect(DB_PATH)
     connection.row_factory = aiosqlite.Row
     return connection
 
 
 def _draft_to_payload(draft: InvoiceDraft) -> str:
-    """
-    Serialize an InvoiceDraft into a JSON string that can be stored in the database.
-
-    The payload must only contain JSON-serializable primitives.
-    """
-
     def convert_value(value: Any) -> Any:
         if isinstance(value, datetime):
             return {"__type__": "datetime", "value": value.isoformat()}
@@ -61,11 +52,6 @@ def _draft_to_payload(draft: InvoiceDraft) -> str:
 
 
 def _payload_to_draft(payload_str: str) -> Optional[InvoiceDraft]:
-    """
-    Deserialize a JSON payload from the database back into an InvoiceDraft.
-
-    If the payload is invalid, returns None.
-    """
     try:
         raw = json.loads(payload_str)
     except json.JSONDecodeError:
@@ -142,9 +128,6 @@ def _payload_to_draft(payload_str: str) -> Optional[InvoiceDraft]:
 
 
 async def save_draft_invoice(user_id: int, draft: InvoiceDraft) -> None:
-    """
-    Save or replace a draft invoice for the given user ID.
-    """
     payload = _draft_to_payload(draft)
     connection = await _connect()
     try:
@@ -164,9 +147,6 @@ async def save_draft_invoice(user_id: int, draft: InvoiceDraft) -> None:
 
 
 async def load_draft_invoice(user_id: int) -> Optional[InvoiceDraft]:
-    """
-    Load a draft invoice for the given user ID, or None if it does not exist or is invalid.
-    """
     connection = await _connect()
     try:
         cursor = await connection.execute(
@@ -185,9 +165,6 @@ async def load_draft_invoice(user_id: int) -> Optional[InvoiceDraft]:
 
 
 async def delete_draft_invoice(user_id: int) -> None:
-    """
-    Delete a draft invoice for the given user ID if it exists.
-    """
     connection = await _connect()
     try:
         await connection.execute(

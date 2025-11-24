@@ -7,10 +7,6 @@ from ocr.providers.base import OcrProvider
 
 
 class MindeeOcrProvider(OcrProvider):
-    """
-    OCR provider that delegates invoice extraction to the Mindee client.
-    """
-
     def __init__(self) -> None:
         self.logger = get_logger("ocr.provider.mindee")
 

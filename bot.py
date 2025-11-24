@@ -16,9 +16,6 @@ logger.info("Bot startup")
 
 
 async def _run_bot() -> None:
-    """
-    Async entrypoint that initializes and runs the Telegram bot.
-    """
     if BOT_TOKEN is None:
         raise ValueError(
             "BOT_TOKEN is not set. Please check your config.py or environment variables."

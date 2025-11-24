@@ -55,11 +55,9 @@ def _make_sample_draft() -> InvoiceDraft:
 @pytest.mark.asyncio
 async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     db_file = tmp_path / "test_drafts.sqlite"
-    # Point both sync and async DB layers to the same temporary file.
     monkeypatch.setattr(storage_db, "DB_PATH", str(db_file), raising=True)
     monkeypatch.setattr("storage.drafts_async.DB_PATH", str(db_file), raising=True)
 
-    # Init schema including invoice_drafts table.
     storage_db.init_db()
 
     user_id = 123
@@ -72,14 +70,11 @@ async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
         logger=logging.getLogger("test"),
     )
 
-    # Initially there should be no draft.
     loaded_none = await service.get_current_draft(user_id)
     assert loaded_none is None
 
-    # Save draft.
     await service.set_current_draft(user_id, draft)
 
-    # Load draft and ensure basic fields match.
     loaded = await service.get_current_draft(user_id)
     assert loaded is not None
     assert loaded.invoice.header.supplier_name == draft.invoice.header.supplier_name
@@ -90,7 +85,6 @@ async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     assert loaded.raw_text == draft.raw_text
     assert loaded.comments == draft.comments
 
-    # Clear draft.
     await service.clear_current_draft(user_id)
     loaded_after_clear = await service.get_current_draft(user_id)
     assert loaded_after_clear is None

@@ -1,17 +1,4 @@
-"""
-Healthcheck script for Docker container.
-
-Performs minimal validation to ensure the bot environment is healthy.
-"""
-
-
 def main() -> int:
-    """
-    Perform minimal health check by importing key modules.
-
-    Returns:
-        0 if healthy, 1 if unhealthy.
-    """
     try:
         # Import key modules to verify environment is set up correctly
         import domain.invoices  # noqa: F401

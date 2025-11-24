@@ -1,7 +1,3 @@
-"""
-Unit tests for InvoiceHeader domain entity.
-"""
-
 from datetime import date
 from decimal import Decimal
 
@@ -9,9 +5,6 @@ from domain.invoices import InvoiceHeader
 
 
 def test_invoice_header_basic_creation() -> None:
-    """
-    InvoiceHeader should handle basic fields and date types correctly.
-    """
     invoice_date = date(2024, 1, 15)
     header = InvoiceHeader(
         supplier_name="Test Supplier",
@@ -34,9 +27,6 @@ def test_invoice_header_basic_creation() -> None:
 
 
 def test_invoice_header_defaults_are_none() -> None:
-    """
-    Optional fields in InvoiceHeader should be None by default.
-    """
     header = InvoiceHeader()
 
     assert header.supplier_name is None
@@ -53,9 +43,6 @@ def test_invoice_header_defaults_are_none() -> None:
 
 
 def test_invoice_header_with_all_fields() -> None:
-    """
-    InvoiceHeader should handle all optional fields simultaneously.
-    """
     invoice_date = date(2024, 1, 15)
     due_date = date(2024, 2, 15)
     header = InvoiceHeader(
@@ -86,9 +73,6 @@ def test_invoice_header_with_all_fields() -> None:
 
 
 def test_invoice_header_with_different_currencies() -> None:
-    """
-    InvoiceHeader should support different currency codes.
-    """
     currencies = ["USD", "EUR", "GBP", "JPY", "RUB", "CNY"]
     for currency in currencies:
         header = InvoiceHeader(currency=currency, total_amount=Decimal("100"))
@@ -96,9 +80,6 @@ def test_invoice_header_with_different_currencies() -> None:
 
 
 def test_invoice_header_with_different_dates() -> None:
-    """
-    InvoiceHeader should handle different date values correctly.
-    """
     dates = [
         date(2020, 1, 1),
         date(2024, 12, 31),
@@ -111,9 +92,6 @@ def test_invoice_header_with_different_dates() -> None:
 
 
 def test_invoice_header_with_unicode_characters() -> None:
-    """
-    InvoiceHeader should handle unicode characters in text fields.
-    """
     header = InvoiceHeader(
         supplier_name="ООО «Поставщик»",
         customer_name="Customer & Co. Ltd.",
@@ -126,9 +104,6 @@ def test_invoice_header_with_unicode_characters() -> None:
 
 
 def test_invoice_header_equality() -> None:
-    """
-    InvoiceHeader instances with same values should be equal (dataclass behavior).
-    """
     date_val = date(2024, 1, 1)
     header1 = InvoiceHeader(
         supplier_name="Supplier",

@@ -1,10 +1,3 @@
-"""
-Async OCR client and mapping logic for Mindee invoice results.
-
-Responsible for calling the HTTP API and converting raw predictions
-into Invoice domain objects.
-"""
-
 from __future__ import annotations
 
 import json
@@ -22,9 +15,6 @@ logger = get_logger("ocr.async_client")
 
 
 async def _mindee_predict_async(pdf_path: str) -> Dict[str, Any]:
-    """
-    Call Mindee Invoices HTTP API asynchronously using httpx and return the raw JSON payload.
-    """
     api_key = config.MINDEE_API_KEY
     if not api_key:
         logger.warning("[Mindee HTTP async] no API key in config")
@@ -76,11 +66,6 @@ async def extract_invoice_async(
     fast: bool = True,
     max_pages: int = 12,
 ) -> ExtractionResult:
-    """
-    Call Mindee OCR for the given file and convert the response into an ExtractionResult.
-
-    Handles field normalization, item ordering and basic type conversions.
-    """
     logger.info(
         "[OCR ASYNC] extract_invoice_async start pdf_path=%r fast=%s max_pages=%s",
         pdf_path,

@@ -1,15 +1,9 @@
-"""
-Fake Telegram entities for testing handlers without real Telegram API.
-"""
-
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
 
 class FakeUser:
-    """Fake Telegram user for testing."""
-
     def __init__(
         self,
         user_id: int = 1,
@@ -20,8 +14,6 @@ class FakeUser:
 
 
 class FakeDocument:
-    """Fake Telegram document for testing."""
-
     def __init__(
         self,
         file_id: str,
@@ -34,8 +26,6 @@ class FakeDocument:
 
 
 class FakePhotoSize:
-    """Fake Telegram photo size for testing."""
-
     def __init__(
         self,
         file_id: str,
@@ -48,8 +38,6 @@ class FakePhotoSize:
 
 
 class FakeMessage:
-    """Fake Telegram message for testing."""
-
     def __init__(
         self,
         text: str = "",
@@ -68,13 +56,10 @@ class FakeMessage:
         self.answers: List[Dict[str, Any]] = []
 
     async def answer(self, text: str, **kwargs: Any) -> None:
-        """Fake answer method that stores sent messages."""
         self.answers.append({"text": text, "kwargs": kwargs})
 
     async def reply(self, text: str, **kwargs: Any) -> None:
-        """Fake reply method that stores sent messages."""
         await self.answer(text, **kwargs)
 
     async def answer_document(self, document: Any, **kwargs: Any) -> None:
-        """Fake answer_document method that stores sent documents."""
         self.answers.append({"document": document, "kwargs": kwargs})

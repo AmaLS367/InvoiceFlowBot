@@ -1,7 +1,3 @@
-"""
-Tests for ContainerMiddleware.
-"""
-
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -15,7 +11,6 @@ from handlers.di_middleware import ContainerMiddleware
 
 @pytest.mark.asyncio
 async def test_container_middleware_injects_container(app_container: AppContainer) -> None:
-    """Test that ContainerMiddleware injects the container into handler data."""
     middleware = ContainerMiddleware(container=app_container)
 
     called: Dict[str, Any] = {}
@@ -45,7 +40,6 @@ async def test_container_middleware_injects_container(app_container: AppContaine
 
 @pytest.mark.asyncio
 async def test_container_middleware_preserves_existing_data(app_container: AppContainer) -> None:
-    """Test that ContainerMiddleware preserves existing data in the data dict."""
     middleware = ContainerMiddleware(container=app_container)
 
     called: Dict[str, Any] = {}

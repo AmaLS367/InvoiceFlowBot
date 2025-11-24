@@ -1,7 +1,3 @@
-"""
-Fake OCR functions for testing.
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -10,10 +6,6 @@ from ocr.engine.types import ExtractionResult
 
 
 class FakeOcr:
-    """
-    Fake OCR that records all calls and returns minimal valid responses.
-    """
-
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
         self.raise_error: bool = False
@@ -28,7 +20,6 @@ class FakeOcr:
         self.calls.append(("extract_invoice_async", (pdf_path, fast, max_pages), {}))
         if self.raise_error:
             raise RuntimeError("OCR failed")
-        # Return minimal valid ExtractionResult
         return ExtractionResult(
             document_id="fake-doc-id",
             supplier=None,
@@ -40,9 +31,6 @@ class FakeOcr:
             pages=[],
             warnings=[],
         )
-
-
-# Create callable function that delegates to FakeOcr instance
 
 
 def make_fake_ocr_extractor(fake_ocr: FakeOcr) -> Any:

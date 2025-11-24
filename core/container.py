@@ -72,15 +72,11 @@ class AppContainer:
             logger=logging.getLogger("services.draft"),
         )
 
-        # Temporary aliases for backward compatibility with handlers
         self.invoice_service_module: InvoiceService = self.invoice_service
         self.draft_service_module: DraftService = self.draft_service
 
 
 def create_app_container() -> AppContainer:
-    """
-    Build the default AppContainer wiring real service and infrastructure modules.
-    """
     return AppContainer()
 
 

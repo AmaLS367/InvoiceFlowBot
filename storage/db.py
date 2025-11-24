@@ -199,8 +199,6 @@ def items_count(invoice_id: int) -> int:
     con.close()
     return int(n)
 
-
-# Mapping functions moved to storage/mappers.py
 # Keep old function names as aliases for backward compatibility
 _invoice_to_db_header = invoice_to_db_row
 _invoice_item_to_db_row = invoice_item_to_db_row
@@ -219,7 +217,6 @@ def _run_async(coro) -> Any:
     try:
         asyncio.get_running_loop()
     except RuntimeError:
-        # No event loop running, create a new one
         return cast(Any, asyncio.run(coro))
     else:
         # Event loop is running, run in a new thread with a new event loop

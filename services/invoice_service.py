@@ -1,9 +1,3 @@
-"""
-High-level business logic for invoice processing.
-
-Coordinates OCR results, domain models and persistence layer.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -23,10 +17,6 @@ DEFAULT_MAX_OCR_PAGES = 12
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
-    """
-    Best-effort parse for invoice dates coming from OCR.
-    Returns None if parsing fails.
-    """
     if not value:
         return None
 
@@ -46,9 +36,6 @@ def _parse_date(value: Optional[str]) -> Optional[date]:
 
 
 def _build_header(result: ExtractionResult) -> InvoiceHeader:
-    """
-    Build InvoiceHeader from OCR ExtractionResult.
-    """
     invoice_date = _parse_date(result.date)
 
     total_amount = None
@@ -64,9 +51,6 @@ def _build_header(result: ExtractionResult) -> InvoiceHeader:
 
 
 def _build_item(item: Item) -> InvoiceItem:
-    """
-    Build a single InvoiceItem from OCR Item.
-    """
     return InvoiceItem(
         description=item.name,
         sku=item.code,
@@ -77,18 +61,12 @@ def _build_item(item: Item) -> InvoiceItem:
 
 
 def _build_source_info(result: ExtractionResult, provider: str = "mindee") -> InvoiceSourceInfo:
-    """
-    Build InvoiceSourceInfo from ExtractionResult and provider name.
-    """
     return InvoiceSourceInfo(
         provider=provider,
     )
 
 
 def build_invoice_from_extraction(result: ExtractionResult) -> Invoice:
-    """
-    Convert OCR ExtractionResult into a domain Invoice entity.
-    """
     header = _build_header(result)
     items = [_build_item(it) for it in result.items]
     source = _build_source_info(result, provider="mindee")
@@ -124,9 +102,6 @@ class InvoiceService:
         fast: bool = True,
         max_pages: int = DEFAULT_MAX_OCR_PAGES,
     ) -> Invoice:
-        """
-        Run OCR on the given file and map the result into an Invoice domain object.
-        """
         self._logger.info(
             f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
         )
@@ -145,9 +120,6 @@ class InvoiceService:
         return invoice
 
     async def save_invoice(self, invoice: Invoice, user_id: int = 0) -> int:
-        """
-        Persist an Invoice to the database and return its ID.
-        """
         self._logger.info(
             f"[SERVICE] save_invoice supplier={invoice.header.supplier_name!r} total={invoice.header.total_amount!r}"
         )
@@ -165,11 +137,6 @@ class InvoiceService:
         to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
-        """
-        Fetch invoices for the given date period, sorted by creation time.
-
-        Optionally filter by supplier name.
-        """
         self._logger.info(
             f"[SERVICE] list_invoices from={from_date} to={to_date} supplier={supplier!r}"
         )

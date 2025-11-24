@@ -1,16 +1,9 @@
-"""
-Unit tests for InvoiceComment domain entity.
-"""
-
 from datetime import datetime
 
 from domain.invoices import InvoiceComment
 
 
 def test_invoice_comment_basic_creation() -> None:
-    """
-    InvoiceComment should hold author, message and created_at.
-    """
     created_at = datetime(2024, 1, 15, 10, 30, 0)
     comment = InvoiceComment(
         author="Test User",
@@ -25,9 +18,6 @@ def test_invoice_comment_basic_creation() -> None:
 
 
 def test_invoice_comment_optional_fields() -> None:
-    """
-    InvoiceComment should allow optional author and created_at.
-    """
     comment = InvoiceComment(message="Comment without author")
 
     assert comment.message == "Comment without author"
@@ -36,9 +26,6 @@ def test_invoice_comment_optional_fields() -> None:
 
 
 def test_invoice_comment_with_datetime_variations() -> None:
-    """
-    InvoiceComment should handle different datetime values correctly.
-    """
     datetimes = [
         datetime(2024, 1, 1, 0, 0, 0),
         datetime(2024, 12, 31, 23, 59, 59),
@@ -55,9 +42,6 @@ def test_invoice_comment_with_datetime_variations() -> None:
 
 
 def test_invoice_comment_with_unicode_and_special_characters() -> None:
-    """
-    InvoiceComment should handle unicode and special characters in message.
-    """
     comment = InvoiceComment(
         message="Comment with: émojis 🎉, unicode 测试, and symbols !@#$%",
         author="User-测试",

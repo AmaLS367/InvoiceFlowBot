@@ -1,10 +1,3 @@
-"""
-Domain-to-database mapping functions.
-
-This module provides functions to convert between domain models (Invoice, InvoiceItem)
-and database row representations (dicts with column names as keys).
-"""
-
 from __future__ import annotations
 
 from datetime import date
@@ -20,16 +13,6 @@ from domain.invoices import (
 
 
 def invoice_to_db_row(invoice: Invoice, user_id: int = 0) -> Dict[str, Any]:
-    """
-    Convert domain Invoice to a dict suitable for inserting into the invoices table.
-
-    Args:
-        invoice: Domain Invoice entity.
-        user_id: User ID associated with the invoice.
-
-    Returns:
-        Dictionary with column names as keys, ready for SQL INSERT.
-    """
     header = invoice.header
     date_iso = None
     if header.invoice_date:
@@ -57,17 +40,6 @@ def invoice_to_db_row(invoice: Invoice, user_id: int = 0) -> Dict[str, Any]:
 
 
 def invoice_item_to_db_row(invoice_id: int, item: InvoiceItem, index: int) -> Dict[str, Any]:
-    """
-    Convert domain InvoiceItem to a dict suitable for inserting into the invoice_items table.
-
-    Args:
-        invoice_id: ID of the parent invoice.
-        item: Domain InvoiceItem entity.
-        index: Position index of the item (1-based).
-
-    Returns:
-        Dictionary with column names as keys, ready for SQL INSERT.
-    """
     return {
         "invoice_id": invoice_id,
         "idx": index,
@@ -80,15 +52,6 @@ def invoice_item_to_db_row(invoice_id: int, item: InvoiceItem, index: int) -> Di
 
 
 def db_row_to_invoice_item(row: Dict[str, Any]) -> InvoiceItem:
-    """
-    Convert a database row (dict) to a domain InvoiceItem.
-
-    Args:
-        row: Dictionary with column names as keys from invoice_items table.
-
-    Returns:
-        Domain InvoiceItem entity.
-    """
     return InvoiceItem(
         description=row.get("name") or "",
         sku=row.get("code"),
@@ -99,16 +62,6 @@ def db_row_to_invoice_item(row: Dict[str, Any]) -> InvoiceItem:
 
 
 def db_row_to_invoice(header_row: Dict[str, Any], item_rows: List[Dict[str, Any]]) -> Invoice:
-    """
-    Build a domain Invoice entity from database header row and related item rows.
-
-    Args:
-        header_row: Dictionary with column names as keys from invoices table.
-        item_rows: List of dictionaries with column names as keys from invoice_items table.
-
-    Returns:
-        Domain Invoice entity.
-    """
     invoice_date = None
     if header_row.get("date_iso"):
         try:
