@@ -81,4 +81,3 @@ Architecture and design decisions:
 * `docs/adr/` for architecture decision records.
 
 If you change the way the bot is configured or deployed, please update the relevant docs in `docs/en` and `docs/ru`.
-

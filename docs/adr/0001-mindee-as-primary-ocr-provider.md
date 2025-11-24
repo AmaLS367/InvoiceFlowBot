@@ -51,4 +51,3 @@ Mitigations:
 - All business logic depends on `OcrProvider` abstraction.
 
 - It is possible to plug a different provider or local engine without rewriting handlers and services.
-

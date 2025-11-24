@@ -53,4 +53,3 @@ Mitigations:
 - Telegram specific code is isolated in the `handlers` layer.
 
 - Business logic in `services` and `domain` is framework agnostic.
-

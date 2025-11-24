@@ -36,4 +36,3 @@ def make_item_pick_callback(index: int) -> str:
 
 def make_item_field_callback(index: int, key: str) -> str:
     return f"{ITEM_FIELD_PREFIX}:{index}:{key}"
-

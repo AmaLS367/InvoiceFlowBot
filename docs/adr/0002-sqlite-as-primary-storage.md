@@ -51,4 +51,3 @@ Mitigations:
 - Storage access is encapsulated in `AsyncInvoiceStorage`.
 
 - Migration to a different backend is localized in the `storage` package.
-

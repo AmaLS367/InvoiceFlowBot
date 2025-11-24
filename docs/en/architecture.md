@@ -68,4 +68,3 @@ sequenceDiagram
     S-->>H: Invoice with id
     H-->>User: message with invoice header and items
 ```
-

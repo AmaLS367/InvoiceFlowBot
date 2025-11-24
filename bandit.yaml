@@ -8,5 +8,3 @@ exclude_dirs:
 
 # Minimal config for security analysis
 # Can be extended later with specific test IDs to skip
-
-

@@ -18,6 +18,7 @@ def main() -> int:
         import handlers  # noqa: F401
         import services  # noqa: F401
         import storage  # noqa: F401
+
         return 0
     except Exception:
         return 1
@@ -25,4 +26,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

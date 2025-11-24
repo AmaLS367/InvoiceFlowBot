@@ -68,4 +68,3 @@ sequenceDiagram
     S-->>H: Invoice с id
     H-->>User: сообщение с шапкой и позициями
 ```
-
