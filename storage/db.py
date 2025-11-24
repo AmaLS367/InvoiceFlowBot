@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import config
-from alembic import command  # type: ignore[attr-defined]
+from alembic import command
 from alembic.config import Config
 from domain.invoices import Invoice
 from storage.mappers import (
