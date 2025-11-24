@@ -2,14 +2,15 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
 from PIL import Image, ImageOps
 
+from core.container import AppContainer
 from domain.drafts import InvoiceDraft
-from handlers.deps import get_container, get_draft_service, get_invoice_service
+from handlers.deps import get_draft_service, get_invoice_service
 from handlers.utils import (
     MAX_MSG,
     actions_kb,
@@ -31,15 +32,9 @@ MAX_INLINE_ITEMS = 60
 # Max total length of items text before preferring CSV (keep a safe margin from Telegram limit).
 MAX_ITEMS_TEXT_LENGTH = MAX_MSG * 2
 
-
-# Note: /start, /help, and /gif handlers are now in handlers/commands_common.py
-# This file only handles file uploads (documents and photos)
-
-
 async def _process_file_and_create_draft(
     message: Message,
     file_path: str,
-    container: Any,
     invoice_service: Any,
     draft_service: Any,
 ) -> None:
@@ -119,12 +114,11 @@ async def _process_file_and_create_draft(
         await send_chunked(message, items_text)
 
 
-async def handle_invoice_document(message: Message, data: Dict[str, Any]) -> None:
+async def handle_invoice_document(message: Message, container: AppContainer) -> None:
     """Handle invoice document upload."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=handle_invoice_document")
-    container = get_container(data)
     invoice_service = get_invoice_service(container)
     draft_service = get_draft_service(container)
 
@@ -141,16 +135,15 @@ async def handle_invoice_document(message: Message, data: Dict[str, Any]) -> Non
         await message.answer("Ошибка при сохранении файла")
         return
 
-    await _process_file_and_create_draft(message, path, container, invoice_service, draft_service)
+    await _process_file_and_create_draft(message, path, invoice_service, draft_service)
     logger.info(f"[TG] update done req={req} h=handle_invoice_document")
 
 
-async def handle_invoice_photo(message: Message, data: Dict[str, Any]) -> None:
+async def handle_invoice_photo(message: Message, container: AppContainer) -> None:
     """Handle invoice photo upload."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=handle_invoice_photo")
-    container = get_container(data)
     invoice_service = get_invoice_service(container)
     draft_service = get_draft_service(container)
 
@@ -172,7 +165,7 @@ async def handle_invoice_photo(message: Message, data: Dict[str, Any]) -> None:
         await message.answer("Ошибка при сохранении файла")
         return
 
-    await _process_file_and_create_draft(message, path, container, invoice_service, draft_service)
+    await _process_file_and_create_draft(message, path, invoice_service, draft_service)
     logger.info(f"[TG] update done req={req} h=handle_invoice_photo")
 
 

@@ -2,9 +2,7 @@
 Common command handlers: /start, /help, etc.
 """
 
-import time
 import uuid
-from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.types import Message
@@ -15,23 +13,19 @@ from ocr.engine.util import get_logger, set_request_id
 logger = get_logger("ocr.engine")
 
 
-async def cmd_start(message: Message, data: Dict[str, Any]) -> None:
-    """Handle /start command."""
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
+async def cmd_start(message: Message) -> None:
+    req = str(uuid.uuid4())
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_start")
     await message.answer(
-        "Готов принять PDF/фото накладной и превратить в данные.\n"
-        "Шаги: 1) пришлите файл, 2) проверьте/отредактируйте, "
-        "3) сохраните в БД, 4) запрос по периоду.",
+        "Привет! Это бот для обработки инвойсов. Загрузите счет и бот распознает его.",
         reply_markup=main_kb(),
     )
     logger.info(f"[TG] update done req={req} h=cmd_start")
 
 
-async def cmd_help(message: Message, data: Dict[str, Any]) -> None:
-    """Handle /help command."""
-    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
+async def cmd_help(message: Message) -> None:
+    req = str(uuid.uuid4())
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_help")
     await message.answer(
@@ -41,8 +35,6 @@ async def cmd_help(message: Message, data: Dict[str, Any]) -> None:
     )
     logger.info(f"[TG] update done req={req} h=cmd_help")
 
-
 def setup(router: Router) -> None:
-    """Register common command handlers."""
     router.message.register(cmd_start, F.text == "/start")
     router.message.register(cmd_help, F.text == "/help")

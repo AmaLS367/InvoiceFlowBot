@@ -7,14 +7,14 @@ import time
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from core.container import AppContainer
 from domain.invoices import InvoiceComment
-from handlers.deps import get_container, get_draft_service, get_invoice_service
+from handlers.deps import get_draft_service, get_invoice_service
 from handlers.fsm import EditInvoiceState
 from handlers.utils import format_invoice_full, format_invoice_header
 from ocr.engine.util import get_logger, set_request_id
@@ -43,11 +43,10 @@ def setup(router: Router) -> None:
     """Register draft-related command handlers."""
 
     @router.message(F.text == "/show")
-    async def cmd_show(message: Message, data: Dict[str, Any]) -> None:
+    async def cmd_show(message: Message, container: AppContainer) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cmd_show")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
@@ -64,12 +63,11 @@ def setup(router: Router) -> None:
     async def on_force_reply(
         message: Message,
         state: FSMContext,
-        data: Dict[str, Any],
+        container: AppContainer,
     ) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=on_force_reply")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
 
@@ -184,11 +182,10 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
 
     @router.message(F.text.regexp(r"^/comment(\s|$)"))
-    async def cmd_comment(message: Message, data: Dict[str, Any]) -> None:
+    async def cmd_comment(message: Message, container: AppContainer) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cmd_comment")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
@@ -206,11 +203,10 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cmd_comment")
 
     @router.message(F.text == "/save")
-    async def cmd_save(message: Message, data: Dict[str, Any]) -> None:
+    async def cmd_save(message: Message, container: AppContainer) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cmd_save")
-        container = get_container(data)
         invoice_service = get_invoice_service(container)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
@@ -252,11 +248,10 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cmd_save")
 
     @router.message(F.text.regexp(r"^/edit(\s|$)"))
-    async def cmd_edit_legacy(message: Message, data: Dict[str, Any]) -> None:
+    async def cmd_edit_legacy(message: Message, container: AppContainer) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cmd_edit_legacy")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
@@ -300,11 +295,10 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cmd_edit_legacy")
 
     @router.message(F.text.regexp(r"^/edititem(\s|$)"))
-    async def cmd_edititem_legacy(message: Message, data: Dict[str, Any]) -> None:
+    async def cmd_edititem_legacy(message: Message, container: AppContainer) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cmd_edititem_legacy")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = message.from_user.id if message.from_user else 0
 

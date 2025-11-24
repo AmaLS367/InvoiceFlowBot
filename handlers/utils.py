@@ -132,7 +132,7 @@ def fmt_items(items: list[dict]) -> str:
 
 
 async def send_chunked(message: Message, text: str):
-    """Send long text in chunks (respecting Telegram message limit)."""
+    """Send long text in chunks"""
     for i in range(0, len(text), MAX_MSG):
         await message.answer(text[i : i + MAX_MSG])
 

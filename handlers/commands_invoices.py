@@ -5,14 +5,14 @@ Command handlers for working with invoices (listing, filtering, etc.).
 import time
 import uuid
 from datetime import date
-from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
+from core.container import AppContainer
 from handlers.callback_registry import CallbackAction
-from handlers.deps import get_container, get_invoice_service
+from handlers.deps import get_invoice_service
 from handlers.fsm import InvoicesPeriodState
 from handlers.utils import format_money
 from ocr.engine.util import get_logger, set_request_id
@@ -37,12 +37,11 @@ def _parse_date_str(date_str: str) -> date | None:
     return None
 
 
-async def cmd_invoices(message: Message, data: Dict[str, Any]) -> None:
+async def cmd_invoices(message: Message, container: AppContainer) -> None:
     """Handle /invoices command."""
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
-    container = get_container(data)
     invoice_service = get_invoice_service(container)
     if message.text is None:
         await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
@@ -100,12 +99,11 @@ def setup(router: Router) -> None:
     async def on_force_reply_invoices(
         message: Message,
         state: FSMContext,
-        data: Dict[str, Any],
+        container: AppContainer,
     ) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=on_force_reply_invoices")
-        container = get_container(data)
         invoice_service = get_invoice_service(container)
 
         current_state = await state.get_state()
@@ -198,7 +196,7 @@ def setup(router: Router) -> None:
                 return
 
     @router.callback_query(F.data == CallbackAction.PERIOD.value)
-    async def cb_act_period(call: CallbackQuery, state: FSMContext, data: Dict[str, Any]) -> None:
+    async def cb_act_period(call: CallbackQuery, state: FSMContext) -> None:
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_act_period")

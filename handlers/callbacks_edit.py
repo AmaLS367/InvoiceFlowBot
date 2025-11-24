@@ -4,12 +4,12 @@ Callback handlers for invoice editing.
 
 import time
 import uuid
-from typing import Any, Dict
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
+from core.container import AppContainer
 from domain.invoices import InvoiceComment
 from handlers.callback_registry import (
     HEADER_PREFIX,
@@ -18,7 +18,7 @@ from handlers.callback_registry import (
     ITEMS_PAGE_PREFIX,
     CallbackAction,
 )
-from handlers.deps import get_container, get_draft_service, get_invoice_service
+from handlers.deps import get_draft_service, get_invoice_service
 from handlers.fsm import EditInvoiceState
 from handlers.utils import (
     format_invoice_header,
@@ -36,12 +36,11 @@ def setup(router: Router) -> None:
     """Register edit-related callback handlers."""
 
     @router.callback_query(F.data == CallbackAction.EDIT.value)
-    async def cb_act_edit(call: CallbackQuery, data: Dict[str, Any]) -> None:
+    async def cb_act_edit(call: CallbackQuery, container: AppContainer) -> None:
         """Handle edit action callback - show header editing options."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_act_edit")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -65,13 +64,12 @@ def setup(router: Router) -> None:
     async def cb_hed_field(
         call: CallbackQuery,
         state: FSMContext,
-        data: Dict[str, Any],
+        container: AppContainer,
     ) -> None:
         """Handle header field selection for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_hed_field")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -105,12 +103,11 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cb_hed_field")
 
     @router.callback_query(F.data == CallbackAction.ITEMS.value)
-    async def cb_act_items(call: CallbackQuery, data: Dict[str, Any]) -> None:
+    async def cb_act_items(call: CallbackQuery, container: AppContainer) -> None:
         """Handle items action callback - show items list for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_act_items")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -136,12 +133,11 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cb_act_items")
 
     @router.callback_query(F.data.startswith(ITEMS_PAGE_PREFIX + ":"))
-    async def cb_items_page(call: CallbackQuery, data: Dict[str, Any]) -> None:
+    async def cb_items_page(call: CallbackQuery, container: AppContainer) -> None:
         """Handle items pagination callback."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_items_page")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -163,12 +159,11 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cb_items_page")
 
     @router.callback_query(F.data.startswith(ITEM_PICK_PREFIX + ":"))
-    async def cb_item_pick(call: CallbackQuery, data: Dict[str, Any]) -> None:
+    async def cb_item_pick(call: CallbackQuery, container: AppContainer) -> None:
         """Handle item selection callback - show item details for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_item_pick")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -201,7 +196,6 @@ def setup(router: Router) -> None:
     async def cb_itm_field(
         call: CallbackQuery,
         state: FSMContext,
-        data: Dict[str, Any],
     ) -> None:
         """Handle item field selection for editing."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -236,13 +230,12 @@ def setup(router: Router) -> None:
     async def cb_act_comment(
         call: CallbackQuery,
         state: FSMContext,
-        data: Dict[str, Any],
+        container: AppContainer,
     ) -> None:
         """Handle comment action callback - prompt for comment input."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_act_comment")
-        container = get_container(data)
         draft_service = get_draft_service(container)
         uid = call.from_user.id
         draft = await draft_service.get_current_draft(uid)
@@ -268,12 +261,11 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update done req={req} h=cb_act_comment")
 
     @router.callback_query(F.data == CallbackAction.SAVE.value)
-    async def cb_act_save(call: CallbackQuery, data: Dict[str, Any]) -> None:
+    async def cb_act_save(call: CallbackQuery, container: AppContainer) -> None:
         """Handle save action callback - save invoice to database."""
         req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
         set_request_id(req)
         logger.info(f"[TG] update start req={req} h=cb_act_save")
-        container = get_container(data)
         invoice_service = get_invoice_service(container)
         draft_service = get_draft_service(container)
         uid = call.from_user.id

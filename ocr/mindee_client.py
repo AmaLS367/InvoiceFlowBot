@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional, cast
 
 import requests  # type: ignore[import-untyped]
-from mindee import ClientV2, InferenceParameters
+from mindee import ClientV2, InferenceParameters, PathInput
 
 import config
 from ocr.engine.types import ExtractionResult, Item
@@ -19,8 +19,19 @@ logger = get_logger("ocr.mindee")
 
 
 def _field_value(field: Any) -> Optional[Any]:
-    if isinstance(field, dict):
+    if not isinstance(field, dict):
+        return None
+
+    if "value" in field:
         return field.get("value")
+
+    values = field.get("values")
+    if isinstance(values, list) and values:
+        first = values[0]
+        if isinstance(first, dict):
+            return first.get("value") or first.get("content") or first.get("raw_value")
+        return first
+
     return None
 
 
@@ -56,78 +67,85 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
         return None
     try:
         client = ClientV2(api_key=api)
-        params = InferenceParameters(model_id=model_id, rag=False)
-        src = client.source_from_path(path)
-        res = client.enqueue_and_get_inference(src, params)
+        params = InferenceParameters(
+            model_id=model_id,
+            rag=False,
+            raw_text=False,
+            polygon=False,
+            confidence=False,
+        )
+        input_source = PathInput(path)
+        response = client.enqueue_and_get_inference(input_source, params)
 
-        # Debug dump of raw response
+        # Debug dump of raw response from SDK
         os.makedirs("logs", exist_ok=True)
-        raw_json = getattr(res, "to_json", None)
+        raw_json = getattr(response, "to_json", None)
         if callable(raw_json):
             raw_str = cast(str, raw_json())
         else:
-            raw_str = json.dumps(res, default=lambda o: getattr(o, "__dict__", str(o)))
-        raw = json.loads(raw_str)
+            raw_str = json.dumps(response, default=lambda o: getattr(o, "__dict__", str(o)))
         with open("logs/mindee_v2_debug.json", "w", encoding="utf-8") as f:
-            json.dump(raw, f, ensure_ascii=False, indent=2)
+            json.dump(json.loads(raw_str), f, ensure_ascii=False, indent=2)
 
-        # Normalize fields into prediction structure
-        inf = raw.get("inference") or raw.get("document", {}).get("inference") or raw
-        pages = inf.get("pages") if isinstance(inf, dict) else None
+        fields: Dict[str, Any] = getattr(response.inference.result, "fields", {})
 
-        prediction: Dict[str, Any] = {}
-        if isinstance(inf, dict) and "fields" in inf and isinstance(inf["fields"], list):
-            for fld in inf["fields"]:
-                name = (fld.get("name") or "").lower()
-                val = fld.get("value") if "value" in fld else (fld.get("values") or None)
-                if name:
-                    prediction[name] = val
+        def _simple_value(field_name: str) -> Optional[Any]:
+            field = fields.get(field_name)
+            return getattr(field, "value", None) if field is not None else None
 
-        flds = None
-        if isinstance(inf, dict):
-            flds = inf.get("result", {}).get("fields")
-            if not flds and isinstance(inf.get("fields"), dict):
-                flds = inf.get("fields")
+        supplier = _simple_value("supplier_name")
+        customer = _simple_value("customer_name") or _simple_value("customer_id")
+        invoice_number = _simple_value("invoice_number")
+        invoice_date = _simple_value("date")
+        total_amount = _simple_value("total_amount")
 
-        if isinstance(flds, dict) and flds:
+        items_norm: List[Dict[str, Any]] = []
+        line_items_field = fields.get("line_items")
+        if line_items_field is not None:
+            for item in getattr(line_items_field, "items", []):
+                item_fields = getattr(item, "fields", {})
 
-            def _v(key):
-                x = flds.get(key)
-                return x.get("value") if isinstance(x, dict) else None
+                def _item_value(field_name: str) -> Optional[Any]:
+                    fld = item_fields.get(field_name)
+                    return getattr(fld, "value", None) if fld is not None else None
 
-            prediction = {
-                "supplier": {"value": _v("supplier_name")},
-                "customer": {"value": (_v("customer_id") or _v("customer_name"))},
-                "invoice_number": {"value": _v("invoice_number")},
-                "invoice_date": {"value": _v("date")},
-                "total_amount": {"value": _v("total_amount")},
-            }
+                product_code = _item_value("product_code")
+                description = _item_value("description")
+                quantity = _item_value("quantity")
+                unit_price = _item_value("unit_price")
+                total_price = _item_value("total_price")
+                total_amount_item = _item_value("total_amount")
 
-            items_norm: List[Dict[str, Any]] = []
-            li = flds.get("line_items") or {}
-            for it in li.get("items") or []:
-                fields_map = it.get("fields", {})
-                product_code = _field_value(fields_map.get("product_code"))
-                description = _field_value(fields_map.get("description"))
-                quantity = _field_value(fields_map.get("quantity"))
-                unit_price = _field_value(fields_map.get("unit_price"))
-                total_price = _field_value(fields_map.get("total_price"))
-                total_amount = _field_value(fields_map.get("total_amount"))
                 items_norm.append(
                     {
                         "product_code": {"value": product_code},
                         "description": {"value": description},
                         "quantity": {"value": quantity},
                         "unit_price": {"value": unit_price},
-                        "total_amount": {"value": (total_price or total_amount)},
+                        "total_amount": {"value": (total_price or total_amount_item)},
                     }
                 )
-            prediction["line_items"] = items_norm
 
-        if pages and isinstance(pages, list) and pages and "prediction" in pages[0]:
-            packed = {"document": {"inference": {"pages": pages}}}
-        else:
-            packed = {"document": {"inference": {"pages": [{"prediction": prediction}]}}}
+        prediction: Dict[str, Any] = {
+            "supplier": {"value": supplier},
+            "customer": {"value": customer},
+            "invoice_number": {"value": invoice_number},
+            "invoice_date": {"value": invoice_date},
+            "total_amount": {"value": total_amount},
+            "line_items": items_norm,
+        }
+
+        packed = {
+            "document": {
+                "inference": {
+                    "pages": [
+                        {
+                            "prediction": prediction,
+                        }
+                    ]
+                }
+            }
+        }
 
         return packed
     except Exception:
@@ -152,24 +170,38 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
             return cast(Dict[str, Any], pred)
 
     def _line_items(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-        items = []
-        for li in doc.get("line_items") or []:
+        items: List[Dict[str, Any]] = []
 
-            def _gv(field):
-                v = li.get(field) or {}
-                if isinstance(v, dict):
-                    return v.get("value")
-                return None
+        raw_line_items = doc.get("line_items") or []
+
+        if isinstance(raw_line_items, dict) and "values" in raw_line_items:
+            candidate_values = raw_line_items.get("values") or []
+            if isinstance(candidate_values, list):
+                raw_line_items = candidate_values
+
+        if not isinstance(raw_line_items, list):
+            return items
+
+        for li in raw_line_items:
+            if not isinstance(li, dict):
+                continue
+
+            product_code = _field_value(li.get("product_code"))
+            description = _field_value(li.get("description"))
+            quantity = _field_value(li.get("quantity"))
+            unit_price = _field_value(li.get("unit_price"))
+            total_amount = _field_value(li.get("total_amount") or li.get("total_price"))
 
             items.append(
                 {
-                    "code": _gv("product_code"),
-                    "name": _gv("description") or "",
-                    "qty": _gv("quantity"),
-                    "price": _gv("unit_price"),
-                    "total": _gv("total_amount"),
+                    "code": product_code,
+                    "name": (description or "").strip(),
+                    "qty": quantity,
+                    "price": unit_price,
+                    "total": total_amount,
                 }
             )
+
         return items
 
     doc = _extract_prediction(raw)
@@ -192,28 +224,18 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
     ]
 
     data: Dict[str, Any] = {
-        "supplier": (doc.get("supplier") or {}).get("value")
-        if isinstance(doc.get("supplier"), dict)
-        else None,
-        "client": (doc.get("customer") or {}).get("value")
-        if isinstance(doc.get("customer"), dict)
-        else None,
-        "doc_number": (doc.get("invoice_number") or {}).get("value")
-        if isinstance(doc.get("invoice_number"), dict)
-        else None,
-        "date": (doc.get("invoice_date") or {}).get("value")
-        if isinstance(doc.get("invoice_date"), dict)
-        else None,
+        "supplier": _field_value(doc.get("supplier")),
+        "client": _field_value(doc.get("customer")),
+        "doc_number": _field_value(doc.get("invoice_number")),
+        "date": _field_value(doc.get("invoice_date")),
         "items": items,
-        "total_sum": (doc.get("total_amount") or {}).get("value")
-        if isinstance(doc.get("total_amount"), dict)
-        else None,
+        "total_sum": _field_value(doc.get("total_amount")),
     }
 
     if not data["date"]:
         v = doc.get("date")
         if isinstance(v, dict):
-            data["date"] = v.get("value")
+            data["date"] = _field_value(v)
 
     ssum = round(sum(float(i["qty"]) * float(i["price"]) for i in items), 2) if items else 0.0
     tval_raw = data.get("total_sum")
@@ -225,6 +247,9 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
         data["status"] = "ok"
     if not data.get("total_sum") and ssum:
         data["total_sum"] = ssum
+
+    if not items and doc.get("line_items"):
+        logger.warning("[Mindee] line_items present in payload but parsed items list is empty")
 
     return data
 

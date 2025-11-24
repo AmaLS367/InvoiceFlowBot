@@ -15,23 +15,16 @@ from services.invoice_service import InvoiceService
 
 
 def get_container(data: Dict[str, Any]) -> AppContainer:
-    """
-    Extract AppContainer from aiogram handler data.
-
-    Raises AssertionError if container is not present or has wrong type.
-    """
     container = data["container"]
     assert isinstance(container, AppContainer)
     return container
 
 
 def get_invoice_service(container: AppContainer) -> InvoiceService:
-    """Extract InvoiceService from AppContainer."""
     return container.invoice_service
 
 
 def get_draft_service(container: AppContainer) -> DraftService:
-    """Extract DraftService from AppContainer."""
     return container.draft_service
 
 

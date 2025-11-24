@@ -20,17 +20,10 @@ class MindeeOcrProvider(OcrProvider):
         fast: bool = True,
         max_pages: int = 12,
     ) -> ExtractionResult:
-        """
-        Extract invoice data using Mindee.
-
-        The fast and max_pages parameters are accepted for API compatibility,
-        but the current Mindee client does not use them directly.
-        """
         self.logger.info(
             f"[PROVIDER] Mindee extract start path={pdf_path} fast={fast} max_pages={max_pages}"
         )
 
-        # Current Mindee client ignores fast and max_pages.
         result = extract_invoice_mindee(pdf_path)
 
         self.logger.info(
