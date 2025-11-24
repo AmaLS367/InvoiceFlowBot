@@ -45,4 +45,4 @@ jobs:
         run: pytest --import-mode=importlib -m "not storage_db"
 
       - name: Run storage DB integration tests
-        run: pytest --import-mode=importlib -m "storage_db"
+        run: pytest --import-mode=importlib -m "storage_db" --no-cov
