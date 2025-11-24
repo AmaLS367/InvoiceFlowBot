@@ -1,5 +1,0 @@
-aiogram>=3.10
-python-dotenv>=1.0.1
-Pillow>=10.4.0
-mindee>=4.27.0
-requests>=2.31.0

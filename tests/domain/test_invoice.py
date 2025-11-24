@@ -1,6 +1,7 @@
 """
 Unit tests for Invoice domain entity.
 """
+
 from datetime import date
 from decimal import Decimal
 
@@ -137,10 +138,7 @@ def test_invoice_with_many_items() -> None:
     Invoice should handle large number of items correctly.
     """
     header = InvoiceHeader()
-    items = [
-        InvoiceItem(description=f"Item {i}", quantity=Decimal(str(i)))
-        for i in range(1, 101)
-    ]
+    items = [InvoiceItem(description=f"Item {i}", quantity=Decimal(str(i))) for i in range(1, 101)]
     invoice = Invoice(header=header, items=items)
 
     assert invoice.total_items() == 100
@@ -155,10 +153,7 @@ def test_invoice_with_many_comments() -> None:
     Invoice should handle large number of comments correctly.
     """
     header = InvoiceHeader()
-    comments = [
-        InvoiceComment(message=f"Comment {i}", author=f"User{i}")
-        for i in range(1, 51)
-    ]
+    comments = [InvoiceComment(message=f"Comment {i}", author=f"User{i}") for i in range(1, 51)]
     invoice = Invoice(header=header, comments=comments)
 
     assert len(invoice.comments) == 50
@@ -246,4 +241,3 @@ def test_invoice_with_source_info_combinations() -> None:
     invoice3 = Invoice(header=header, source=source3)
     assert invoice3.source is not None
     assert invoice3.source.file_sha256 == "abc123"
-

@@ -11,6 +11,7 @@ class Item:
     total: float
     page_no: Optional[int] = None
 
+
 @dataclass
 class PageInfo:
     page_no: int
@@ -20,12 +21,13 @@ class PageInfo:
     template: Optional[str] = None
     score: Optional[float] = None
 
+
 @dataclass
 class ExtractionResult:
     document_id: str
     supplier: Optional[str] = None
     client: Optional[str] = None
-    date: Optional[str] = None          
+    date: Optional[str] = None
     total_sum: Optional[float] = None
     template: str = "generic"
     score: float = 0.0

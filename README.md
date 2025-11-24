@@ -1,6 +1,8 @@
 # InvoiceFlowBot
 [![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
 
+For Russian documentation see [README.ru.md](README.ru.md) and [docs/ru/index.md](docs/ru/index.md).
+
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
 ## Features
@@ -15,7 +17,7 @@ A Telegram bot for automated invoice processing using OCR technology. The bot ex
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.11+
 - Telegram Bot Token
 - Mindee API Key
 
@@ -41,7 +43,7 @@ python -m venv .venv
 
 3. Install dependencies:
 ```powershell
-pip install -r requirements.txt
+pip install -e .
 ```
 
 4. Create a `.env` file in the project root:
@@ -58,6 +60,21 @@ LOG_CONSOLE=0
 LOG_DIR=logs
 ```
 
+### Configuration
+
+The bot is configured via environment variables managed by pydantic settings in `config.py`.
+
+For local development you can create a `.env` file in the project root:
+
+```env
+BOT_TOKEN=123456:ABCDEF_your_bot_token
+MINDEE_API_KEY=your-mindee-api-key
+MINDEE_MODEL_ID=mindee/invoices/v4
+DB_FILENAME=data.sqlite
+```
+
+On startup the application reads these values into the `Settings` model.
+
 5. Run the bot:
 ```powershell
 python bot.py
@@ -70,7 +87,7 @@ Run unit tests with `pytest`. On Windows PowerShell:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 pytest
 ```
 
@@ -159,10 +176,23 @@ The bot uses environment variables for configuration. See `.env.example` for ava
 
 ## Database
 
-The bot uses SQLite database to store invoices. The database is automatically initialized on first run. Tables include:
+The bot uses SQLite database to store invoices. The database schema is managed by Alembic.
+
+### Database setup
+
+Before running the bot or tests make sure the schema is up to date:
+
+```powershell
+python -m alembic upgrade head
+```
+
+The application entrypoints call `storage.db.init_db()`, which will also upgrade the database to the latest migration.
+
+The database tables include:
 - Invoices (header information)
 - Items (line items for each invoice)
 - Comments (comments associated with invoices)
+- Invoice drafts (temporary drafts for editing)
 
 ## Logging
 
@@ -179,7 +209,7 @@ Logs are written to the `logs/` directory by default:
 
 ## Screenshots
 
-- [Скриншоты работы бота (RU)](docs/ru/screenshots.md)
+- [Screenshots (RU)](docs/ru/screenshots.md)
 - [Bot screenshots (EN)](docs/en/screenshots.md)
 
 ## License
@@ -211,8 +241,8 @@ The project uses the following tools for code quality:
 
 ```powershell
 # Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -e .
+pip install -e .[dev]
 
 # Run linter
 python -m ruff check .
@@ -233,4 +263,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Support
 
 For issues and questions, please open an issue on the repository.
-

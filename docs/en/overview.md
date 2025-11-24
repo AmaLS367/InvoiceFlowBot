@@ -40,4 +40,3 @@ InvoiceFlowBot runs as a Telegram bot that receives documents from users and pro
   - Shared utilities and logging helpers
 - `storage/db.py` — database initialization, inserts, lookups, and comment management.
 - `tests/` — pytest suites covering domain entities, OCR parsing, service layer, and storage behaviours.
-

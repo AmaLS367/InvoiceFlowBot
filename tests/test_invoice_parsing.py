@@ -18,8 +18,22 @@ def test_result_payload_transforms_dataclasses():
             Item(code=None, name="Service", qty=1, price=148.99, total=148.99, page_no=2),
         ],
         pages=[
-            PageInfo(page_no=1, width=800, height=1200, header_text="Invoice 1", template="tpl-a", score=0.88),
-            PageInfo(page_no=2, width=800, height=1200, header_text="Invoice 2", template="tpl-a", score=0.90),
+            PageInfo(
+                page_no=1,
+                width=800,
+                height=1200,
+                header_text="Invoice 1",
+                template="tpl-a",
+                score=0.88,
+            ),
+            PageInfo(
+                page_no=2,
+                width=800,
+                height=1200,
+                header_text="Invoice 2",
+                template="tpl-a",
+                score=0.90,
+            ),
         ],
         warnings=["missing_tax"],
     )
@@ -56,4 +70,3 @@ def test_fmt_items_and_csv_output():
     assert "#;name;qty;price;total" in csv_content
     assert "Widget" in csv_content
     assert "Service" in csv_content
-

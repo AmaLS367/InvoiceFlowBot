@@ -9,6 +9,7 @@ from ocr.engine.util import get_logger, time_block
 
 logger = get_logger("ocr.extract")
 
+
 def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Dict[str, Any]:
     # Start and file metadata
     try:
@@ -20,7 +21,9 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
     # Call router with timing and error handling
     try:
         with time_block(logger, "router.extract_invoice"):
-            result: ExtractionResult = extract_invoice(pdf_path=pdf_path, fast=fast, max_pages=max_pages)
+            result: ExtractionResult = extract_invoice(
+                pdf_path=pdf_path, fast=fast, max_pages=max_pages
+            )
     except Exception:
         logger.exception(f"[EXTRACT] failed path={pdf_path}")
         raise
@@ -28,14 +31,16 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
     # Transform results
     items_out: List[Dict[str, Any]] = []
     for it in result.items:
-        items_out.append({
-            "code": it.code,
-            "name": it.name,
-            "qty": it.qty,
-            "price": it.price,
-            "total": it.total,
-            "page_no": it.page_no,
-        })
+        items_out.append(
+            {
+                "code": it.code,
+                "name": it.name,
+                "qty": it.qty,
+                "price": it.price,
+                "total": it.total,
+                "page_no": it.page_no,
+            }
+        )
 
     out: Dict[str, Any] = {
         "document_id": result.document_id,
@@ -54,7 +59,8 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
                 "height": p.height,
                 "template": p.template,
                 "score": p.score,
-            } for p in result.pages
+            }
+            for p in result.pages
         ],
         "warnings": result.warnings,
     }

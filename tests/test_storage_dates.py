@@ -9,4 +9,3 @@ def test_to_iso_handles_numeric_and_locale_dates():
 def test_to_iso_returns_none_for_invalid_formats():
     assert db.to_iso("not a date") is None
     assert db.to_iso("") is None
-

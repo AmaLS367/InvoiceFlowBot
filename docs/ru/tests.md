@@ -1,6 +1,6 @@
 # Тесты
 
-Проект использует pytest. Зависимости для тестов вынесены в `requirements-dev.txt`.
+Проект использует pytest. Зависимости для тестов определены в `pyproject.toml` в секции `[project.optional-dependencies]`.
 
 ## Запуск
 
@@ -9,7 +9,7 @@ git clone https://github.com/AmaLS367/InvoiceFlowBot.git
 cd InvoiceFlowBot
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 pytest
 ```
 
@@ -36,8 +36,7 @@ pytest
 
 ```powershell
 # Установка зависимостей для разработки
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 
 # Запуск линтера
 python -m ruff check .
@@ -63,4 +62,3 @@ CI-пайплайн автоматически запускает `ruff`, `mypy`
 - Перед отправкой Pull Request прогоняйте `pytest` локально или в CI.
 - Для сложных кейсов Mindee можно добавлять фикстуры с реальными примерами PDF (обезличенными).
 - Убедитесь, что код проходит проверки `ruff` и `mypy` перед отправкой pull request.
-

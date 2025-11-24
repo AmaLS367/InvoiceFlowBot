@@ -34,4 +34,3 @@ Buttons mirror command capabilities and make the bot friendlier for non-technica
 ## Draft lifecycle
 
 Per-user state keeps a draft until it is saved. You can upload multiple files, overwrite previous drafts, or add comments before persisting. After `/save` the state resets and the next `/show` refers to the following document.
-

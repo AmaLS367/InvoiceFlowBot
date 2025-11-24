@@ -1,11 +1,15 @@
 """
-Service layer for invoice processing: OCR pipeline integration and domain model conversion.
+High-level business logic for invoice processing.
+
+Coordinates OCR results, domain models and persistence layer.
 """
+
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import Awaitable, Callable, List, Optional
 
 from domain.invoices import (
     Invoice,
@@ -13,12 +17,9 @@ from domain.invoices import (
     InvoiceItem,
     InvoiceSourceInfo,
 )
-from ocr.engine.router import extract_invoice
 from ocr.engine.types import ExtractionResult, Item
-from ocr.engine.util import get_logger
-from storage import db as storage_db
 
-logger = get_logger("services.invoice")
+DEFAULT_MAX_OCR_PAGES = 12
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
@@ -102,62 +103,88 @@ def build_invoice_from_extraction(result: ExtractionResult) -> Invoice:
     return invoice
 
 
-def process_invoice_file(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Invoice:
-    """
-    Run the OCR pipeline for a single PDF/image and return a domain Invoice.
-    """
-    logger.info(
-        f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
-    )
+class InvoiceService:
+    def __init__(
+        self,
+        ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]],
+        save_invoice_func: Callable[[Invoice, int], Awaitable[int]],
+        fetch_invoices_func: Callable[
+            [Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
+        ],
+        logger: logging.Logger,
+    ) -> None:
+        self._ocr_extractor = ocr_extractor
+        self._save_invoice_func = save_invoice_func
+        self._fetch_invoices_func = fetch_invoices_func
+        self._logger = logger
 
-    result = extract_invoice(pdf_path=pdf_path, fast=fast, max_pages=max_pages)
-    invoice = build_invoice_from_extraction(result)
+    async def process_invoice_file(
+        self,
+        pdf_path: str,
+        fast: bool = True,
+        max_pages: int = DEFAULT_MAX_OCR_PAGES,
+    ) -> Invoice:
+        """
+        Run OCR on the given file and map the result into an Invoice domain object.
+        """
+        self._logger.info(
+            f"[SERVICE] process_invoice_file start path={pdf_path} fast={fast} max_pages={max_pages}"
+        )
 
-    logger.info(
-        f"[SERVICE] process_invoice_file done path={pdf_path} items={len(invoice.items)}"
-    )
+        result = await self._ocr_extractor(
+            pdf_path,
+            fast,
+            max_pages,
+        )
+        invoice = build_invoice_from_extraction(result)
 
-    return invoice
+        self._logger.info(
+            f"[SERVICE] process_invoice_file done path={pdf_path} items={len(invoice.items)}"
+        )
 
+        return invoice
 
-def save_invoice(invoice: Invoice, user_id: int = 0) -> int:
-    """
-    Persist a domain Invoice using the storage layer and return its database ID.
-    """
-    logger.info(
-        f"[SERVICE] save_invoice supplier={invoice.header.supplier_name!r} total={invoice.header.total_amount!r}"
-    )
+    async def save_invoice(self, invoice: Invoice, user_id: int = 0) -> int:
+        """
+        Persist an Invoice to the database and return its ID.
+        """
+        self._logger.info(
+            f"[SERVICE] save_invoice supplier={invoice.header.supplier_name!r} total={invoice.header.total_amount!r}"
+        )
 
-    invoice_id = storage_db.save_invoice_domain(invoice, user_id=user_id)
+        invoice_id = await self._save_invoice_func(
+            invoice,
+            user_id,
+        )
 
-    return invoice_id
+        return invoice_id
 
+    async def list_invoices(
+        self,
+        from_date: Optional[date],
+        to_date: Optional[date],
+        supplier: Optional[str] = None,
+    ) -> List[Invoice]:
+        """
+        Fetch invoices for the given date period, sorted by creation time.
 
-def list_invoices(
-    from_date: Optional[date],
-    to_date: Optional[date],
-    supplier: Optional[str] = None,
-) -> List[Invoice]:
-    """
-    Fetch invoices from the storage layer as domain entities.
-    """
-    logger.info(
-        f"[SERVICE] list_invoices from={from_date} to={to_date} supplier={supplier!r}"
-    )
+        Optionally filter by supplier name.
+        """
+        self._logger.info(
+            f"[SERVICE] list_invoices from={from_date} to={to_date} supplier={supplier!r}"
+        )
 
-    invoices = storage_db.fetch_invoices_domain(
-        from_date=from_date,
-        to_date=to_date,
-        supplier=supplier,
-    )
+        invoices = await self._fetch_invoices_func(
+            from_date,
+            to_date,
+            supplier,
+        )
 
-    return invoices
+        return invoices
 
 
 __all__ = [
+    "DEFAULT_MAX_OCR_PAGES",
+    "InvoiceService",
     "build_invoice_from_extraction",
-    "process_invoice_file",
-    "save_invoice",
-    "list_invoices",
 ]
-

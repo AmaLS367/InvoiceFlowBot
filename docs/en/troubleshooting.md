@@ -36,4 +36,3 @@
 - **Problem:** no log files appear, even under load.
 - **Cause:** `LOG_DIR` points to a non-existent path or log level is too strict.
 - **Fix:** create the directory or remove `LOG_DIR` to fall back to `logs/`. Set `LOG_LEVEL=INFO` to verify the pipeline.
-
