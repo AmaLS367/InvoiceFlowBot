@@ -31,10 +31,6 @@ jobs:
       - name: Pre-commit (ruff, format, mypy)
         run: pre-commit run --all-files
 
-      - name: Run ruff
-        run: |
-          python -m ruff check .
-
       - name: Run mypy
         run: |
           python -m mypy domain services ocr storage handlers
