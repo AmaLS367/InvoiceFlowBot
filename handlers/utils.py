@@ -296,9 +296,7 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
     rows = []
     row = []
     for i in range(start, end + 1):
-        row.append(
-            InlineKeyboardButton(text=str(i), callback_data=make_item_pick_callback(i))
-        )
+        row.append(InlineKeyboardButton(text=str(i), callback_data=make_item_pick_callback(i)))
         if len(row) == 5:
             rows.append(row)
             row = []
@@ -306,26 +304,12 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
         rows.append(row)
     nav = []
     if page > 1:
-        nav.append(
-            InlineKeyboardButton(
-                text="◀️", callback_data=make_items_page_callback(page - 1)
-            )
-        )
+        nav.append(InlineKeyboardButton(text="◀️", callback_data=make_items_page_callback(page - 1)))
     if end < n:
-        nav.append(
-            InlineKeyboardButton(
-                text="▶️", callback_data=make_items_page_callback(page + 1)
-            )
-        )
+        nav.append(InlineKeyboardButton(text="▶️", callback_data=make_items_page_callback(page + 1)))
     if nav:
         rows.append(nav)
-    rows.append(
-        [
-            InlineKeyboardButton(
-                text="⬅️ К шапке", callback_data=CallbackAction.EDIT.value
-            )
-        ]
-    )
+    rows.append([InlineKeyboardButton(text="⬅️ К шапке", callback_data=CallbackAction.EDIT.value)])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 

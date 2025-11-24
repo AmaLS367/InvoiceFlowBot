@@ -32,6 +32,7 @@ MAX_INLINE_ITEMS = 60
 # Max total length of items text before preferring CSV (keep a safe margin from Telegram limit).
 MAX_ITEMS_TEXT_LENGTH = MAX_MSG * 2
 
+
 async def _process_file_and_create_draft(
     message: Message,
     file_path: str,

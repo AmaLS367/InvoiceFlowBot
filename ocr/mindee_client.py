@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional, cast
 
 import requests  # type: ignore[import-untyped]
-from mindee import ClientV2, InferenceParameters, PathInput
+from mindee import ClientV2, InferenceParameters, PathInput  # type: ignore[attr-defined]
 
 import config
 from ocr.engine.types import ExtractionResult, Item
@@ -67,7 +67,7 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
         return None
     try:
         client = ClientV2(api_key=api)
-        params = InferenceParameters(
+        params = InferenceParameters(  # type: ignore[call-arg]
             model_id=model_id,
             rag=False,
             raw_text=False,

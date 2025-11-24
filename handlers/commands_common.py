@@ -35,6 +35,7 @@ async def cmd_help(message: Message) -> None:
     )
     logger.info(f"[TG] update done req={req} h=cmd_help")
 
+
 def setup(router: Router) -> None:
     router.message.register(cmd_start, F.text == "/start")
     router.message.register(cmd_help, F.text == "/help")
