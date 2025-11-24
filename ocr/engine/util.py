@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+import traceback
 from contextlib import contextmanager
 from contextvars import ContextVar
 from logging.handlers import RotatingFileHandler
@@ -19,6 +20,47 @@ class RequestFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         record.req = _req_var.get()
         return True
+
+
+class JsonFormatter(logging.Formatter):
+    """JSON formatter for structured logging."""
+    def format(self, record: logging.LogRecord) -> str:
+        log_data = {
+            "timestamp": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "logger": record.name,
+            "request_id": getattr(record, "req", "-"),
+            "message": record.getMessage(),
+        }
+        
+        # Add extra fields
+        if hasattr(record, "funcName"):
+            log_data["function"] = record.funcName
+        if hasattr(record, "lineno"):
+            log_data["line"] = record.lineno
+        if hasattr(record, "pathname"):
+            log_data["file"] = record.pathname
+        
+        # Add exception info if present
+        if record.exc_info:
+            log_data["exception"] = {
+                "type": record.exc_info[0].__name__ if record.exc_info[0] else None,
+                "message": str(record.exc_info[1]) if record.exc_info[1] else None,
+                "traceback": traceback.format_exception(*record.exc_info)
+            }
+        
+        # Add custom fields from extra parameter
+        for key, value in record.__dict__.items():
+            if key not in [
+                "name", "msg", "args", "created", "filename", "funcName", 
+                "levelname", "levelno", "lineno", "module", "msecs", 
+                "message", "pathname", "process", "processName", "relativeCreated",
+                "thread", "threadName", "exc_info", "exc_text", "stack_info",
+                "req", "taskName"
+            ]:
+                log_data[key] = value
+        
+        return json.dumps(log_data, ensure_ascii=False, default=str)
 
 
 def file_sha256(path: str) -> str:
@@ -60,7 +102,8 @@ def configure_logging() -> None:
     backups = config.LOG_BACKUPS
     to_console = config.LOG_CONSOLE
 
-    fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | req=%(req)s | %(message)s")
+    # Use JSON formatter for structured logging
+    json_fmt = JsonFormatter()
     req_filter = RequestFilter()
 
     root = logging.getLogger()
@@ -70,7 +113,7 @@ def configure_logging() -> None:
         log_dir / "ocr_engine.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8"
     )
     common.setLevel(level)
-    common.setFormatter(fmt)
+    common.setFormatter(json_fmt)
     common.addFilter(req_filter)
     root.addHandler(common)
 
@@ -78,14 +121,14 @@ def configure_logging() -> None:
         log_dir / "errors.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8"
     )
     errors.setLevel(logging.WARNING)
-    errors.setFormatter(fmt)
+    errors.setFormatter(json_fmt)
     errors.addFilter(req_filter)
     root.addHandler(errors)
 
     if to_console:
         ch = logging.StreamHandler()
         ch.setLevel(level)
-        ch.setFormatter(fmt)
+        ch.setFormatter(json_fmt)
         ch.addFilter(req_filter)
         root.addHandler(ch)
 
@@ -95,7 +138,7 @@ def configure_logging() -> None:
         log_dir / "router.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8"
     )
     h_router.setLevel(logging.DEBUG)
-    h_router.setFormatter(fmt)
+    h_router.setFormatter(json_fmt)
     h_router.addFilter(req_filter)
     router.addHandler(h_router)
     router.propagate = True
@@ -106,7 +149,7 @@ def configure_logging() -> None:
         log_dir / "extract.log", maxBytes=max_bytes, backupCount=backups, encoding="utf-8"
     )
     h_extract.setLevel(logging.DEBUG)
-    h_extract.setFormatter(fmt)
+    h_extract.setFormatter(json_fmt)
     h_extract.addFilter(req_filter)
     extract.addHandler(h_extract)
     extract.propagate = True
