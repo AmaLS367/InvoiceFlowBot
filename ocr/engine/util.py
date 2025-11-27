@@ -24,6 +24,7 @@ class RequestFilter(logging.Filter):
 
 class JsonFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
+
     def format(self, record: logging.LogRecord) -> str:
         log_data = {
             "timestamp": self.formatTime(record, self.datefmt),
@@ -32,7 +33,7 @@ class JsonFormatter(logging.Formatter):
             "request_id": getattr(record, "req", "-"),
             "message": record.getMessage(),
         }
-        
+
         # Add extra fields
         if hasattr(record, "funcName"):
             log_data["function"] = record.funcName
@@ -40,26 +41,44 @@ class JsonFormatter(logging.Formatter):
             log_data["line"] = record.lineno
         if hasattr(record, "pathname"):
             log_data["file"] = record.pathname
-        
+
         # Add exception info if present
         if record.exc_info:
             log_data["exception"] = {
                 "type": record.exc_info[0].__name__ if record.exc_info[0] else None,
                 "message": str(record.exc_info[1]) if record.exc_info[1] else None,
-                "traceback": traceback.format_exception(*record.exc_info)
+                "traceback": traceback.format_exception(*record.exc_info),
             }
-        
+
         # Add custom fields from extra parameter
         for key, value in record.__dict__.items():
             if key not in [
-                "name", "msg", "args", "created", "filename", "funcName", 
-                "levelname", "levelno", "lineno", "module", "msecs", 
-                "message", "pathname", "process", "processName", "relativeCreated",
-                "thread", "threadName", "exc_info", "exc_text", "stack_info",
-                "req", "taskName"
+                "name",
+                "msg",
+                "args",
+                "created",
+                "filename",
+                "funcName",
+                "levelname",
+                "levelno",
+                "lineno",
+                "module",
+                "msecs",
+                "message",
+                "pathname",
+                "process",
+                "processName",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "req",
+                "taskName",
             ]:
                 log_data[key] = value
-        
+
         return json.dumps(log_data, ensure_ascii=False, default=str)
 
 
