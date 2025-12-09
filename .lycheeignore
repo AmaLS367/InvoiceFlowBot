@@ -14,4 +14,3 @@ img.icons8.com
 # Ignore GitHub internal links that require auth
 github.com/*/actions
 github.com/*/settings
-
