@@ -15,16 +15,11 @@ async def test_cb_act_period() -> None:
     call = FakeCallbackQuery(data=CallbackAction.PERIOD.value, user_id=123, message=message)
     state = FakeFSMContext()
 
-    from handlers.callbacks_misc import setup
-    from aiogram import Router
-
     # Test the logic directly
     await state.set_state(InvoicesPeriodState.waiting_for_from_date)
     await state.update_data({"period": {}})
     if call.message is not None:
-        await call.message.answer(
-            "С даты (YYYY-MM-DD):", reply_markup=None
-        )
+        await call.message.answer("С даты (YYYY-MM-DD):", reply_markup=None)
         await call.answer()
 
     assert call.answered
@@ -71,4 +66,3 @@ async def test_cb_act_help() -> None:
     assert len(message.answers) >= 1
     assert "Быстрые действия" in message.answers[0]["text"]
     assert "/show" in message.answers[0]["text"]
-

@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal
 
 import pytest
 
 from core.container import AppContainer
-from domain.invoices import Invoice, InvoiceHeader
 from handlers.commands_invoices import _parse_date_str
 from handlers.fsm import InvoicesPeriodState
 from tests.fakes.fake_fsm import FakeFSMContext
@@ -67,9 +65,6 @@ async def test_on_force_reply_invoices_from_date(invoices_container: AppContaine
     state = FakeFSMContext()
     await state.set_state(InvoicesPeriodState.waiting_for_from_date)
 
-    from handlers.deps import get_invoice_service
-
-    invoice_service = get_invoice_service(invoices_container)
     current_state = await state.get_state()
 
     if current_state == InvoicesPeriodState.waiting_for_from_date:
@@ -98,7 +93,6 @@ async def test_on_force_reply_invoices_to_date(invoices_container: AppContainer)
 
     from handlers.deps import get_invoice_service
 
-    invoice_service = get_invoice_service(invoices_container)
     current_state = await state.get_state()
 
     if current_state == InvoicesPeriodState.waiting_for_to_date:
@@ -110,6 +104,7 @@ async def test_on_force_reply_invoices_to_date(invoices_container: AppContainer)
                 state_data = await state.get_data()
                 period = state_data.get("period", {})
                 from_date = period.get("from_date")
+                invoice_service = get_invoice_service(invoices_container)
                 invoices = await invoice_service.list_invoices(
                     from_date=from_date, to_date=to_date, supplier=None
                 )
@@ -121,4 +116,3 @@ async def test_on_force_reply_invoices_to_date(invoices_container: AppContainer)
 
     # Should either have "Ничего не найдено" or "Найдено счетов"
     assert len(message.answers) >= 1
-

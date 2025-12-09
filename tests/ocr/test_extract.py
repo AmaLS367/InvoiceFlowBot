@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -155,4 +154,3 @@ def test_parse_invoice_text_exception_handling():
                 with patch("os.path.getsize", return_value=1024):
                     with pytest.raises(RuntimeError):
                         parse_invoice_text("test.pdf")
-

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -129,4 +128,3 @@ async def test_extract_invoice_async_empty_payload():
 
             assert result.supplier is None
             assert len(result.warnings) > 0
-

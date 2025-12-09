@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
-
 from ocr.engine.router import _result_payload
 from ocr.engine.types import ExtractionResult, Item, PageInfo
 
@@ -105,4 +101,3 @@ def test_result_payload_with_none_values():
     assert payload["client"] is None
     assert payload["date"] is None
     assert payload["total_sum"] is None
-

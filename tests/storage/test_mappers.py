@@ -64,7 +64,6 @@ def test_invoice_item_to_db_row():
 
 def test_db_row_to_invoice():
     """Test db_row_to_invoice function."""
-    from storage.mappers import db_row_to_invoice_item
 
     header_row = {
         "id": 1,
@@ -140,4 +139,3 @@ def test_db_row_to_invoice_item():
     assert item.quantity == Decimal("2.0")
     assert item.unit_price == Decimal("25.0")
     assert item.line_total == Decimal("50.0")
-

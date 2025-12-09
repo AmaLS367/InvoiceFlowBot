@@ -4,8 +4,6 @@ from core.container import AppContainer
 from handlers.deps import get_container, get_draft_service, get_invoice_service
 from services.draft_service import DraftService
 from services.invoice_service import InvoiceService
-from tests.fakes.fake_services import FakeInvoiceService
-from tests.fakes.fake_services_drafts import FakeDraftService
 
 
 def test_get_invoice_service():
@@ -72,4 +70,3 @@ def test_get_container():
     result = get_container(data)
     assert result is container
     assert isinstance(result, AppContainer)
-
