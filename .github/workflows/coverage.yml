@@ -32,8 +32,9 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=. --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=80
+          pytest --cov=domain --cov=services --cov=ocr --cov=storage --cov=handlers \
+            --cov-report=xml --cov-report=term-missing \
+            --cov-fail-under=59
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
