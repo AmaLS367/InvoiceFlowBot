@@ -109,9 +109,7 @@ def test_parse_date_str_none() -> None:
 
 
 @pytest.mark.asyncio
-async def test_cmd_show_with_draft(
-    draft_container: AppContainer, commands_router: Router
-) -> None:
+async def test_cmd_show_with_draft(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /show command when draft exists."""
     # Import handlers module to ensure it's loaded for coverage
     import handlers.commands_drafts  # noqa: F401
@@ -273,9 +271,7 @@ async def test_on_force_reply_header_field(
 
     # Create a message with reply_to_message to trigger F.reply_to_message filter
     reply_to = FakeMessage(text="Previous message", user_id=user_id)
-    message = FakeMessage(
-        text="New Supplier Name", user_id=user_id, reply_to_message=reply_to
-    )
+    message = FakeMessage(text="New Supplier Name", user_id=user_id, reply_to_message=reply_to)
     state = FakeFSMContext()
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "supplier"}})
@@ -408,7 +404,9 @@ async def test_on_force_reply_item_field(
 
     assert len(message.answers) >= 1
     # For item fields, the message is "Обновлено", not "Поле обновлено"
-    assert "Обновлено" in message.answers[0]["text"] or "Поле обновлено" in message.answers[0]["text"]
+    assert (
+        "Обновлено" in message.answers[0]["text"] or "Поле обновлено" in message.answers[0]["text"]
+    )
     # Check that item field was updated
     saved_draft = await draft_container.draft_service.get_current_draft(user_id)
     assert saved_draft is not None
@@ -720,17 +718,6 @@ async def test_on_force_reply_item_field_total(
 
 
 @pytest.mark.asyncio
-async def test_parse_date_str_invalid_format(
-    draft_container: AppContainer, commands_router: Router
-) -> None:
-    """Test _parse_date_str with invalid date format."""
-    from handlers.commands_drafts import _parse_date_str
-
-    result = _parse_date_str("invalid-date")
-    assert result is None
-
-
-@pytest.mark.asyncio
 async def test_on_force_reply_no_matching_state(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
@@ -890,8 +877,6 @@ async def test_on_force_reply_empty_text(
     assert len(message.answers) >= 1
 
 
-
-
 @pytest.mark.asyncio
 async def test_on_force_reply_empty_comment(
     draft_container: AppContainer, commands_router: Router
@@ -1032,8 +1017,6 @@ async def test_on_force_reply_item_field_invalid_number(
     assert "Не число" in message.answers[0]["text"] or len(message.answers) >= 1
 
 
-
-
 @pytest.mark.asyncio
 async def test_cmd_edititem_legacy_invalid_index(
     draft_container: AppContainer, commands_router: Router
@@ -1094,8 +1077,6 @@ async def test_cmd_edititem_legacy_index_out_of_range(
             pass
 
     assert len(message.answers) >= 1
-
-
 
 
 @pytest.mark.asyncio
@@ -1232,9 +1213,7 @@ async def test_cmd_comment_empty_text(
 
 
 @pytest.mark.asyncio
-async def test_cmd_save_with_draft(
-    draft_container: AppContainer, commands_router: Router
-) -> None:
+async def test_cmd_save_with_draft(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /save command with draft."""
     # Import handlers module to ensure it's loaded for coverage
     import handlers.commands_drafts  # noqa: F401
@@ -1249,9 +1228,10 @@ async def test_cmd_save_with_draft(
     message = FakeMessage(text="/save", user_id=user_id)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft, patch(
-        "handlers.commands_drafts.get_invoice_service"
-    ) as mock_get_invoice:
+    with (
+        patch("handlers.commands_drafts.get_draft_service") as mock_get_draft,
+        patch("handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
+    ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
 
@@ -1264,8 +1244,8 @@ async def test_cmd_save_with_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service, get_invoice_service
             from domain.invoices import InvoiceComment
+            from handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
             draft_service = get_draft_service(draft_container)
@@ -1322,9 +1302,10 @@ async def test_cmd_save_without_draft(
     message = FakeMessage(text="/save", user_id=123)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft, patch(
-        "handlers.commands_drafts.get_invoice_service"
-    ) as mock_get_invoice:
+    with (
+        patch("handlers.commands_drafts.get_draft_service") as mock_get_draft,
+        patch("handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
+    ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
 
@@ -1351,9 +1332,7 @@ async def test_cmd_save_without_draft(
 
 
 @pytest.mark.asyncio
-async def test_cmd_edit_legacy(
-    draft_container: AppContainer, commands_router: Router
-) -> None:
+async def test_cmd_edit_legacy(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /edit legacy command."""
     # Import handlers module to ensure it's loaded for coverage
     import handlers.commands_drafts  # noqa: F401
@@ -1474,9 +1453,7 @@ async def test_cmd_edit_legacy_without_draft(
 
 
 @pytest.mark.asyncio
-async def test_cmd_edititem_legacy(
-    draft_container: AppContainer, commands_router: Router
-) -> None:
+async def test_cmd_edititem_legacy(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /edititem legacy command."""
     # Import handlers module to ensure it's loaded for coverage
     import handlers.commands_drafts  # noqa: F401
@@ -1518,12 +1495,16 @@ async def test_cmd_edititem_legacy(
                 return
 
             if message.text is None:
-                await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+                await message.answer(
+                    "Формат: /edititem <index> name=... qty=... price=... total=..."
+                )
                 return
             args = message.text.split(" ", 2)
 
             if len(args) < 3:
-                await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+                await message.answer(
+                    "Формат: /edititem <index> name=... qty=... price=... total=..."
+                )
                 return
 
             try:

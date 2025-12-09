@@ -107,87 +107,6 @@ async def test_on_force_reply_invoices_from_date(
 
 
 @pytest.mark.asyncio
-async def test_on_force_reply_invoices_missing_dates(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test force reply for invoices with missing dates."""
-    import handlers.commands_invoices  # noqa: F401
-
-    reply_to = FakeMessage(text="Previous message", user_id=123)
-    message = FakeMessage(text="Test Supplier", user_id=123, reply_to_message=reply_to)
-    state = FakeFSMContext()
-    await state.set_state(InvoicesPeriodState.waiting_for_supplier)
-    await state.update_data({"period": {"from": None, "to": None}})  # Missing dates
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container, "state": state}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-
-
-@pytest.mark.asyncio
-async def test_cmd_invoices_long_output(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test /invoices command with output that exceeds 3900 chars."""
-    import handlers.commands_invoices  # noqa: F401
-
-    from domain.invoices import Invoice, InvoiceHeader
-    from tests.fakes.fake_services import FakeInvoiceService
-
-    # Create many invoices to exceed 3900 chars
-    invoice_service = invoices_container.invoice_service
-    assert isinstance(invoice_service, FakeInvoiceService)
-    test_invoices = []
-    for i in range(200):  # Many invoices to exceed limit
-        test_invoices.append(
-            Invoice(
-                header=InvoiceHeader(
-                    supplier_name=f"Supplier {i}",
-                    invoice_number=f"INV-{i:03d}",
-                    invoice_date=date(2025, 1, 15),
-                    total_amount=Decimal("100.00"),
-                ),
-                items=[],
-            )
-        )
-    invoice_service.return_invoices = test_invoices
-
-    message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-    # Should have message about too many lines or normal output
-    answer_text = message.answers[0]["text"]
-    assert "Слишком много строк" in answer_text or "Счета с" in answer_text or len(answer_text) > 0
-    assert "По дату" in message.answers[0]["text"]
-    new_state = await state.get_state()
-    assert new_state == InvoicesPeriodState.waiting_for_to_date
-
-
-@pytest.mark.asyncio
 async def test_on_force_reply_invoices_to_date(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
@@ -241,90 +160,11 @@ async def test_on_force_reply_invoices_to_date(
 
 
 @pytest.mark.asyncio
-async def test_on_force_reply_invoices_missing_dates(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test force reply for invoices with missing dates."""
-    import handlers.commands_invoices  # noqa: F401
-
-    reply_to = FakeMessage(text="Previous message", user_id=123)
-    message = FakeMessage(text="Test Supplier", user_id=123, reply_to_message=reply_to)
-    state = FakeFSMContext()
-    await state.set_state(InvoicesPeriodState.waiting_for_supplier)
-    await state.update_data({"period": {"from": None, "to": None}})  # Missing dates
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container, "state": state}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-
-
-@pytest.mark.asyncio
-async def test_cmd_invoices_long_output(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test /invoices command with output that exceeds 3900 chars."""
-    import handlers.commands_invoices  # noqa: F401
-
-    from domain.invoices import Invoice, InvoiceHeader
-    from tests.fakes.fake_services import FakeInvoiceService
-
-    # Create many invoices to exceed 3900 chars
-    invoice_service = invoices_container.invoice_service
-    assert isinstance(invoice_service, FakeInvoiceService)
-    test_invoices = []
-    for i in range(200):  # Many invoices to exceed limit
-        test_invoices.append(
-            Invoice(
-                header=InvoiceHeader(
-                    supplier_name=f"Supplier {i}",
-                    invoice_number=f"INV-{i:03d}",
-                    invoice_date=date(2025, 1, 15),
-                    total_amount=Decimal("100.00"),
-                ),
-                items=[],
-            )
-        )
-    invoice_service.return_invoices = test_invoices
-
-    message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-    # Should have message about too many lines or normal output
-    answer_text = message.answers[0]["text"]
-    assert "Слишком много строк" in answer_text or "Счета с" in answer_text or len(answer_text) > 0
-
-
-@pytest.mark.asyncio
 async def test_on_force_reply_invoices_supplier(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test force reply for invoices supplier filter."""
     import handlers.commands_invoices  # noqa: F401
-
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -368,90 +208,11 @@ async def test_on_force_reply_invoices_supplier(
 
 
 @pytest.mark.asyncio
-async def test_on_force_reply_invoices_missing_dates(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test force reply for invoices with missing dates."""
-    import handlers.commands_invoices  # noqa: F401
-
-    reply_to = FakeMessage(text="Previous message", user_id=123)
-    message = FakeMessage(text="Test Supplier", user_id=123, reply_to_message=reply_to)
-    state = FakeFSMContext()
-    await state.set_state(InvoicesPeriodState.waiting_for_supplier)
-    await state.update_data({"period": {"from": None, "to": None}})  # Missing dates
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container, "state": state}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-
-
-@pytest.mark.asyncio
-async def test_cmd_invoices_long_output(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test /invoices command with output that exceeds 3900 chars."""
-    import handlers.commands_invoices  # noqa: F401
-
-    from domain.invoices import Invoice, InvoiceHeader
-    from tests.fakes.fake_services import FakeInvoiceService
-
-    # Create many invoices to exceed 3900 chars
-    invoice_service = invoices_container.invoice_service
-    assert isinstance(invoice_service, FakeInvoiceService)
-    test_invoices = []
-    for i in range(200):  # Many invoices to exceed limit
-        test_invoices.append(
-            Invoice(
-                header=InvoiceHeader(
-                    supplier_name=f"Supplier {i}",
-                    invoice_number=f"INV-{i:03d}",
-                    invoice_date=date(2025, 1, 15),
-                    total_amount=Decimal("100.00"),
-                ),
-                items=[],
-            )
-        )
-    invoice_service.return_invoices = test_invoices
-
-    message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-    # Should have message about too many lines or normal output
-    answer_text = message.answers[0]["text"]
-    assert "Слишком много строк" in answer_text or "Счета с" in answer_text or len(answer_text) > 0
-
-
-@pytest.mark.asyncio
 async def test_cmd_invoices_basic(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test /invoices command basic functionality."""
     import handlers.commands_invoices  # noqa: F401
-
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -488,91 +249,11 @@ async def test_cmd_invoices_basic(
 
 
 @pytest.mark.asyncio
-async def test_on_force_reply_invoices_missing_dates(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test force reply for invoices with missing dates."""
-    import handlers.commands_invoices  # noqa: F401
-
-    reply_to = FakeMessage(text="Previous message", user_id=123)
-    message = FakeMessage(text="Test Supplier", user_id=123, reply_to_message=reply_to)
-    state = FakeFSMContext()
-    await state.set_state(InvoicesPeriodState.waiting_for_supplier)
-    await state.update_data({"period": {"from": None, "to": None}})  # Missing dates
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container, "state": state}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-
-
-@pytest.mark.asyncio
-async def test_cmd_invoices_long_output(
-    invoices_container: AppContainer, invoices_router: Router
-) -> None:
-    """Test /invoices command with output that exceeds 3900 chars."""
-    import handlers.commands_invoices  # noqa: F401
-
-    from domain.invoices import Invoice, InvoiceHeader
-    from tests.fakes.fake_services import FakeInvoiceService
-
-    # Create many invoices to exceed 3900 chars
-    invoice_service = invoices_container.invoice_service
-    assert isinstance(invoice_service, FakeInvoiceService)
-    test_invoices = []
-    for i in range(200):  # Many invoices to exceed limit
-        test_invoices.append(
-            Invoice(
-                header=InvoiceHeader(
-                    supplier_name=f"Supplier {i}",
-                    invoice_number=f"INV-{i:03d}",
-                    invoice_date=date(2025, 1, 15),
-                    total_amount=Decimal("100.00"),
-                ),
-                items=[],
-            )
-        )
-    invoice_service.return_invoices = test_invoices
-
-    message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
-
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
-        mock_get_invoice.return_value = invoices_container.invoice_service
-
-        data = {"container": invoices_container}
-
-        try:
-            await invoices_router.message.trigger(
-                message,  # type: ignore[arg-type]
-                **data,
-            )
-        except Exception:
-            pass
-
-    assert len(message.answers) >= 1
-    # Should have message about too many lines or normal output
-    answer_text = message.answers[0]["text"]
-    assert "Слишком много строк" in answer_text or "Счета с" in answer_text or len(answer_text) > 0
-    assert "Счета с" in message.answers[0]["text"] or "Ничего не найдено" in message.answers[0]["text"]
-
-
-@pytest.mark.asyncio
 async def test_cmd_invoices_with_supplier(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test /invoices command with supplier filter."""
     import handlers.commands_invoices  # noqa: F401
-
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -646,7 +327,6 @@ async def test_cmd_invoices_long_output(
 ) -> None:
     """Test /invoices command with output that exceeds 3900 chars."""
     import handlers.commands_invoices  # noqa: F401
-
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 

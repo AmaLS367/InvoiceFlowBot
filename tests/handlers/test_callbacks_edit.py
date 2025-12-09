@@ -258,7 +258,9 @@ async def test_cb_hed_field_supplier(
                 }
             )
             if call.message is not None:
-                await call.message.answer(f"Введите новое значение для «{nice}»:", reply_markup=None)
+                await call.message.answer(
+                    f"Введите новое значение для «{nice}»:", reply_markup=None
+                )
                 await call.answer()
 
     assert call.answered
@@ -474,9 +476,10 @@ async def test_cb_act_save_with_draft(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft, patch(
-        "handlers.callbacks_edit.get_invoice_service"
-    ) as mock_get_invoice:
+    with (
+        patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft,
+        patch("handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
+    ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
 
@@ -523,9 +526,7 @@ async def test_cb_act_save_with_draft(
 
 
 @pytest.mark.asyncio
-async def test_cb_itm_field(
-    draft_container: AppContainer, callback_router: Router
-) -> None:
+async def test_cb_itm_field(draft_container: AppContainer, callback_router: Router) -> None:
     """Test item field selection callback."""
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -533,8 +534,9 @@ async def test_cb_itm_field(
 
     await draft_container.draft_service.set_current_draft(user_id, draft)
 
-    from handlers.callback_registry import make_item_field_callback
     from unittest.mock import patch
+
+    from handlers.callback_registry import make_item_field_callback
 
     message = FakeMessage()
     call = FakeCallbackQuery(
@@ -544,7 +546,7 @@ async def test_cb_itm_field(
 
     # Import handlers module to ensure it's loaded for coverage
     import handlers.callbacks_edit  # noqa: F401
-    
+
     # Call handler through router using callback_query.trigger
     with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
@@ -597,7 +599,6 @@ async def test_cb_itm_field_with_none_data(draft_container: AppContainer) -> Non
     """Test item field callback with None data."""
     message = FakeMessage()
     call = FakeCallbackQuery(data=None, user_id=123, message=message)  # type: ignore[arg-type]
-    state = FakeFSMContext()
 
     if call.data is None:
         await call.answer()
@@ -729,9 +730,10 @@ async def test_cb_act_save_with_sum_mismatch(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft, patch(
-        "handlers.callbacks_edit.get_invoice_service"
-    ) as mock_get_invoice:
+    with (
+        patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft,
+        patch("handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
+    ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
 
@@ -744,8 +746,8 @@ async def test_cb_act_save_with_sum_mismatch(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service, get_invoice_service
             from domain.invoices import InvoiceComment
+            from handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
             draft_service = get_draft_service(draft_container)
