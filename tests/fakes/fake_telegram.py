@@ -63,3 +63,24 @@ class FakeMessage:
 
     async def answer_document(self, document: Any, **kwargs: Any) -> None:
         self.answers.append({"document": document, "kwargs": kwargs})
+
+    async def edit_reply_markup(self, reply_markup: Any = None) -> None:
+        self.answers.append({"edit_reply_markup": True, "reply_markup": reply_markup})
+
+
+class FakeCallbackQuery:
+    def __init__(
+        self,
+        data: str,
+        user_id: int = 1,
+        message: Optional[FakeMessage] = None,
+    ) -> None:
+        self.data = data
+        self.from_user = FakeUser(user_id=user_id)
+        self.message = message or FakeMessage()
+        self.answered = False
+        self.answer_text: Optional[str] = None
+
+    async def answer(self, text: Optional[str] = None, **kwargs: Any) -> None:
+        self.answered = True
+        self.answer_text = text

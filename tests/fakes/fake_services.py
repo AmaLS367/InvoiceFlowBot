@@ -20,3 +20,8 @@ class FakeInvoiceService:
         call_str = f"list_invoices:from_date={from_date},to_date={to_date},supplier={supplier}"
         self.calls.append(call_str)
         return self.return_invoices
+
+    async def save_invoice(self, invoice: Invoice, user_id: int = 0) -> int:
+        call_str = f"save_invoice:user_id={user_id},invoice={invoice.header.invoice_number}"
+        self.calls.append(call_str)
+        return 123  # Return fake invoice ID
