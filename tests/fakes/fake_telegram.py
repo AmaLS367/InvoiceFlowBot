@@ -46,6 +46,7 @@ class FakeMessage:
         document: Optional[FakeDocument] = None,
         photos: Optional[List[FakePhotoSize]] = None,
         bot: Any = None,
+        reply_to_message: Optional["FakeMessage"] = None,
     ) -> None:
         self.text = text
         self.from_user = FakeUser(user_id=user_id)
@@ -53,6 +54,7 @@ class FakeMessage:
         self.document = document
         self.photo = photos or []
         self.bot = bot
+        self.reply_to_message = reply_to_message
         self.answers: List[Dict[str, Any]] = []
 
     async def answer(self, text: str, **kwargs: Any) -> None:

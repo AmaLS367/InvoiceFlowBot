@@ -54,11 +54,8 @@ markers = [
     "storage_db: integration tests for storage with real SQLite and Alembic migrations",
 ]
 addopts = [
-    "--cov=domain",
-    "--cov=services",
-    "--cov=ocr",
-    "--cov=storage",
-    "--cov=handlers",
+    "--cov=.",
+    "--cov-config=.coveragerc",
     "--cov-report=term-missing",
     "--cov-fail-under=80",
 ]
