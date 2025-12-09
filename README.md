@@ -1,52 +1,80 @@
-# InvoiceFlowBot
-[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
+# 📄 InvoiceFlowBot
 
-For Russian documentation see [README.ru.md](README.ru.md) and [docs/ru/index.md](docs/ru/index.md).
+[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+> 🇷🇺 For Russian documentation see [README.ru.md](README.ru.md) and [docs/ru/index.md](docs/ru/index.md).
 
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
-## Features
+## ✨ Features
 
-- **OCR Processing**: Automatic extraction of invoice data using Mindee API. The OCR layer is built on a provider abstraction, allowing for easy integration of additional OCR providers in the future.
-- **Multiple Format Support**: Handles PDF files and images (JPEG, PNG, HEIC, HEIF, WebP)
-- **Interactive Editing**: Edit invoice header fields and line items via Telegram interface
-- **Data Storage**: Save processed invoices to SQLite database
-- **Period Queries**: Query invoices by date range and supplier
-- **Comment System**: Add comments to invoices
-- **CSV Export**: Export invoice items as CSV for large invoices
+- 🤖 **OCR Processing**: Automatic extraction of invoice data using Mindee API. The OCR layer is built on a provider abstraction, allowing for easy integration of additional OCR providers in the future.
+- 📎 **Multiple Format Support**: Handles PDF files and images (JPEG, PNG, HEIC, HEIF, WebP)
+- ✏️ **Interactive Editing**: Edit invoice header fields and line items via Telegram interface
+- 💾 **Data Storage**: Save processed invoices to SQLite database
+- 📅 **Period Queries**: Query invoices by date range and supplier
+- 💬 **Comment System**: Add comments to invoices
+- 📊 **CSV Export**: Export invoice items as CSV for large invoices
 
-## Requirements
+## 📋 Requirements
 
-- Python 3.11+
-- Telegram Bot Token
-- Mindee API Key
+- 🐍 Python 3.11+
+- 🤖 Telegram Bot Token
+- 🔑 Mindee API Key
 
-## Quick Start with Docker
+## 🚀 Quick Start with Docker
 
-1. Clone the repository and copy the example env: `Copy-Item .env.example .env`
-2. Start the stack: `docker-compose up --build -d`
-3. Stop the stack: `docker-compose down`
+> [!TIP]
+> The fastest way to get started! Docker handles all dependencies automatically.
 
-## Installation
+```powershell
+# 1. Clone and setup environment
+git clone https://github.com/AmaLS367/InvoiceFlowBot.git
+cd InvoiceFlowBot
+Copy-Item .env.example .env
 
-1. Clone the repository:
+# 2. Edit .env with your tokens
+notepad .env
+
+# 3. Start the bot
+docker-compose up --build -d
+
+# 4. Check logs
+docker-compose logs -f
+
+# 5. Stop when done
+docker-compose down
+```
+
+## 💻 Installation
+
+> [!NOTE]
+> Requires Python 3.11+ and Git installed on your system.
+
+<details>
+<summary><b>📦 Step-by-step installation guide</b></summary>
+
+### 1. Clone the repository
 ```powershell
 git clone https://github.com/AmaLS367/InvoiceFlowBot.git
 cd InvoiceFlowBot
 ```
 
-2. Create a virtual environment:
+### 2. Create a virtual environment
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-3. Install dependencies:
+### 3. Install dependencies
 ```powershell
 pip install -e .
 ```
 
-4. Create a `.env` file in the project root:
+### 4. Create a `.env` file in the project root
 ```env
 BOT_TOKEN=your_telegram_bot_token
 MINDEE_API_KEY=your_mindee_api_key
@@ -60,7 +88,7 @@ LOG_CONSOLE=0
 LOG_DIR=logs
 ```
 
-### Configuration
+### ⚙️ Configuration
 
 The bot is configured via environment variables managed by pydantic settings in `config.py`.
 
@@ -75,12 +103,17 @@ DB_FILENAME=data.sqlite
 
 On startup the application reads these values into the `Settings` model.
 
-5. Run the bot:
+### 5. Run the bot
 ```powershell
 python bot.py
 ```
 
-## Tests
+> [!TIP]
+> Check `logs/` directory for detailed application logs if you encounter any issues.
+
+</details>
+
+## 🧪 Tests
 
 Run unit tests with `pytest`. On Windows PowerShell:
 
@@ -97,36 +130,62 @@ You can also run a specific test file:
 python -m pytest tests/test_invoice_service.py
 ```
 
-## Usage
+## 📖 Usage
 
-### Basic Commands
+> [!TIP]
+> New to the bot? Start with `/start` to see the interactive menu!
 
-- `/start` - Start the bot and see main menu
-- `/help` - Show help message
-- `/show` - Display current draft invoice
-- `/save` - Save current draft to database
+<details>
+<summary><b>🎯 Basic Commands</b></summary>
 
-### Editing Commands
+| Command | Description |
+|---------|-------------|
+| `/start` | Start the bot and see main menu |
+| `/help` | Show help message |
+| `/show` | Display current draft invoice |
+| `/save` | Save current draft to database |
 
-- `/edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45` - Edit header fields
-- `/edititem <index> name=... qty=... price=... total=...` - Edit specific line item
-- `/comment <text>` - Add a comment to the invoice
+</details>
 
-### Query Commands
+<details>
+<summary><b>✏️ Editing Commands</b></summary>
 
-- `/invoices YYYY-MM-DD YYYY-MM-DD [supplier=text]` - Query invoices by date range and optional supplier filter
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/edit` | Edit header fields | `/edit supplier=ACME client=Corp date=2024-01-15` |
+| `/edititem` | Edit specific line item | `/edititem 0 name=Widget qty=5 price=10.50` |
+| `/comment` | Add a comment | `/comment Approved by manager` |
 
-### Interactive Buttons
+</details>
+
+<details>
+<summary><b>🔍 Query Commands</b></summary>
+
+```
+/invoices YYYY-MM-DD YYYY-MM-DD [supplier=text]
+```
+
+**Example:**
+```
+/invoices 2024-01-01 2024-01-31 supplier=ACME
+```
+
+</details>
+
+<details>
+<summary><b>🔘 Interactive Buttons</b></summary>
 
 The bot provides inline keyboard buttons for:
-- Upload invoice
-- Edit invoice fields
-- Add comments
-- Save invoice
-- Query invoices by period
-- View help
+- 📤 Upload invoice
+- ✏️ Edit invoice fields
+- 💬 Add comments
+- 💾 Save invoice
+- 📅 Query invoices by period
+- ❓ View help
 
-## Project Structure
+</details>
+
+## 📁 Project Structure
 
 ```
 InvoiceFlowBot/
@@ -156,45 +215,77 @@ InvoiceFlowBot/
     └── db.py              # Database operations
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 The bot uses environment variables for configuration. See `.env.example` for available options.
 
-### Required Variables
+<details>
+<summary><b>📋 Environment Variables Reference</b></summary>
 
-- `BOT_TOKEN`: Telegram bot token from @BotFather
-- `MINDEE_API_KEY`: API key from Mindee platform
-- `MINDEE_MODEL_ID`: Mindee model ID for invoice processing
+### 🔑 Required Variables
 
-### Optional Variables
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABCDEF...` |
+| `MINDEE_API_KEY` | API key from Mindee platform | `your-api-key` |
+| `MINDEE_MODEL_ID` | Mindee model ID for invoice processing | `mindee/invoices/v4` |
 
-- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `LOG_ROTATE_MB`: Maximum log file size in MB before rotation
-- `LOG_BACKUPS`: Number of backup log files to keep
-- `LOG_CONSOLE`: Enable console logging (0 or 1)
-- `LOG_DIR`: Custom log directory path
+> [!WARNING]
+> The bot will not start without these required variables!
 
-## Database
+### 🔧 Optional Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `LOG_ROTATE_MB` | Max log file size in MB | `10` |
+| `LOG_BACKUPS` | Number of backup log files | `5` |
+| `LOG_CONSOLE` | Enable console logging | `0` |
+| `LOG_DIR` | Custom log directory | `logs` |
+
+</details>
+
+## 🗄️ Database
 
 The bot uses SQLite database to store invoices. The database schema is managed by Alembic.
 
-### Database setup
+<details>
+<summary><b>🔨 Database Setup & Structure</b></summary>
 
-Before running the bot or tests make sure the schema is up to date:
+### Initial Setup
 
 ```powershell
 python -m alembic upgrade head
 ```
 
-The application entrypoints call `storage.db.init_db()`, which will also upgrade the database to the latest migration.
+> [!NOTE]
+> The application automatically runs migrations on startup via `storage.db.init_db()`.
 
-The database tables include:
-- Invoices (header information)
-- Items (line items for each invoice)
-- Comments (comments associated with invoices)
-- Invoice drafts (temporary drafts for editing)
+### Database Tables
 
-## Logging
+| Table | Description |
+|-------|-------------|
+| `invoices` | Header information (supplier, client, dates, totals) |
+| `invoice_items` | Line items for each invoice |
+| `comments` | User comments associated with invoices |
+| `invoice_drafts` | Temporary drafts for editing |
+
+### Backup & Restore
+
+```powershell
+# Backup
+Copy-Item .\data.sqlite .\backup\data-$(Get-Date -Format yyyyMMddHHmmss).sqlite
+
+# Restore
+Copy-Item .\backup\data-20240115.sqlite .\data.sqlite
+```
+
+> [!WARNING]
+> Always backup `data.sqlite` before major updates!
+
+</details>
+
+## 📝 Logging
 
 Logs are written to the `logs/` directory by default:
 - `ocr_engine.log` - General application logs
@@ -202,17 +293,17 @@ Logs are written to the `logs/` directory by default:
 - `router.log` - OCR routing logs
 - `extract.log` - Invoice extraction logs
 
-## Documentation
+## 📚 Documentation
 
 - [docs/ru/index.md](docs/ru/index.md)
 - [docs/en/index.md](docs/en/index.md)
 
-## Screenshots
+## 📸 Screenshots
 
 - [Screenshots (RU)](docs/ru/screenshots.md)
 - [Bot screenshots (EN)](docs/en/screenshots.md)
 
-## License
+## 📄 License
 
 Copyright 2025 Ama
 
@@ -228,16 +319,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-## Development
+## 👨‍💻 Development
 
-### Code Quality
+### 🔍 Code Quality
 
 The project uses the following tools for code quality:
 
 - **ruff** - Fast Python linter
 - **mypy** - Static type checking
 
-### Local Development Setup
+### 🛠️ Local Development Setup
 
 ```powershell
 # Install dependencies
@@ -256,10 +347,10 @@ python -m pytest
 
 The CI pipeline automatically runs `ruff`, `mypy`, and `pytest` on every push and pull request.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Support
+## 💬 Support
 
 For issues and questions, please open an issue on the repository.
