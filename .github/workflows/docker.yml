@@ -46,12 +46,9 @@ jobs:
       - name: Verify image structure
         run: |
           # Verify that the image has all necessary files
-          # Pass env vars to avoid pydantic validation errors during file check
-          docker run --rm \
-            -e BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz \
-            -e MINDEE_API_KEY=test-key \
-            -e MINDEE_MODEL_ID=test-model \
-            invoiceflowbot:test ls -la /app/bot.py /app/config.py || exit 1
+          # Override entrypoint to avoid running bot.py
+          docker run --rm --entrypoint="" \
+            invoiceflowbot:test ls -la /app/bot.py /app/config.py /app/healthcheck.py || exit 1
           echo "✅ Image structure is correct"
 
       - name: Cleanup
