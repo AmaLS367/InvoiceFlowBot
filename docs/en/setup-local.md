@@ -1,12 +1,16 @@
-# Local Setup
+# 💻 Local Setup
 
-## Prerequisites
+> [!NOTE]
+> This guide is for installation without Docker. For quick start, see [Docker setup](setup-docker.md).
 
-- Python 3.11 or newer
-- Git installed
-- Telegram bot token and Mindee API credentials
+## 📋 Prerequisites
 
-## Steps
+- 🐍 Python 3.11 or newer
+- 📦 Git installed
+- 🤖 Telegram bot token
+- 🔑 Mindee API credentials
+
+## 🚀 Steps
 
 1. **Clone the repository and enter the project directory:**
 ```powershell
@@ -41,7 +45,14 @@ Required values:
 python bot.py
 ```
 
-## Notes
+## ✅ Notes
 
-- A successful launch prints log lines about Aiogram startup. If something fails, check the console or log files for stack traces.
-- When the bot does not connect to Telegram, double-check `BOT_TOKEN`, confirm internet access, and restart the process after fixing the `.env`.
+> [!TIP]
+> A successful launch prints log lines about Aiogram startup and handler registration.
+
+> [!WARNING]
+> If the bot does not connect to Telegram:
+> - Double-check `BOT_TOKEN` in `.env`
+> - Confirm internet access
+> - Check for proxy restrictions
+> - Restart the process after fixing variables

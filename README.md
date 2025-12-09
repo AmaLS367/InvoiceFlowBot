@@ -9,6 +9,30 @@
 
 A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
 
+## 🎬 Demo
+
+<div align="center">
+
+### 📤 Upload & Process
+
+![Upload Demo](https://via.placeholder.com/600x400/4A90E2/FFFFFF?text=Upload+Invoice+Demo)
+
+*Upload an invoice and watch the bot extract all data automatically*
+
+### ✏️ Edit & Save
+
+![Edit Demo](https://via.placeholder.com/600x400/50C878/FFFFFF?text=Edit+Invoice+Demo)
+
+*Review and edit extracted data with inline buttons*
+
+### 📊 Query & Export
+
+![Query Demo](https://via.placeholder.com/600x400/FF6B6B/FFFFFF?text=Query+Invoices+Demo)
+
+*Query invoices by date range and export to CSV*
+
+</div>
+
 ## ✨ Features
 
 - 🤖 **OCR Processing**: Automatic extraction of invoice data using Mindee API. The OCR layer is built on a provider abstraction, allowing for easy integration of additional OCR providers in the future.

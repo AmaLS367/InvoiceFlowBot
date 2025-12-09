@@ -1,8 +1,11 @@
-# Configuration
+# ⚙️ Configuration
 
 All settings live in environment variables. `config.py` loads `.env` with `os.getenv`, so updating the file and restarting the process is enough to apply changes.
 
-## Required variables
+> [!IMPORTANT]
+> The bot will not start without required variables!
+
+## 🔑 Required variables
 
 These variables are mandatory. If they are not set, the application will terminate at startup with a clear error message.
 
@@ -12,7 +15,7 @@ These variables are mandatory. If they are not set, the application will termina
 | `MINDEE_API_KEY` | Mindee API key for access to OCR service | API key from the Mindee console (https://platform.mindee.com/) | none (startup fails without it) |
 | `MINDEE_MODEL_ID` | Mindee model identifier used for invoice recognition | Model ID from Mindee platform (e.g., `mindee/invoices/v4` or custom model UUID) | none (startup fails without it) |
 
-## Optional variables
+## 🔧 Optional variables
 
 | Variable | Purpose | Accepted values | Default |
 | --- | --- | --- | --- |

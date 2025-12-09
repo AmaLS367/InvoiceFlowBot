@@ -1,4 +1,4 @@
-# System Overview
+# 📖 System Overview
 
 InvoiceFlowBot runs as a Telegram bot that receives documents from users and processes them through an OCR pipeline:
 

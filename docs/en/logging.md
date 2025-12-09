@@ -1,8 +1,11 @@
-# Logging
+# 📝 Logging
 
 `ocr/engine/util.py` configures rotating log handlers the first time `get_logger` runs. By default logs live in `logs/` next to the source code or inside the directory specified via `LOG_DIR`.
 
-## Log files
+> [!TIP]
+> When troubleshooting, always check files in `logs/` first!
+
+## 📁 Log files
 
 - `ocr_engine.log` — general application events, OCR steps, and file processing.
 - `errors.log` — warnings and errors (level `WARNING` and above).

@@ -1,8 +1,11 @@
-# Database
+# 🗄️ Database
 
 InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default data is stored in `data.sqlite` at the project root (or inside the container). Override the path with `INVOICE_DB_PATH` if needed.
 
-## Schema
+> [!NOTE]
+> SQLite requires no separate database server - everything in one file!
+
+## 📊 Schema
 
 `storage/db.py:init_db()` runs on startup and ensures these tables exist:
 
@@ -12,14 +15,17 @@ InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default d
 
 The database enables WAL mode for safer concurrent writes.
 
-## Best practices
+## ⚠️ Best practices
 
-- Keep `data.sqlite` out of version control and store it in backups.
-- Make regular copies before upgrades. Copying the file is enough:
+> [!WARNING]
+> Make regular backups of `data.sqlite`!
+
+- ❌ Keep `data.sqlite` out of version control
+- 💾 Backup command:
 ```powershell
 Copy-Item .\data.sqlite .\backup\data-$(Get-Date -Format yyyyMMddHHmmss).sqlite
 ```
-- In Docker, verify that `./data.sqlite:/app/data.sqlite` mounts a real file; otherwise data will stay inside the container.
+- 🐳 In Docker, verify volume mapping is correct
 
 ## Restore and migrate
 

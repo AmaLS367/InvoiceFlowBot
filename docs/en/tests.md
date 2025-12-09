@@ -1,8 +1,11 @@
-# Tests
+# 🧪 Tests
 
 InvoiceFlowBot uses pytest, with development dependencies defined in `pyproject.toml` under the `[project.optional-dependencies]` section.
 
-## How to run
+> [!NOTE]
+> For development, install dev dependencies: `pip install -e .[dev]`
+
+## 🚀 How to run
 
 ```powershell
 git clone https://github.com/AmaLS367/InvoiceFlowBot.git

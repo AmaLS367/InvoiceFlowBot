@@ -1,6 +1,9 @@
-# Troubleshooting
+# 🔧 Troubleshooting
 
-## sqlite3.OperationalError: unable to open database file
+> [!TIP]
+> Most problems can be solved by checking environment variables and logs in `logs/`
+
+## ❌ sqlite3.OperationalError: unable to open database file
 - **Problem:** the container cannot open `data.sqlite`.
 - **Cause:** Docker mounted a directory instead of a file because `data.sqlite` was missing.
 - **Fix:** stop the container, delete the directory, create an empty file with `New-Item .\data.sqlite -ItemType File | Out-Null`, then run `docker-compose up --build -d`.

@@ -1,6 +1,9 @@
-# Usage
+# 📖 Usage
 
-Typical flow:
+> [!TIP]
+> Start with `/start` command to see the interactive menu!
+
+## 🎯 Typical flow:
 
 1. Start a chat with the bot and run `/start` to display the menu.
 2. Upload an invoice as a PDF or image. The bot acknowledges receipt and forwards the file to OCR.

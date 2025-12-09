@@ -1,8 +1,11 @@
-# Docker Setup
+# 🐳 Docker Setup
 
 Docker provides a self-contained runtime for InvoiceFlowBot: Python, dependencies, and the bot code run inside the container, while the host only keeps the database and logs.
 
-## Preparation
+> [!TIP]
+> Docker is the fastest way to get started! All dependencies included.
+
+## ⚙️ Preparation
 
 1. Copy environment settings:
 ```powershell
@@ -16,15 +19,17 @@ Remove-Item .\data.sqlite -Recurse -Force
 New-Item .\data.sqlite -ItemType File | Out-Null
 ```
 
-## Start the stack
+## 🚀 Start the stack
 
 ```powershell
 docker-compose up --build -d
 ```
-- `--build` rebuilds the image after dependency updates.
-- `-d` keeps the service running in the background.
 
-## Stop and upgrade
+> [!NOTE]
+> - `--build` rebuilds the image after updates
+> - `-d` runs the service in background mode
+
+## 🔄 Stop and upgrade
 
 Stop the bot:
 ```powershell
