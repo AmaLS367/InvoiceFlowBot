@@ -1,0 +1,17 @@
+# Ignore localhost and private IPs
+localhost
+127.0.0.1
+0.0.0.0
+
+# Ignore placeholder URLs
+via.placeholder.com
+readme-typing-svg.demolab.com
+capsule-render.vercel.app
+api.star-history.com
+img.shields.io
+img.icons8.com
+
+# Ignore GitHub internal links that require auth
+github.com/*/actions
+github.com/*/settings
+

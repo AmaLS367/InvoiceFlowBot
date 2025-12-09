@@ -1,4 +1,4 @@
-name: CI - Tests & Linting
+name: Code Coverage
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main, master]
 
 jobs:
-  lint-and-test:
+  coverage:
     runs-on: ubuntu-latest
     env:
       BOT_TOKEN: test-token
@@ -30,15 +30,17 @@ jobs:
       - name: Run DB migrations
         run: python -m alembic upgrade head
 
-      - name: Pre-commit (ruff, format, mypy)
-        run: pre-commit run --all-files
-
-      - name: Run mypy
+      - name: Run tests with coverage
         run: |
-          python -m mypy domain services ocr storage handlers
+          pytest --cov=domain --cov=services --cov=ocr --cov=storage --cov=handlers \
+            --cov-report=xml --cov-report=term-missing \
+            --import-mode=importlib
 
-      - name: Run unit tests (no storage DB)
-        run: pytest --import-mode=importlib -m "not storage_db"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
-      - name: Run storage DB integration tests
-        run: pytest --import-mode=importlib -m "storage_db" --no-cov

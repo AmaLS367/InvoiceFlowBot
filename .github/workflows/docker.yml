@@ -1,0 +1,43 @@
+name: Docker Build & Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build -t invoiceflowbot:test .
+
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-bot \
+            -e BOT_TOKEN=test-token \
+            -e MINDEE_API_KEY=test-key \
+            -e MINDEE_MODEL_ID=test-model \
+            invoiceflowbot:test
+          sleep 10
+          docker ps | grep test-bot
+          docker logs test-bot
+
+      - name: Health check
+        run: |
+          docker exec test-bot python healthcheck.py || exit 1
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop test-bot || true
+          docker rm test-bot || true
+
