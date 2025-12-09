@@ -121,9 +121,7 @@ async def test_cmd_show_with_draft(draft_container: AppContainer) -> None:
 
     invoice = draft.invoice
     full_text = format_invoice_full(invoice)
-    await message.answer(
-        full_text if len(full_text) < 3900 else format_invoice_header(invoice)
-    )
+    await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
 
     assert len(message.answers) >= 1
     answer_text = message.answers[0]["text"]
@@ -304,4 +302,3 @@ async def test_on_force_reply_item_field(draft_container: AppContainer) -> None:
     saved_draft = await draft_container.draft_service.get_current_draft(user_id)
     assert saved_draft is not None
     assert saved_draft.invoice.items[0].description == "New Item Name"
-

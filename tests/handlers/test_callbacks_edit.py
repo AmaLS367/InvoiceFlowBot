@@ -2,20 +2,17 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
-from aiogram import F, Router
-from aiogram.fsm.context import FSMContext
+from aiogram import Router
 
 from core.container import AppContainer
 from domain.drafts import InvoiceDraft
 from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
 from handlers.callback_registry import (
     HEADER_PREFIX,
-    ITEM_FIELD_PREFIX,
     ITEM_PICK_PREFIX,
-    ITEMS_PAGE_PREFIX,
     CallbackAction,
 )
 from handlers.callbacks_edit import setup
@@ -180,9 +177,7 @@ async def test_cb_hed_field_supplier(draft_container: AppContainer) -> None:
     await draft_container.draft_service.set_current_draft(user_id, draft)
 
     message = FakeMessage()
-    call = FakeCallbackQuery(
-        data=f"{HEADER_PREFIX}supplier", user_id=user_id, message=message
-    )
+    call = FakeCallbackQuery(data=f"{HEADER_PREFIX}supplier", user_id=user_id, message=message)
     state = FakeFSMContext()
 
     from handlers.deps import get_draft_service
@@ -218,9 +213,7 @@ async def test_cb_hed_field_supplier(draft_container: AppContainer) -> None:
         }
     )
     if call.message is not None:
-        await call.message.answer(
-            f"Введите новое значение для «{nice}»:", reply_markup=None
-        )
+        await call.message.answer(f"Введите новое значение для «{nice}»:", reply_markup=None)
         await call.answer()
 
     assert call.answered

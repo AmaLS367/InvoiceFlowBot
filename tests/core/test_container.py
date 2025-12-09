@@ -97,3 +97,12 @@ def test_create_app_container_returns_default_container() -> None:
     assert isinstance(container.invoice_service, InvoiceService)
     assert isinstance(container.draft_service, DraftService)
     assert container.config is not None
+
+
+def test_app_container_module_aliases() -> None:
+    """Test that module aliases are set correctly."""
+    config = Settings()  # type: ignore[call-arg]
+    container = AppContainer(config=config)
+
+    assert container.invoice_service_module is container.invoice_service
+    assert container.draft_service_module is container.draft_service

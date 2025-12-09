@@ -106,6 +106,117 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
     assert called["max_pages"] == 5
 
 
+def test_build_invoice_from_extraction():
+    """Test build_invoice_from_extraction function."""
+    from services.invoice_service import build_invoice_from_extraction
+
+    result = DummyExtractionResult(
+        supplier="Test Supplier",
+        client="Test Client",
+        invoice_date="2025-01-15",
+        total_sum=100.0,
+        items=[
+            DummyItem(name="Item 1", code="SKU-1", qty=2.0, price=25.0, total=50.0),
+        ],
+    )
+
+    invoice = build_invoice_from_extraction(result)
+
+    assert invoice.header.supplier_name == "Test Supplier"
+    assert invoice.header.customer_name == "Test Client"
+    assert invoice.header.total_amount == Decimal("100.0")
+    assert len(invoice.items) == 1
+    assert invoice.items[0].description == "Item 1"
+    assert invoice.items[0].sku == "SKU-1"
+    assert invoice.source is not None
+    assert invoice.source.provider == "mindee"
+
+
+def test_build_invoice_from_extraction_with_none_values():
+    """Test build_invoice_from_extraction with None values."""
+    from services.invoice_service import build_invoice_from_extraction
+
+    result = DummyExtractionResult(
+        supplier=None,
+        client=None,
+        invoice_date=None,
+        total_sum=None,
+        items=[],
+    )
+
+    invoice = build_invoice_from_extraction(result)
+
+    assert invoice.header.supplier_name is None
+    assert invoice.header.customer_name is None
+    assert invoice.header.invoice_date is None
+    assert invoice.header.total_amount is None
+    assert len(invoice.items) == 0
+
+
+def test_parse_date_function():
+    """Test _parse_date helper function."""
+    from services.invoice_service import _parse_date
+
+    # Test ISO format
+    result = _parse_date("2025-01-15")
+    assert result == date(2025, 1, 15)
+
+    # Test DD.MM.YYYY format
+    result = _parse_date("15.01.2025")
+    assert result == date(2025, 1, 15)
+
+    # Test None
+    result = _parse_date(None)
+    assert result is None
+
+    # Test empty string
+    result = _parse_date("")
+    assert result is None
+
+    # Test invalid format
+    result = _parse_date("invalid")
+    assert result is None
+
+
+def test_build_header_function():
+    """Test _build_header helper function."""
+    from ocr.engine.types import ExtractionResult
+    from services.invoice_service import _build_header
+
+    result = ExtractionResult(
+        document_id="test",
+        supplier="Supplier",
+        client="Client",
+        date="2025-01-15",
+        total_sum=100.0,
+        template="test",
+        items=[],
+        pages=[],
+        warnings=[],
+    )
+
+    header = _build_header(result)
+    assert header.supplier_name == "Supplier"
+    assert header.customer_name == "Client"
+    assert header.invoice_date == date(2025, 1, 15)
+    assert header.total_amount == Decimal("100.0")
+
+
+def test_build_item_function():
+    """Test _build_item helper function."""
+    from ocr.engine.types import Item
+    from services.invoice_service import _build_item
+
+    item = Item(code="SKU-1", name="Item 1", qty=2.0, price=25.0, total=50.0, page_no=1)
+    invoice_item = _build_item(item)
+
+    assert invoice_item.description == "Item 1"
+    assert invoice_item.sku == "SKU-1"
+    assert invoice_item.quantity == Decimal("2.0")
+    assert invoice_item.unit_price == Decimal("25.0")
+    assert invoice_item.line_total == Decimal("50.0")
+
+
 @pytest.mark.asyncio
 async def test_save_invoice_delegates_to_storage() -> None:
     import logging

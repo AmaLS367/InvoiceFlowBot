@@ -27,4 +27,3 @@ class FakeFSMContext:
     async def clear(self) -> None:
         self._state = None
         self._data = {}
-

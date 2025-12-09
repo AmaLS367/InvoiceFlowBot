@@ -3,8 +3,8 @@
 <div align="center">
 
 [![pytest](https://img.shields.io/badge/Framework-pytest-blue?style=for-the-badge&logo=pytest)](https://pytest.org/)
-[![Coverage](https://img.shields.io/badge/Coverage-50%25+-green?style=for-the-badge)](https://coverage.readthedocs.io/)
-[![Tests](https://img.shields.io/badge/Tests-78-orange?style=for-the-badge)](#запуск)
+[![Coverage](https://img.shields.io/badge/Coverage-80%25+-green?style=for-the-badge)](https://coverage.readthedocs.io/)
+[![Tests](https://img.shields.io/badge/Tests-160+-orange?style=for-the-badge)](#запуск)
 
 </div>
 
@@ -30,13 +30,46 @@ pytest
 
 ## Покрытие
 
-- `test_invoice_parsing.py` — проверка преобразования ответа Mindee в внутреннюю структуру.
-- `test_engine_utilities.py` — валидация утилит OCR-движка и логирования.
-- `test_storage_dates.py` — конвертация дат, ISO форматы и выборки из БД.
-- `test_imports.py` — быстрый smoke-тест импорта ключевых модулей.
+Проект имеет **80% покрытие кода** с **160+ тестами**, охватывающими все основные модули:
+
+### Основные тестовые файлы
+
+- `test_invoice_parsing.py` — проверка преобразования ответа Mindee в внутреннюю структуру, форматирование и утилиты
+- `test_engine_utilities.py` — валидация утилит OCR-движка и логирования
+- `test_storage_dates.py` — конвертация дат, ISO форматы и выборки из БД
+- `test_imports.py` — быстрый smoke-тест импорта ключевых модулей
 - `test_invoice_service.py` — тесты сервисного слоя с замоканными OCR и хранилищем:
   - `process_invoice_file` — проверка интеграции OCR и конвертации в доменную модель
   - `save_invoice` и `list_invoices` — проверка делегирования в слой хранилища
+
+### Тесты обработчиков
+
+- `handlers/test_callbacks_edit.py` — тесты редактирования счетов через callback-кнопки
+- `handlers/test_callbacks_misc.py` — тесты вспомогательных callback-обработчиков
+- `handlers/test_commands_basic.py` — тесты базовых команд бота
+- `handlers/test_commands_drafts.py` — тесты работы с черновиками
+- `handlers/test_commands_invoices_force_reply.py` — тесты запросов по счетам
+- `handlers/test_file_upload_*.py` — тесты загрузки файлов
+
+### Тесты OCR
+
+- `ocr/test_extract.py` — тесты извлечения данных из документов
+- `ocr/test_async_client.py` — тесты асинхронного OCR-клиента
+- `ocr/test_router.py` — тесты роутера OCR
+
+### Тесты хранилища
+
+- `storage/test_mappers.py` — тесты маппинга между доменом и БД
+- `storage/test_storage_invoices_crud.py` — интеграционные тесты CRUD операций
+- `storage/test_storage_migrations.py` — тесты миграций БД
+
+### Тесты домена
+
+- `domain/test_invoice*.py` — тесты доменных моделей (Invoice, InvoiceHeader, InvoiceItem и др.)
+
+### Интеграционные тесты
+
+- `integration/test_flow_ocr_draft_save.py` — полный flow обработки счета от OCR до сохранения
 
 ## Инструменты качества кода
 
