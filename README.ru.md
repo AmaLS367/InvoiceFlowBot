@@ -6,7 +6,7 @@
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=Автоматическая+обработка+счетов;OCR+%7C+Telegram+бот+%7C+SQLite;Загрузка+%7C+Редактирование+%7C+Сохранение;Mindee+API+%2B+Python+3.11%2B" alt="Typing SVG" />
 </p>
 
-[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/AmaLS367/InvoiceFlowBot/ci.yml?style=for-the-badge&logo=github&label=CI&color=success)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
