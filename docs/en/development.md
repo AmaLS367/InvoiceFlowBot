@@ -1,6 +1,14 @@
-# Development Guide
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Development+Guide&fontSize=40&animation=fadeIn"/>
 
-## Database migrations
+<div align="center">
+
+[![Alembic](https://img.shields.io/badge/Migrations-Alembic-orange?style=for-the-badge)](https://alembic.sqlalchemy.org/)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-blue?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/)
+[![CI/CD](https://img.shields.io/badge/Pipeline-GitHub%20Actions-green?style=for-the-badge&logo=github)](https://github.com/features/actions)
+
+</div>
+
+## 🗄️ Database migrations
 
 The project uses Alembic to manage the SQLite schema.
 

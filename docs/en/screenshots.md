@@ -1,4 +1,17 @@
-# Bot screenshots
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Screenshots&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Visual+Guide;Full+Workflow;From+Start+to+Save" alt="Typing SVG" />
+</p>
+
+![Gallery](https://img.shields.io/badge/Screenshots-4-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Updated-green?style=for-the-badge)
+
+</div>
+
+## 📖 About
 
 This gallery illustrates the full cycle: starting the chat, processing an invoice, editing data, and querying saved results.
 

@@ -1,8 +1,22 @@
-# Architecture
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Architecture&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Clean+Architecture;Layered+Design;Modular+System" alt="Typing SVG" />
+</p>
+
+[![Architecture](https://img.shields.io/badge/Pattern-Clean%20Architecture-blue?style=for-the-badge)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+[![Layers](https://img.shields.io/badge/Layers-6-green?style=for-the-badge)](#layers)
+[![Mermaid](https://img.shields.io/badge/Diagrams-Mermaid-orange?style=for-the-badge)](#overall-component-diagram)
+
+</div>
+
+## 📋 About
 
 This document describes the high level architecture of InvoiceFlowBot.
 
-## Layers
+## 📦 Layers
 
 The project is split into several layers:
 

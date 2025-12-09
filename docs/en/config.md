@@ -1,4 +1,14 @@
-# ⚙️ Configuration
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Configuration&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![dotenv](https://img.shields.io/badge/.env-Configuration-blue?style=for-the-badge)](https://github.com/theskumar/python-dotenv)
+[![pydantic](https://img.shields.io/badge/Pydantic-Settings-green?style=for-the-badge&logo=pydantic)](https://docs.pydantic.dev/)
+[![Variables](https://img.shields.io/badge/Env%20Vars-11-orange?style=for-the-badge)](#required-variables)
+
+</div>
+
+## 📋 About Configuration
 
 All settings live in environment variables. `config.py` loads `.env` with `os.getenv`, so updating the file and restarting the process is enough to apply changes.
 

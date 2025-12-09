@@ -1,4 +1,14 @@
-# 📝 Logging
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Logging&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![Rotating](https://img.shields.io/badge/Handler-Rotating-blue?style=for-the-badge)](https://docs.python.org/3/library/logging.handlers.html)
+[![Files](https://img.shields.io/badge/Log%20Files-4-green?style=for-the-badge)](#log-files)
+[![Levels](https://img.shields.io/badge/Levels-Configurable-orange?style=for-the-badge)](#configuration-knobs)
+
+</div>
+
+## 📋 About Logging
 
 `ocr/engine/util.py` configures rotating log handlers the first time `get_logger` runs. By default logs live in `logs/` next to the source code or inside the directory specified via `LOG_DIR`.
 

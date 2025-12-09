@@ -1,4 +1,18 @@
-# 🔧 Типовые проблемы
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Решение+проблем&fontSize=35&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Типовые+ошибки;Быстрые+решения;Проверка+логов" alt="Typing SVG" />
+</p>
+
+[![Solutions](https://img.shields.io/badge/Solutions-6+-blue?style=for-the-badge)](troubleshooting.md)
+[![Quick Fix](https://img.shields.io/badge/Fix-Fast-green?style=for-the-badge)](#sqlite3operationalerror-unable-to-open-database-file)
+[![Logs](https://img.shields.io/badge/Check-Logs-orange?style=for-the-badge)](#логи-не-пишутся)
+
+</div>
+
+## 📋 О руководстве
 
 > [!TIP]
 > Большинство проблем решаются проверкой переменных окружения и логов в `logs/`

@@ -1,4 +1,14 @@
-# ⚙️ Конфигурация
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Конфигурация&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![dotenv](https://img.shields.io/badge/.env-Configuration-blue?style=for-the-badge)](https://github.com/theskumar/python-dotenv)
+[![pydantic](https://img.shields.io/badge/Pydantic-Settings-green?style=for-the-badge&logo=pydantic)](https://docs.pydantic.dev/)
+[![Variables](https://img.shields.io/badge/Env%20Vars-11-orange?style=for-the-badge)](#обязательные-параметры)
+
+</div>
+
+## 📋 О конфигурации
 
 Все настройки InvoiceFlowBot поступают из переменных окружения. При запуске `config.py` загружает `.env` и считывает значения через `os.getenv`, поэтому достаточно обновить файл и перезапустить процесс или контейнер.
 

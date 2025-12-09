@@ -1,4 +1,14 @@
-# 📝 Логирование
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Логирование&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![Rotating](https://img.shields.io/badge/Handler-Rotating-blue?style=for-the-badge)](https://docs.python.org/3/library/logging.handlers.html)
+[![Files](https://img.shields.io/badge/Log%20Files-4-green?style=for-the-badge)](#файлы-логов)
+[![Levels](https://img.shields.io/badge/Levels-Configurable-orange?style=for-the-badge)](#управление-поведением)
+
+</div>
+
+## 📋 О логировании
 
 Модуль `ocr/engine/util.py` настраивает ротационные логеры при первом запросе к `get_logger`. По умолчанию файлы создаются в каталоге `logs/` в корне проекта или по пути, указанному в `LOG_DIR`.
 

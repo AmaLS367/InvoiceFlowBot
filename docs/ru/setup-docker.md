@@ -1,4 +1,14 @@
-# 🐳 Запуск через Docker
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Docker+Setup&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Container](https://img.shields.io/badge/Container-Ready-green?style=for-the-badge)](https://hub.docker.com/)
+[![Quick Start](https://img.shields.io/badge/Setup-5%20Minutes-orange?style=for-the-badge)](#запуск-контейнера)
+
+</div>
+
+## 📋 О Docker
 
 Docker позволяет развернуть InvoiceFlowBot без локальной установки Python и зависимостей. Контейнер содержит все нужные пакеты, а на хост монтируются только база и логи.
 

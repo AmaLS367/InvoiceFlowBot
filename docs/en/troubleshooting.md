@@ -1,4 +1,18 @@
-# 🔧 Troubleshooting
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Troubleshooting&fontSize=35&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Common+Issues;Quick+Solutions;Check+Logs" alt="Typing SVG" />
+</p>
+
+[![Solutions](https://img.shields.io/badge/Solutions-6+-blue?style=for-the-badge)](troubleshooting.md)
+[![Quick Fix](https://img.shields.io/badge/Fix-Fast-green?style=for-the-badge)](#sqlite3operationalerror-unable-to-open-database-file)
+[![Logs](https://img.shields.io/badge/Check-Logs-orange?style=for-the-badge)](#logs-are-empty)
+
+</div>
+
+## 📋 About This Guide
 
 > [!TIP]
 > Most problems can be solved by checking environment variables and logs in `logs/`

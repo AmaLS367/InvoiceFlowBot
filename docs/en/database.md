@@ -1,4 +1,14 @@
-# 🗄️ Database
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Database&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![SQLite](https://img.shields.io/badge/Database-SQLite-blue?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Alembic](https://img.shields.io/badge/Migrations-Alembic-green?style=for-the-badge)](https://alembic.sqlalchemy.org/)
+[![WAL](https://img.shields.io/badge/Mode-WAL-orange?style=for-the-badge)](#schema)
+
+</div>
+
+## 📋 About Database
 
 InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default data is stored in `data.sqlite` at the project root (or inside the container). Override the path with `INVOICE_DB_PATH` if needed.
 

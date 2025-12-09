@@ -1,4 +1,17 @@
-# Скриншоты работы бота
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Скриншоты&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Визуальное+руководство;От+старта+до+сохранения;Полный+цикл+работы" alt="Typing SVG" />
+</p>
+
+![Gallery](https://img.shields.io/badge/Screenshots-4-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Updated-green?style=for-the-badge)
+
+</div>
+
+## 📖 О скриншотах
 
 Ниже — визуальный пример полного цикла: от старта диалога до запроса сохраненных счетов. Используйте эти кадры как быстрый ориентир по UX.
 

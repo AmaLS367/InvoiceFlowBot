@@ -1,4 +1,18 @@
-# 📖 Использование бота
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Использование&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Команды+бота;Интерактивные+кнопки;Полный+workflow" alt="Typing SVG" />
+</p>
+
+[![Commands](https://img.shields.io/badge/Commands-8+-blue?style=for-the-badge)](#команды)
+[![Buttons](https://img.shields.io/badge/Buttons-Interactive-green?style=for-the-badge)](#интерактивные-кнопки)
+[![Workflow](https://img.shields.io/badge/Flow-Complete-orange?style=for-the-badge)](#работа-с-черновиком)
+
+</div>
+
+## 📋 О боте
 
 > [!TIP]
 > Начните с команды `/start` чтобы увидеть интерактивное меню!

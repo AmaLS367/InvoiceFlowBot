@@ -1,4 +1,14 @@
-# 📖 System Overview
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=System+Overview&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![System](https://img.shields.io/badge/System-Architecture-blue?style=for-the-badge)](architecture.md)
+[![Components](https://img.shields.io/badge/Components-Modular-green?style=for-the-badge)](architecture.md)
+[![Flow](https://img.shields.io/badge/Data-Flow-orange?style=for-the-badge)](#data-flow)
+
+</div>
+
+## 📋 Description
 
 InvoiceFlowBot runs as a Telegram bot that receives documents from users and processes them through an OCR pipeline:
 

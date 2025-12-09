@@ -1,4 +1,14 @@
-# 💻 Local Setup
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Local+Setup&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![venv](https://img.shields.io/badge/Environment-Virtual-green?style=for-the-badge)](https://docs.python.org/3/library/venv.html)
+[![Setup](https://img.shields.io/badge/Guide-Step%20by%20Step-orange?style=for-the-badge)](#steps)
+
+</div>
+
+## 📋 About
 
 > [!NOTE]
 > This guide is for installation without Docker. For quick start, see [Docker setup](setup-docker.md).

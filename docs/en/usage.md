@@ -1,4 +1,18 @@
-# 📖 Usage
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=Usage+Guide&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=1000&center=true&vCenter=true&width=500&lines=Bot+Commands;Interactive+Buttons;Complete+Workflow" alt="Typing SVG" />
+</p>
+
+[![Commands](https://img.shields.io/badge/Commands-8+-blue?style=for-the-badge)](#commands)
+[![Buttons](https://img.shields.io/badge/Buttons-Interactive-green?style=for-the-badge)](#inline-buttons)
+[![Workflow](https://img.shields.io/badge/Flow-Complete-orange?style=for-the-badge)](#draft-lifecycle)
+
+</div>
+
+## 📋 About Usage
 
 > [!TIP]
 > Start with `/start` command to see the interactive menu!

@@ -1,4 +1,14 @@
-# 🧪 Tests
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=120&section=header&text=Testing&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![pytest](https://img.shields.io/badge/Framework-pytest-blue?style=for-the-badge&logo=pytest)](https://pytest.org/)
+[![Coverage](https://img.shields.io/badge/Coverage-50%25+-green?style=for-the-badge)](https://coverage.readthedocs.io/)
+[![Tests](https://img.shields.io/badge/Tests-78-orange?style=for-the-badge)](#how-to-run)
+
+</div>
+
+## 📋 About Testing
 
 InvoiceFlowBot uses pytest, with development dependencies defined in `pyproject.toml` under the `[project.optional-dependencies]` section.
 

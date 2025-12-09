@@ -1,4 +1,14 @@
-# 🗄️ База данных
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=База+данных&fontSize=40&animation=fadeIn"/>
+
+<div align="center">
+
+[![SQLite](https://img.shields.io/badge/Database-SQLite-blue?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Alembic](https://img.shields.io/badge/Migrations-Alembic-green?style=for-the-badge)](https://alembic.sqlalchemy.org/)
+[![WAL](https://img.shields.io/badge/Mode-WAL-orange?style=for-the-badge)](#структура)
+
+</div>
+
+## 📋 О базе данных
 
 InvoiceFlowBot использует SQLite — легковесную файловую базу, не требующую отдельного сервера. По умолчанию данные сохраняются в `data.sqlite` в корне проекта (или внутри контейнера, если путь не смонтирован). Путь можно изменить переменной `INVOICE_DB_PATH`.
 
