@@ -31,8 +31,7 @@ def generate_context():
                 if ext in INCLUDE_EXT or file == "Dockerfile":
                     path = os.path.join(root, file)
 
-                    # Пишем заголовок файла
-                    outfile.write(f"\n{'='*20}\nFILE: {path}\n{'='*20}\n")
+                    outfile.write(f"\n{'=' * 20}\nFILE: {path}\n{'=' * 20}\n")
 
                     try:
                         with open(path, "r", encoding="utf-8") as infile:

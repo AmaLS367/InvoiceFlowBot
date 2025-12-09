@@ -1,64 +1,39 @@
 from __future__ import annotations
 
-import json
+import asyncio
 from pathlib import Path
 from typing import Any, Dict
 
-import httpx
-
-import config
 from ocr.engine.types import ExtractionResult
 from ocr.engine.util import get_logger
-from ocr.mindee_client import build_extraction_result, mindee_struct_to_data
+from ocr.mindee_client import (
+    build_extraction_result,
+    mindee_predict,
+    mindee_predict_sdk,
+    mindee_struct_to_data,
+)
 
 logger = get_logger("ocr.async_client")
 
 
 async def _mindee_predict_async(pdf_path: str) -> Dict[str, Any]:
-    api_key = config.MINDEE_API_KEY
-    if not api_key:
-        logger.warning("[Mindee HTTP async] no API key in config")
-        return {}
-
-    url = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
     pdf_file = Path(pdf_path)
-
     if not pdf_file.exists():
         raise FileNotFoundError(str(pdf_file))
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        with pdf_file.open("rb") as f:
-            response = await client.post(
-                url,
-                headers={"Authorization": f"Token {api_key}"},
-                files={"document": ("document", f, "application/pdf")},
-            )
-
-    if response.status_code != 200:
-        logger.warning(
-            "[Mindee HTTP async] non-200 response status=%s body=%s",
-            response.status_code,
-            response.text[:500],
-        )
-        return {}
-
+    # Use the official SDK (same as sync path) to avoid URL/version mismatches.
     try:
-        payload = response.json()
-    except json.JSONDecodeError:
-        logger.warning(
-            "[Mindee HTTP async] failed to decode JSON response body=%s",
-            response.text[:500],
-        )
-        return {}
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
 
-    if not isinstance(payload, dict):
-        logger.warning(
-            "[Mindee HTTP async] unexpected payload type=%s",
-            type(payload),
-        )
-        return {}
+    def _do_predict() -> Dict[str, Any]:
+        resp = mindee_predict_sdk(str(pdf_file)) or mindee_predict(str(pdf_file))
+        return resp or {}
 
-    return payload
+    if loop:
+        return await loop.run_in_executor(None, _do_predict)
+    return _do_predict()
 
 
 async def extract_invoice_async(
