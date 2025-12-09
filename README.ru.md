@@ -45,7 +45,7 @@ graph LR
     C -->|Извлекает данные| D[✏️ Черновик]
     D -->|Редактирование| E[💾 SQLite]
     E -->|Запросы| F[📊 Отчёты]
-    
+
     style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
     style B fill:#50C878,stroke:#2c3e50,stroke-width:2px,color:#fff
     style C fill:#FF6B6B,stroke:#2c3e50,stroke-width:2px,color:#fff

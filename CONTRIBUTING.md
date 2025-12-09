@@ -64,7 +64,7 @@ graph LR
     B -->|Pass| C[🏷️ MyPy Types]
     C -->|Pass| D[🧪 Pytest]
     D -->|Pass| E[✅ Commit]
-    
+
     style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
     style B fill:#FFD93D,stroke:#2c3e50,stroke-width:2px,color:#333
     style C fill:#FF6B6B,stroke:#2c3e50,stroke-width:2px,color:#fff
@@ -161,7 +161,7 @@ graph TD
     B -->|uses| E[storage]
     F[core] -->|configures| A
     F -->|configures| B
-    
+
     style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
     style B fill:#50C878,stroke:#2c3e50,stroke-width:2px,color:#fff
     style C fill:#FFD93D,stroke:#2c3e50,stroke-width:2px,color:#333

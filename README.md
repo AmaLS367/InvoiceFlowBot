@@ -39,7 +39,7 @@ graph LR
     B -->|Parse Data| C[✏️ Edit Draft]
     C -->|Confirm| D[💾 SQLite]
     D -->|Query| E[📊 Reports]
-    
+
     style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
     style B fill:#FF6B6B,stroke:#2c3e50,stroke-width:2px,color:#fff
     style C fill:#FFD93D,stroke:#2c3e50,stroke-width:2px,color:#333
