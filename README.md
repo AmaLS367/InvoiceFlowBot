@@ -1,47 +1,63 @@
-# 📄 InvoiceFlowBot
-
-[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-
-> 🇷🇺 For Russian documentation see [README.ru.md](README.ru.md) and [docs/ru/index.md](docs/ru/index.md).
-
-A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
-
-## 🎬 Demo
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=200&section=header&text=InvoiceFlowBot&fontSize=60&animation=fadeIn&fontAlignY=35&desc=Automated%20Invoice%20Processing%20with%20OCR&descAlignY=55&descSize=20"/>
 
 <div align="center">
 
-### 📤 Upload & Process
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=Automated+Invoice+Processing;OCR+%7C+Telegram+Bot+%7C+SQLite;Extract+%7C+Edit+%7C+Save+%7C+Query;Mindee+API+%2B+Python+3.11%2B" alt="Typing SVG" />
+</p>
 
-![Upload Demo](https://via.placeholder.com/600x400/4A90E2/FFFFFF?text=Upload+Invoice+Demo)
+[![CI](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml/badge.svg)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
+[![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?style=for-the-badge&logo=telegram)](https://telegram.org/)
 
-*Upload an invoice and watch the bot extract all data automatically*
+<p align="center">
+  <img src="https://img.shields.io/badge/OCR-Mindee-4A90E2?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMiA3TDEyIDEyTDIyIDdMMTIgMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yIDEzTDEyIDE4TDIyIDEzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+" alt="OCR" />
+  <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Framework-Aiogram_3-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Aiogram" />
+</p>
 
-### ✏️ Edit & Save
+---
 
-![Edit Demo](https://via.placeholder.com/600x400/50C878/FFFFFF?text=Edit+Invoice+Demo)
-
-*Review and edit extracted data with inline buttons*
-
-### 📊 Query & Export
-
-![Query Demo](https://via.placeholder.com/600x400/FF6B6B/FFFFFF?text=Query+Invoices+Demo)
-
-*Query invoices by date range and export to CSV*
+> 🇷🇺 **Русская документация:** [README.ru.md](README.ru.md) • [docs/ru/index.md](docs/ru/index.md)
 
 </div>
 
+<br/>
+
+A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
+
+
 ## ✨ Features
 
-- 🤖 **OCR Processing**: Automatic extraction of invoice data using Mindee API. The OCR layer is built on a provider abstraction, allowing for easy integration of additional OCR providers in the future.
-- 📎 **Multiple Format Support**: Handles PDF files and images (JPEG, PNG, HEIC, HEIF, WebP)
-- ✏️ **Interactive Editing**: Edit invoice header fields and line items via Telegram interface
-- 💾 **Data Storage**: Save processed invoices to SQLite database
-- 📅 **Period Queries**: Query invoices by date range and supplier
-- 💬 **Comment System**: Add comments to invoices
-- 📊 **CSV Export**: Export invoice items as CSV for large invoices
+<div align="center">
+
+```mermaid
+graph LR
+    A[📱 Upload] -->|PDF/Image| B[🔍 OCR Extract]
+    B -->|Parse Data| C[✏️ Edit Draft]
+    C -->|Confirm| D[💾 SQLite]
+    D -->|Query| E[📊 Reports]
+    
+    style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
+    style B fill:#FF6B6B,stroke:#2c3e50,stroke-width:2px,color:#fff
+    style C fill:#FFD93D,stroke:#2c3e50,stroke-width:2px,color:#333
+    style D fill:#50C878,stroke:#2c3e50,stroke-width:2px,color:#fff
+    style E fill:#B19CD9,stroke:#2c3e50,stroke-width:2px,color:#fff
+```
+
+</div>
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| 🤖 **OCR Processing** | Automatic extraction via Mindee API with provider abstraction | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 📎 **Multiple Formats** | PDF, JPEG, PNG, HEIC, HEIF, WebP | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| ✏️ **Interactive Editing** | Edit headers and line items via Telegram | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 💾 **Data Storage** | SQLite with Alembic migrations | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 📅 **Period Queries** | Filter by date range and supplier | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 💬 **Comment System** | Add notes to invoices | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 📊 **CSV Export** | Export line items for analysis | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
 
 ## 📋 Requirements
 
@@ -208,6 +224,20 @@ The bot provides inline keyboard buttons for:
 - ❓ View help
 
 </details>
+
+<div align="center">
+
+## 📊 Project Stats
+
+<p align="center">
+  <img src="https://img.shields.io/github/languages/top/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=blue" alt="Top Language"/>
+  <img src="https://img.shields.io/github/languages/code-size/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=green" alt="Code Size"/>
+  <img src="https://img.shields.io/github/last-commit/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=orange" alt="Last Commit"/>
+</p>
+
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=AmaLS367&repo=InvoiceFlowBot&theme=react-dark&hide_border=true&area=true" width="100%"/>
+
+</div>
 
 ## 📁 Project Structure
 
@@ -378,3 +408,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 💬 Support
 
 For issues and questions, please open an issue on the repository.
+
+---
+
+<div align="center">
+
+### 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AmaLS367/InvoiceFlowBot&type=Date)](https://star-history.com/#AmaLS367/InvoiceFlowBot&Date)
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
+
+**Made with ❤️ by [Ama](https://github.com/AmaLS367)**
+
+</div>
