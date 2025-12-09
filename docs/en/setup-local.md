@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.8 or newer
+- Python 3.11 or newer
 - Git installed
 - Telegram bot token and Mindee API credentials
 
