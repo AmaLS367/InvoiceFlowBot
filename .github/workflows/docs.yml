@@ -27,7 +27,7 @@ jobs:
       - name: Check broken links
         uses: lycheeverse/lychee-action@v1
         with:
-          args: '--accept 200,403,429 --exclude-mail --exclude-private --exclude-localhost --exclude-file .lycheeignore **/*.md'
+          args: '--accept 200,403,429 --exclude-mail --exclude-private --exclude-loopback --exclude-file .lycheeignore **/*.md'
           fail: true
 
       - name: Validate markdown
