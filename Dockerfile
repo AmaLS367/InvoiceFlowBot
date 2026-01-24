@@ -15,15 +15,15 @@ COPY README.md ./
 
 RUN python -m pip install --upgrade pip
 
-COPY core/ ./core/
-COPY domain/ ./domain/
-COPY services/ ./services/
-COPY ocr/ ./ocr/
-COPY storage/ ./storage/
-COPY handlers/ ./handlers/
-COPY alembic/ ./alembic/
-COPY alembic.ini ./
-COPY config.py ./
+COPY backend/core/ ./backend/core/
+COPY backend/domain/ ./backend/domain/
+COPY backend/services/ ./backend/services/
+COPY backend/ocr/ ./backend/ocr/
+COPY backend/storage/ ./backend/storage/
+COPY backend/handlers/ ./backend/handlers/
+COPY backend/alembic/ ./backend/alembic/
+COPY backend/alembic.ini ./backend/
+COPY backend/config.py ./backend/
 COPY bot.py ./
 
 RUN python -m pip install --no-cache-dir -e .
@@ -58,6 +58,6 @@ USER botuser
 ENV DB_FILENAME=data.sqlite
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python healthcheck.py || exit 1
+    CMD python backend/healthcheck.py || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
