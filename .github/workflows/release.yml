@@ -46,3 +46,26 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          # Check if tag matches pattern vX.0.0 (major release)
+          if [[ "$TAG" =~ ^v[0-9]+\.0\.0$ ]]; then
+            echo "is_major=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_major=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.is_major == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.tag }}
+          draft: false
+          prerelease: false
