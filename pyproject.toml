@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "invoiceflowbot"
-version = "0.3.0"
+version = "0.4.0"
 description = "Telegram bot for processing invoices via OCR and storing them in SQLite"
 requires-python = ">=3.11"
 readme = "README.md"
