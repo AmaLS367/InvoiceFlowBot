@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.container import AppContainer
-from handlers.file import handle_invoice_document, handle_invoice_photo
+from backend.core.container import AppContainer
+from backend.handlers.file import handle_invoice_document, handle_invoice_photo
 from tests.fakes.fake_services_drafts import FakeDraftService
 from tests.fakes.fake_telegram import FakeDocument, FakeMessage, FakePhotoSize
 

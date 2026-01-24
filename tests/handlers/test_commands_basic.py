@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from core.container import AppContainer
-from handlers.commands_common import cmd_help, cmd_start
-from handlers.commands_invoices import cmd_invoices
+from backend.core.container import AppContainer
+from backend.handlers.commands_common import cmd_help, cmd_start
+from backend.handlers.commands_invoices import cmd_invoices
 from tests.fakes.fake_services import FakeInvoiceService
 from tests.fakes.fake_telegram import FakeMessage
 
@@ -124,7 +124,7 @@ async def test_cmd_invoices_with_results(
     from datetime import date
     from decimal import Decimal
 
-    from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+            from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
 
     invoice = Invoice(
         header=InvoiceHeader(

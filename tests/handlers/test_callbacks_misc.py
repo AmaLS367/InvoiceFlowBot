@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 from aiogram import Router
 
-from handlers.callback_registry import CallbackAction
-from handlers.callbacks_misc import setup
-from handlers.fsm import InvoicesPeriodState
+from backend.handlers.callback_registry import CallbackAction
+from backend.handlers.callbacks_misc import setup
+from backend.handlers.fsm import InvoicesPeriodState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_telegram import FakeCallbackQuery, FakeMessage
 
@@ -22,7 +22,7 @@ def misc_router() -> Router:
 async def test_cb_act_period(misc_router: Router) -> None:
     """Test period action callback."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_misc  # noqa: F401
+    import backend.handlers.callbacks_misc  # noqa: F401
 
     message = FakeMessage()
     call = FakeCallbackQuery(data=CallbackAction.PERIOD.value, user_id=123, message=message)
@@ -55,7 +55,7 @@ async def test_cb_act_period(misc_router: Router) -> None:
 async def test_cb_act_upload(misc_router: Router) -> None:
     """Test upload action callback."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_misc  # noqa: F401
+    import backend.handlers.callbacks_misc  # noqa: F401
 
     message = FakeMessage()
     call = FakeCallbackQuery(data=CallbackAction.UPLOAD.value, user_id=123, message=message)
@@ -82,7 +82,7 @@ async def test_cb_act_upload(misc_router: Router) -> None:
 async def test_cb_act_help(misc_router: Router) -> None:
     """Test help action callback."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_misc  # noqa: F401
+    import backend.handlers.callbacks_misc  # noqa: F401
 
     message = FakeMessage()
     call = FakeCallbackQuery(data=CallbackAction.HELP.value, user_id=123, message=message)
@@ -94,7 +94,7 @@ async def test_cb_act_help(misc_router: Router) -> None:
         )
     except Exception:
         # Fallback: test logic directly if router approach fails
-        from handlers.utils import main_kb
+            from backend.handlers.utils import main_kb
 
         if call.message is not None:
             await call.message.answer(

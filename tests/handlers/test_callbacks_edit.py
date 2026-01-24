@@ -7,16 +7,16 @@ from unittest.mock import patch
 import pytest
 from aiogram import Router
 
-from core.container import AppContainer
-from domain.drafts import InvoiceDraft
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
-from handlers.callback_registry import (
+from backend.core.container import AppContainer
+from backend.domain.drafts import InvoiceDraft
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+from backend.handlers.callback_registry import (
     HEADER_PREFIX,
     ITEM_PICK_PREFIX,
     CallbackAction,
 )
-from handlers.callbacks_edit import setup
-from handlers.fsm import EditInvoiceState
+from backend.handlers.callbacks_edit import setup
+from backend.handlers.fsm import EditInvoiceState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services import FakeInvoiceService
 from tests.fakes.fake_services_drafts import FakeDraftService

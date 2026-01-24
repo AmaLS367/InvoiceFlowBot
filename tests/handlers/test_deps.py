@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from core.container import AppContainer
-from handlers.deps import get_container, get_draft_service, get_invoice_service
-from services.draft_service import DraftService
-from services.invoice_service import InvoiceService
+from backend.core.container import AppContainer
+from backend.handlers.deps import get_container, get_draft_service, get_invoice_service
+from backend.services.draft_service import DraftService
+from backend.services.invoice_service import InvoiceService
 
 
 def test_get_invoice_service():
     """Test get_invoice_service function."""
-    from config import Settings
+        from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -35,7 +35,7 @@ def test_get_invoice_service():
 
 def test_get_draft_service():
     """Test get_draft_service function."""
-    from config import Settings
+        from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -62,7 +62,7 @@ def test_get_draft_service():
 
 def test_get_container():
     """Test get_container function."""
-    from config import Settings
+        from backend.config import Settings
 
     container = AppContainer(config=Settings())  # type: ignore[call-arg]
     data = {"container": container}

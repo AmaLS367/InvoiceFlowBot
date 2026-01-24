@@ -7,9 +7,9 @@ from unittest.mock import patch
 import pytest
 from aiogram import Router
 
-from core.container import AppContainer
-from handlers.commands_invoices import _parse_date_str, setup
-from handlers.fsm import InvoicesPeriodState
+from backend.core.container import AppContainer
+from backend.handlers.commands_invoices import _parse_date_str, setup
+from backend.handlers.fsm import InvoicesPeriodState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services import FakeInvoiceService
 from tests.fakes.fake_telegram import FakeMessage

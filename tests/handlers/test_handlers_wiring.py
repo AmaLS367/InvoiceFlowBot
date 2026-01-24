@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from handlers import callbacks, commands
+from backend.handlers import callbacks, commands
 
 
 def test_commands_router_is_defined() -> None:

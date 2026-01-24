@@ -7,11 +7,11 @@ from unittest.mock import patch
 import pytest
 from aiogram import Router
 
-from core.container import AppContainer
-from domain.drafts import InvoiceDraft
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
-from handlers.commands_drafts import _parse_date_str, setup
-from handlers.fsm import EditInvoiceState
+from backend.core.container import AppContainer
+from backend.domain.drafts import InvoiceDraft
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+from backend.handlers.commands_drafts import _parse_date_str, setup
+from backend.handlers.fsm import EditInvoiceState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services_drafts import FakeDraftService
 from tests.fakes.fake_telegram import FakeMessage
