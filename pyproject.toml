@@ -39,22 +39,23 @@ invoiceflowbot = "bot:main"
 
 [tool.setuptools]
 packages = [
-    "core",
-    "domain",
-    "services",
-    "ocr",
-    "storage",
-    "handlers",
+    "backend",
+    "backend.core",
+    "backend.domain",
+    "backend.services",
+    "backend.ocr",
+    "backend.storage",
+    "backend.handlers",
 ]
 
-py-modules = ["config", "bot"]
+py-modules = ["backend.config", "bot"]
 
 [tool.pytest.ini_options]
 markers = [
     "storage_db: integration tests for storage with real SQLite and Alembic migrations",
 ]
 addopts = [
-    "--cov=.",
+    "--cov=backend",
     "--cov-config=.coveragerc",
     "--cov-report=term-missing",
     "--cov-fail-under=80",
@@ -88,23 +89,23 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = "handlers.*"
+module = "backend.handlers.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
-module = "ocr.*"
+module = "backend.ocr.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
-module = "services.*"
+module = "backend.services.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
-module = "storage.*"
+module = "backend.storage.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
-module = "domain.*"
+module = "backend.domain.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
