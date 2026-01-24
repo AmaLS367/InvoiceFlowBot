@@ -44,28 +44,28 @@ pytest
 
 ### Тесты обработчиков
 
-- `handlers/test_callbacks_edit.py` — тесты редактирования счетов через callback-кнопки
-- `handlers/test_callbacks_misc.py` — тесты вспомогательных callback-обработчиков
-- `handlers/test_commands_basic.py` — тесты базовых команд бота
-- `handlers/test_commands_drafts.py` — тесты работы с черновиками
-- `handlers/test_commands_invoices_force_reply.py` — тесты запросов по счетам
-- `handlers/test_file_upload_*.py` — тесты загрузки файлов
+- `tests/handlers/test_callbacks_edit.py` — тесты редактирования счетов через callback-кнопки
+- `tests/handlers/test_callbacks_misc.py` — тесты вспомогательных callback-обработчиков
+- `tests/handlers/test_commands_basic.py` — тесты базовых команд бота
+- `tests/handlers/test_commands_drafts.py` — тесты работы с черновиками
+- `tests/handlers/test_commands_invoices_force_reply.py` — тесты запросов по счетам
+- `tests/handlers/test_file_upload_*.py` — тесты загрузки файлов
 
 ### Тесты OCR
 
-- `ocr/test_extract.py` — тесты извлечения данных из документов
-- `ocr/test_async_client.py` — тесты асинхронного OCR-клиента
-- `ocr/test_router.py` — тесты роутера OCR
+- `tests/ocr/test_extract.py` — тесты извлечения данных из документов
+- `tests/ocr/test_async_client.py` — тесты асинхронного OCR-клиента
+- `tests/ocr/test_router.py` — тесты роутера OCR
 
 ### Тесты хранилища
 
-- `storage/test_mappers.py` — тесты маппинга между доменом и БД
-- `storage/test_storage_invoices_crud.py` — интеграционные тесты CRUD операций
-- `storage/test_storage_migrations.py` — тесты миграций БД
+- `tests/storage/test_mappers.py` — тесты маппинга между доменом и БД
+- `tests/storage/test_storage_invoices_crud.py` — интеграционные тесты CRUD операций
+- `tests/storage/test_storage_migrations.py` — тесты миграций БД
 
 ### Тесты домена
 
-- `domain/test_invoice*.py` — тесты доменных моделей (Invoice, InvoiceHeader, InvoiceItem и др.)
+- `tests/domain/test_invoice*.py` — тесты доменных моделей (Invoice, InvoiceHeader, InvoiceItem и др.)
 
 ### Интеграционные тесты
 

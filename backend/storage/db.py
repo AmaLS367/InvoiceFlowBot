@@ -28,7 +28,7 @@ DB_PATH: str = config.DB_PATH
 def _get_alembic_config() -> Config:
     """
     Build an Alembic Config instance pointing to the alembic.ini file
-    located in the project root directory.
+    located in the backend directory.
     """
     base_dir = Path(__file__).resolve().parent.parent
     alembic_ini = base_dir / "alembic.ini"

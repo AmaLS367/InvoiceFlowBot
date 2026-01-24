@@ -44,28 +44,28 @@ The project has **80% code coverage** with **160+ tests**, covering all major mo
 
 ### Handler tests
 
-- `handlers/test_callbacks_edit.py` — tests for invoice editing via callback buttons
-- `handlers/test_callbacks_misc.py` — tests for miscellaneous callback handlers
-- `handlers/test_commands_basic.py` — tests for basic bot commands
-- `handlers/test_commands_drafts.py` — tests for draft management
-- `handlers/test_commands_invoices_force_reply.py` — tests for invoice queries
-- `handlers/test_file_upload_*.py` — tests for file uploads
+- `tests/handlers/test_callbacks_edit.py` — tests for invoice editing via callback buttons
+- `tests/handlers/test_callbacks_misc.py` — tests for miscellaneous callback handlers
+- `tests/handlers/test_commands_basic.py` — tests for basic bot commands
+- `tests/handlers/test_commands_drafts.py` — tests for draft management
+- `tests/handlers/test_commands_invoices_force_reply.py` — tests for invoice queries
+- `tests/handlers/test_file_upload_*.py` — tests for file uploads
 
 ### OCR tests
 
-- `ocr/test_extract.py` — tests for data extraction from documents
-- `ocr/test_async_client.py` — tests for async OCR client
-- `ocr/test_router.py` — tests for OCR router
+- `tests/ocr/test_extract.py` — tests for data extraction from documents
+- `tests/ocr/test_async_client.py` — tests for async OCR client
+- `tests/ocr/test_router.py` — tests for OCR router
 
 ### Storage tests
 
-- `storage/test_mappers.py` — tests for domain-to-DB mapping
-- `storage/test_storage_invoices_crud.py` — integration tests for CRUD operations
-- `storage/test_storage_migrations.py` — tests for database migrations
+- `tests/storage/test_mappers.py` — tests for domain-to-DB mapping
+- `tests/storage/test_storage_invoices_crud.py` — integration tests for CRUD operations
+- `tests/storage/test_storage_migrations.py` — tests for database migrations
 
 ### Domain tests
 
-- `domain/test_invoice*.py` — tests for domain models (Invoice, InvoiceHeader, InvoiceItem, etc.)
+- `tests/domain/test_invoice*.py` — tests for domain models (Invoice, InvoiceHeader, InvoiceItem, etc.)
 
 ### Integration tests
 
