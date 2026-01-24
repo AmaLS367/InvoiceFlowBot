@@ -11,11 +11,11 @@ from typing import Any, Dict, List, Optional  # noqa: E402
 
 import pytest  # noqa: E402
 
-from config import Settings  # noqa: E402
-from core.container import AppContainer  # noqa: E402
-from domain.invoices import Invoice  # noqa: E402
-from handlers.di_middleware import ContainerMiddleware  # noqa: E402
-from storage.db_async import AsyncInvoiceStorage  # noqa: E402
+from backend.config import Settings  # noqa: E402
+from backend.core.container import AppContainer  # noqa: E402
+from backend.domain.invoices import Invoice  # noqa: E402
+from backend.handlers.di_middleware import ContainerMiddleware  # noqa: E402
+from backend.storage.db_async import AsyncInvoiceStorage  # noqa: E402
 from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor  # noqa: E402
 from tests.fakes.fake_services import FakeInvoiceService  # noqa: E402
 from tests.fakes.fake_services_drafts import FakeDraftService  # noqa: E402
