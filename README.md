@@ -170,6 +170,51 @@ You can also run a specific test file:
 python -m pytest tests/test_invoice_service.py
 ```
 
+## 🛠️ Scripts
+
+The project includes utility scripts organized by platform in the `scripts/` directory for common development tasks.
+
+<details>
+<summary><b>📜 Available Scripts</b></summary>
+
+### Python Scripts (`scripts/python/`)
+
+| Script | Description |
+|--------|-------------|
+| `setup.py` | Install dependencies and create `.env` file |
+| `migrate.py` | Run database migrations |
+| `run.py` | Apply migrations and start the bot |
+| `test.py` | Run tests with coverage |
+| `lint.py` | Run code linting (ruff + mypy) |
+| `format.py` | Format code with ruff |
+
+### Platform Wrappers
+
+**Linux/macOS** (`scripts/linux/`):
+```bash
+./scripts/linux/setup.sh
+./scripts/linux/migrate.sh
+./scripts/linux/run.sh
+./scripts/linux/test.sh
+./scripts/linux/lint.sh
+./scripts/linux/format.sh
+```
+
+**Windows** (`scripts/windows/`):
+```powershell
+.\scripts\windows\setup.ps1
+.\scripts\windows\migrate.ps1
+.\scripts\windows\run.ps1
+.\scripts\windows\test.ps1
+.\scripts\windows\lint.ps1
+.\scripts\windows\format.ps1
+```
+
+> [!TIP]
+> See [Scripts Guide](docs/en/scripts.md) for detailed documentation on all available scripts.
+
+</details>
+
 ## 📖 Usage
 
 > [!TIP]
@@ -244,6 +289,10 @@ The bot provides inline keyboard buttons for:
 ```
 InvoiceFlowBot/
 ├── bot.py                 # Main bot entry point
+├── scripts/                # Utility scripts
+│   ├── python/             # Core Python scripts
+│   ├── linux/              # Linux shell wrappers
+│   └── windows/            # Windows PowerShell wrappers
 ├── backend/
 │   ├── config.py          # Configuration management
 │   ├── domain/
