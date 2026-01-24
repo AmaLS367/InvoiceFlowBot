@@ -5,7 +5,7 @@ Unit tests for Invoice domain entity.
 from datetime import date
 from decimal import Decimal
 
-from domain.invoices import (
+from backend.domain.invoices import (
     Invoice,
     InvoiceComment,
     InvoiceHeader,

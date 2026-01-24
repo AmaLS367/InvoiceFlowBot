@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from domain.invoices import InvoiceHeader
+from backend.domain.invoices import InvoiceHeader
 
 
 def test_invoice_header_basic_creation() -> None:

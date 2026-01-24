@@ -1,4 +1,4 @@
-from domain.invoices import InvoiceSourceInfo
+from backend.domain.invoices import InvoiceSourceInfo
 
 
 def test_invoice_source_info_basic_creation() -> None:

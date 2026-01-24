@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from domain.invoices import InvoiceComment
+from backend.domain.invoices import InvoiceComment
 
 
 def test_invoice_comment_basic_creation() -> None:

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from domain.invoices import InvoiceItem
+from backend.domain.invoices import InvoiceItem
 
 
 def test_invoice_item_basic_creation() -> None:
