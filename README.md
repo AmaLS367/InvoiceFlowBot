@@ -130,7 +130,7 @@ LOG_DIR=logs
 
 ### ⚙️ Configuration
 
-The bot is configured via environment variables managed by pydantic settings in `config.py`.
+The bot is configured via environment variables managed by pydantic settings in `backend.config`.
 
 For local development you can create a `.env` file in the project root:
 

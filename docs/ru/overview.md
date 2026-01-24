@@ -122,7 +122,7 @@ graph TD
 | 🧪 **tests/** | Тестирование | Unit & integration |
 
 <details>
-<summary><b>📦 Подробная структура handlers/</b></summary>
+<summary><b>📦 Подробная структура backend.handlers/</b></summary>
 
 - `file.py` — загрузка файлов и начальная обработка OCR
 - `commands.py` — текстовые команды (/show, /edit, /invoices)
