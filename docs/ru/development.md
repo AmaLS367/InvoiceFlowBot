@@ -19,11 +19,11 @@
 
 ### Как поднимается схема
 
-Во время запуска схема БД создается или обновляется через вызов `storage.db.init_db()`.
+Во время запуска схема БД создается или обновляется через вызов `backend.storage.db.init_db()`.
 Эта функция внутри выполняет команду:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
 Любая точка входа, которая использует базу данных, должна один раз вызвать `init_db()` перед работой со стореджем.
@@ -33,10 +33,10 @@ python -m alembic upgrade head
 Чтобы локальная база была в актуальном состоянии, достаточно выполнить:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Миграции применятся к файлу базы, путь к которому задан в `storage.db.DB_PATH`.
+Миграции применятся к файлу базы, путь к которому задан в `backend.storage.db.DB_PATH`.
 
 ### Добавление новой миграции
 
@@ -52,12 +52,12 @@ python -m alembic upgrade head
    python -m alembic revision -m "описание_изменения"
    ```
 
-3. Открыть файл из `alembic/versions/` и вручную описать SQL в функциях `upgrade` и `downgrade` под SQLite.
+3. Открыть файл из `backend/alembic/versions/` и вручную описать SQL в функциях `upgrade` и `downgrade` под SQLite.
 
 4. Применить миграцию:
 
    ```powershell
-   python -m alembic upgrade head
+   python -m alembic -c backend/alembic.ini upgrade head
    ```
 
 Для SQLite автоматическая генерация схемы ограничена, поэтому миграции описываются вручную.
@@ -66,9 +66,9 @@ python -m alembic upgrade head
 
 Тесты, которые используют базу данных, работают с теми же миграциями:
 
-* В тесте можно подменить `storage.db.DB_PATH` на временный файл.
+* В тесте можно подменить `backend.storage.db.DB_PATH` на временный файл.
 
-* Вызов `storage.db.init_db()` применит все миграции к этой временной базе.
+* Вызов `backend.storage.db.init_db()` применит все миграции к этой временной базе.
 
 Так тестовая схема всегда совпадает с боевой.
 
@@ -79,7 +79,7 @@ python -m alembic upgrade head
 Типичный паттерн — запускать:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 python bot.py
 ```
 
@@ -98,13 +98,13 @@ python bot.py
 2. Применение миграций Alembic:
 
    ```powershell
-   python -m alembic upgrade head
+   python -m alembic -c backend/alembic.ini upgrade head
    ```
 
 3. Запуск статических проверок и тестов:
 
    ```powershell
    python -m ruff check .
-   python -m mypy domain services ocr storage
+   python -m mypy backend/
    python -m pytest
    ```

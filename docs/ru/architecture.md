@@ -23,17 +23,17 @@
 
 Проект разделен на несколько слоев:
 
-- **domain** - чистая доменная модель счетов и черновиков.
+- **backend.domain** - чистая доменная модель счетов и черновиков.
 
-- **services** - бизнес логика, которая связывает домен, OCR и хранилище.
+- **backend.services** - бизнес логика, которая связывает домен, OCR и хранилище.
 
-- **ocr** - движок OCR и провайдеры (Mindee), отвечают за преобразование файлов в структурированные данные.
+- **backend.ocr** - движок OCR и провайдеры (Mindee), отвечают за преобразование файлов в структурированные данные.
 
-- **storage** - асинхронный слой поверх SQLite с миграциями Alembic.
+- **backend.storage** - асинхронный слой поверх SQLite с миграциями Alembic.
 
-- **handlers** - входной слой Telegram на базе aiogram 3.
+- **backend.handlers** - входной слой Telegram на базе aiogram 3.
 
-- **core** - конфигурация и контейнер зависимостей.
+- **backend.core** - конфигурация и контейнер зависимостей.
 
 ## Общая схема компонентов
 
@@ -42,12 +42,12 @@ flowchart LR
     TgUser[Пользователь Telegram] -->|файлы, команды| Handlers
 
     subgraph Bot
-        Handlers[handlers/*]
-        Services[services/*]
-        Domain[domain/*]
-        OCR[ocr/*]
-        Storage[storage/*]
-        Config[config.py / core/*]
+        Handlers[backend.handlers/*]
+        Services[backend.services/*]
+        Domain[backend.domain/*]
+        OCR[backend.ocr/*]
+        Storage[backend.storage/*]
+        Config[backend.config.py / backend.core/*]
     end
 
     Handlers --> Services
@@ -67,7 +67,7 @@ flowchart LR
 sequenceDiagram
     participant User as Пользователь
     participant TG as Telegram Bot API
-    participant H as handlers/file.py
+    participant H as backend.handlers.file
     participant S as InvoiceService
     participant O as OcrProvider (Mindee)
     participant ST as AsyncInvoiceStorage
