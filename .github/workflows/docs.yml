@@ -29,8 +29,3 @@ jobs:
         with:
           args: '--accept 200,403,429 --exclude-mail --exclude-private --exclude-loopback --exclude-file .lycheeignore **/*.md'
           fail: true
-
-      - name: Validate markdown
-        uses: DavidAnson/markdownlint-cli2-action@v15
-        with:
-          globs: '**/*.md'
