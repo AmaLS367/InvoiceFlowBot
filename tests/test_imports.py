@@ -4,11 +4,11 @@ import importlib
 def test_core_modules_importable() -> None:
     modules = (
         "bot",
-        "config",
-        "ocr.extract",
-        "ocr.engine.router",
-        "handlers.utils",
-        "storage.db",
+        "backend.config",
+        "backend.ocr.extract",
+        "backend.ocr.engine.router",
+        "backend.handlers.utils",
+        "backend.storage.db",
     )
 
     for name in modules:
