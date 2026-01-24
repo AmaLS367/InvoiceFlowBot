@@ -5,8 +5,8 @@ from typing import Any, Dict
 import pytest
 from aiogram.types import TelegramObject
 
-from core.container import AppContainer
-from handlers.di_middleware import ContainerMiddleware
+from backend.core.container import AppContainer
+from backend.handlers.di_middleware import ContainerMiddleware
 
 
 @pytest.mark.asyncio
