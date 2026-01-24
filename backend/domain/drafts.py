@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-from domain.invoices import Invoice
+from backend.domain.invoices import Invoice
 
 
 @dataclass
