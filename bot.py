@@ -3,13 +3,13 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from config import BOT_TOKEN
-from core.container import create_app_container
-from handlers.callbacks import router as callbacks_router
-from handlers.commands import router as cmd_router
-from handlers.di_middleware import ContainerMiddleware
-from handlers.file import router as file_router
-from ocr.engine.util import get_logger
+from backend.config import BOT_TOKEN
+from backend.core.container import create_app_container
+from backend.handlers.callbacks import router as callbacks_router
+from backend.handlers.commands import router as cmd_router
+from backend.handlers.di_middleware import ContainerMiddleware
+from backend.handlers.file import router as file_router
+from backend.ocr.engine.util import get_logger
 
 logger = get_logger("ocr.engine")
 logger.info("Bot startup")
