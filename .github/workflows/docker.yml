@@ -48,7 +48,7 @@ jobs:
           # Verify that the image has all necessary files
           # Override entrypoint to avoid running bot.py
           docker run --rm --entrypoint="" \
-            invoiceflowbot:test ls -la /app/bot.py /app/config.py /app/healthcheck.py || exit 1
+            invoiceflowbot:test ls -la /app/bot.py /app/backend/config.py /app/backend/healthcheck.py || exit 1
           echo "✅ Image structure is correct"
 
       - name: Cleanup

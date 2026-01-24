@@ -30,7 +30,7 @@ jobs:
           python -m pip install -e .[dev]
 
       - name: Security checks (bandit)
-        run: bandit -c bandit.yaml domain services ocr storage handlers
+        run: bandit -c bandit.yaml backend/
 
       - name: Dependency vulnerability audit (pip-audit)
         run: pip-audit
