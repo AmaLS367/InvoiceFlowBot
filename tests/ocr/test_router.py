@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ocr.engine.router import _result_payload
-from ocr.engine.types import ExtractionResult, Item, PageInfo
+from backend.ocr.engine.router import _result_payload
+from backend.ocr.engine.types import ExtractionResult, Item, PageInfo
 
 
 def test_result_payload_basic():

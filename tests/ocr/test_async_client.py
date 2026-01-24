@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ocr.async_client import _mindee_predict_async
+from backend.ocr.async_client import _mindee_predict_async
 
 
 @pytest.mark.asyncio
@@ -13,7 +13,7 @@ async def test_mindee_predict_async_success():
     test_path = "test.pdf"
     expected_result = {"document": {"inference": {"pages": [{"prediction": {}}]}}}
 
-    with patch("ocr.async_client.mindee_predict_sdk", return_value=expected_result):
+    with patch("backend.ocr.async_client.mindee_predict_sdk", return_value=expected_result):
         with patch("pathlib.Path.exists", return_value=True):
             result = await _mindee_predict_async(test_path)
             assert result == expected_result
@@ -35,8 +35,8 @@ async def test_mindee_predict_async_fallback():
     test_path = "test.pdf"
     expected_result = {"document": {"inference": {"pages": [{"prediction": {}}]}}}
 
-    with patch("ocr.async_client.mindee_predict_sdk", return_value=None):
-        with patch("ocr.async_client.mindee_predict", return_value=expected_result):
+    with patch("backend.ocr.async_client.mindee_predict_sdk", return_value=None):
+        with patch("backend.ocr.async_client.mindee_predict", return_value=expected_result):
             with patch("pathlib.Path.exists", return_value=True):
                 result = await _mindee_predict_async(test_path)
                 assert result == expected_result
@@ -47,8 +47,8 @@ async def test_mindee_predict_async_no_result():
     """Test _mindee_predict_async when both methods return None."""
     test_path = "test.pdf"
 
-    with patch("ocr.async_client.mindee_predict_sdk", return_value=None):
-        with patch("ocr.async_client.mindee_predict", return_value=None):
+    with patch("backend.ocr.async_client.mindee_predict_sdk", return_value=None):
+        with patch("backend.ocr.async_client.mindee_predict", return_value=None):
             with patch("pathlib.Path.exists", return_value=True):
                 result = await _mindee_predict_async(test_path)
                 assert result == {}
@@ -80,8 +80,8 @@ async def test_extract_invoice_async_success():
         }
     }
 
-    with patch("ocr.async_client._mindee_predict_async", return_value=mock_payload):
-        with patch("ocr.async_client.build_extraction_result") as mock_build:
+    with patch("backend.ocr.async_client._mindee_predict_async", return_value=mock_payload):
+        with patch("backend.ocr.async_client.build_extraction_result") as mock_build:
             mock_build.return_value = ExtractionResult(
                 document_id="test",
                 supplier="Test Supplier",
@@ -108,9 +108,9 @@ async def test_extract_invoice_async_empty_payload():
 
     test_path = "test.pdf"
 
-    with patch("ocr.async_client._mindee_predict_async", return_value={}):
-        with patch("ocr.async_client.build_extraction_result") as mock_build:
-            from ocr.engine.types import ExtractionResult
+    with patch("backend.ocr.async_client._mindee_predict_async", return_value={}):
+        with patch("backend.ocr.async_client.build_extraction_result") as mock_build:
+            from backend.ocr.engine.types import ExtractionResult
 
             mock_build.return_value = ExtractionResult(
                 document_id="test",

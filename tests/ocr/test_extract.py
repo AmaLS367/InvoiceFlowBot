@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ocr.engine.types import ExtractionResult, Item
-from ocr.extract import extract, parse_invoice_text
+from backend.ocr.engine.types import ExtractionResult, Item
+from backend.ocr.extract import extract, parse_invoice_text
 
 
 @pytest.fixture()
@@ -16,7 +16,7 @@ def mock_extract_invoice():
 
 def test_extract_wrapper():
     """Test extract function is a wrapper for parse_invoice_text."""
-    with patch("ocr.extract.parse_invoice_text") as mock_parse:
+    with patch("backend.ocr.extract.parse_invoice_text") as mock_parse:
         mock_parse.return_value = {"document_id": "test"}
         result = extract("test.pdf", fast=True, max_pages=5)
         mock_parse.assert_called_once_with("test.pdf", fast=True, max_pages=5)
@@ -105,7 +105,7 @@ def test_parse_invoice_text_file_not_found():
     """Test parse_invoice_text when file doesn't exist."""
     with patch("pathlib.Path.exists", return_value=False):
         with patch("os.path.getsize", side_effect=OSError("File not found")):
-            with patch("ocr.extract.extract_invoice", side_effect=FileNotFoundError):
+            with patch("backend.ocr.extract.extract_invoice", side_effect=FileNotFoundError):
                 with pytest.raises(FileNotFoundError):
                     parse_invoice_text("nonexistent.pdf")
 
@@ -148,7 +148,7 @@ def test_parse_invoice_text_with_pages():
 
 def test_parse_invoice_text_exception_handling():
     """Test parse_invoice_text exception handling."""
-    with patch("ocr.extract.extract_invoice", side_effect=RuntimeError("OCR failed")):
+    with patch("backend.ocr.extract.extract_invoice", side_effect=RuntimeError("OCR failed")):
         with patch("ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):

@@ -5,8 +5,8 @@ from decimal import Decimal
 
 import pytest
 
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from storage.db_async import AsyncInvoiceStorage
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
+from backend.storage.db_async import AsyncInvoiceStorage
 
 pytestmark = pytest.mark.storage_db
 

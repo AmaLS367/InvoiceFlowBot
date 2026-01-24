@@ -13,8 +13,8 @@ from typing import List
 
 import pytest
 
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
-from storage.db_async import AsyncInvoiceStorage
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+from backend.storage.db_async import AsyncInvoiceStorage
 
 pytestmark = pytest.mark.storage_db
 

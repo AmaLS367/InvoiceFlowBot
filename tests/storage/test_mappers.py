@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
-from storage.mappers import (
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+from backend.storage.mappers import (
     db_row_to_invoice,
     invoice_item_to_db_row,
     invoice_to_db_row,
