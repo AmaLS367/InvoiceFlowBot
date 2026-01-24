@@ -1244,7 +1244,7 @@ async def test_cmd_save_with_draft(draft_container: AppContainer, commands_route
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from domain.invoices import InvoiceComment
+            from backend.domain.invoices import InvoiceComment
             from backend.handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
@@ -1364,7 +1364,7 @@ async def test_cmd_edit_legacy(draft_container: AppContainer, commands_router: R
             import re
             from decimal import Decimal
 
-            from handlers.commands_drafts import _parse_date_str
+            from backend.handlers.commands_drafts import _parse_date_str
             from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
