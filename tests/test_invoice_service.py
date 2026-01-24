@@ -180,8 +180,8 @@ def test_parse_date_function():
 
 def test_build_header_function():
     """Test _build_header helper function."""
-    from ocr.engine.types import ExtractionResult
-    from services.invoice_service import _build_header
+    from backend.ocr.engine.types import ExtractionResult
+    from backend.services.invoice_service import _build_header
 
     result = ExtractionResult(
         document_id="test",

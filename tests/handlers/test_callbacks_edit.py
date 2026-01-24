@@ -179,7 +179,7 @@ async def test_cb_act_edit_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -225,7 +225,7 @@ async def test_cb_hed_field_supplier(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -366,7 +366,7 @@ async def test_cb_act_items_without_items(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -536,7 +536,7 @@ async def test_cb_itm_field(draft_container: AppContainer, callback_router: Rout
 
     from unittest.mock import patch
 
-    from handlers.callback_registry import make_item_field_callback
+    from backend.handlers.callback_registry import make_item_field_callback
 
     message = FakeMessage()
     call = FakeCallbackQuery(
@@ -640,7 +640,7 @@ async def test_cb_act_comment_with_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -693,7 +693,7 @@ async def test_cb_act_comment_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -746,7 +746,7 @@ async def test_cb_act_save_with_sum_mismatch(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from domain.invoices import InvoiceComment
+            from backend.domain.invoices import InvoiceComment
             from backend.handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
