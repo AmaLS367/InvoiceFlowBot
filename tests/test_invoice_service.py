@@ -108,7 +108,7 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
 
 def test_build_invoice_from_extraction():
     """Test build_invoice_from_extraction function."""
-    from services.invoice_service import build_invoice_from_extraction
+    from backend.services.invoice_service import build_invoice_from_extraction
 
     result = DummyExtractionResult(
         supplier="Test Supplier",
@@ -134,7 +134,7 @@ def test_build_invoice_from_extraction():
 
 def test_build_invoice_from_extraction_with_none_values():
     """Test build_invoice_from_extraction with None values."""
-    from services.invoice_service import build_invoice_from_extraction
+    from backend.services.invoice_service import build_invoice_from_extraction
 
     result = DummyExtractionResult(
         supplier=None,
@@ -155,7 +155,7 @@ def test_build_invoice_from_extraction_with_none_values():
 
 def test_parse_date_function():
     """Test _parse_date helper function."""
-    from services.invoice_service import _parse_date
+    from backend.services.invoice_service import _parse_date
 
     # Test ISO format
     result = _parse_date("2025-01-15")
@@ -204,8 +204,8 @@ def test_build_header_function():
 
 def test_build_item_function():
     """Test _build_item helper function."""
-    from ocr.engine.types import Item
-    from services.invoice_service import _build_item
+    from backend.ocr.engine.types import Item
+    from backend.services.invoice_service import _build_item
 
     item = Item(code="SKU-1", name="Item 1", qty=2.0, price=25.0, total=50.0, page_no=1)
     invoice_item = _build_item(item)

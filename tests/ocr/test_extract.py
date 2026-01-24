@@ -112,7 +112,7 @@ def test_parse_invoice_text_file_not_found():
 
 def test_parse_invoice_text_with_pages():
     """Test parse_invoice_text with pages."""
-    from ocr.engine.types import PageInfo
+        from backend.ocr.engine.types import PageInfo
 
     expected_result = ExtractionResult(
         document_id="test-doc",

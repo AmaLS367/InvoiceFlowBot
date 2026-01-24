@@ -122,7 +122,7 @@ def test_db_row_to_invoice_with_none_values():
 
 def test_db_row_to_invoice_item():
     """Test db_row_to_invoice_item function."""
-    from storage.mappers import db_row_to_invoice_item
+    from backend.storage.mappers import db_row_to_invoice_item
 
     row = {
         "code": "SKU-001",

@@ -135,8 +135,8 @@ async def test_cmd_show_with_draft(draft_container: AppContainer, commands_route
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
-            from handlers.utils import format_invoice_full, format_invoice_header
+            from backend.handlers.deps import get_draft_service
+            from backend.handlers.utils import format_invoice_full, format_invoice_header
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -180,7 +180,7 @@ async def test_cmd_show_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -225,7 +225,7 @@ async def test_on_force_reply_comment(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -289,7 +289,7 @@ async def test_on_force_reply_header_field(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -364,7 +364,7 @@ async def test_on_force_reply_item_field(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1108,7 +1108,7 @@ async def test_cmd_comment_with_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1152,7 +1152,7 @@ async def test_cmd_comment_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1194,7 +1194,7 @@ async def test_cmd_comment_empty_text(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1245,7 +1245,7 @@ async def test_cmd_save_with_draft(draft_container: AppContainer, commands_route
         except Exception:
             # Fallback: test logic directly if router approach fails
             from domain.invoices import InvoiceComment
-            from handlers.deps import get_draft_service, get_invoice_service
+            from backend.handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
             draft_service = get_draft_service(draft_container)
@@ -1318,7 +1318,7 @@ async def test_cmd_save_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1365,7 +1365,7 @@ async def test_cmd_edit_legacy(draft_container: AppContainer, commands_router: R
             from decimal import Decimal
 
             from handlers.commands_drafts import _parse_date_str
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1439,7 +1439,7 @@ async def test_cmd_edit_legacy_without_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0
@@ -1484,7 +1484,7 @@ async def test_cmd_edititem_legacy(draft_container: AppContainer, commands_route
             import re
             from decimal import Decimal
 
-            from handlers.deps import get_draft_service
+            from backend.handlers.deps import get_draft_service
 
             draft_service = get_draft_service(draft_container)
             uid = message.from_user.id if message.from_user else 0

@@ -134,7 +134,7 @@ async def test_on_force_reply_invoices_to_date(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_invoice_service
+            from backend.handlers.deps import get_invoice_service
 
             current_state = await state.get_state()
 
@@ -165,7 +165,7 @@ async def test_on_force_reply_invoices_supplier(
 ) -> None:
     """Test force reply for invoices supplier filter."""
     import backend.handlers.commands_invoices  # noqa: F401
-    from domain.invoices import Invoice, InvoiceHeader
+    from backend.domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
     # Add test invoice
@@ -213,7 +213,7 @@ async def test_cmd_invoices_basic(
 ) -> None:
     """Test /invoices command basic functionality."""
     import backend.handlers.commands_invoices  # noqa: F401
-    from domain.invoices import Invoice, InvoiceHeader
+    from backend.domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
     # Add test invoice
@@ -254,7 +254,7 @@ async def test_cmd_invoices_with_supplier(
 ) -> None:
     """Test /invoices command with supplier filter."""
     import backend.handlers.commands_invoices  # noqa: F401
-    from domain.invoices import Invoice, InvoiceHeader
+    from backend.domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
     # Add test invoice
@@ -327,7 +327,7 @@ async def test_cmd_invoices_long_output(
 ) -> None:
     """Test /invoices command with output that exceeds 3900 chars."""
     import backend.handlers.commands_invoices  # noqa: F401
-    from domain.invoices import Invoice, InvoiceHeader
+    from backend.domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
     # Create many invoices to exceed 3900 chars

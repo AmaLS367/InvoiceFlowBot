@@ -57,8 +57,8 @@ async def test_mindee_predict_async_no_result():
 @pytest.mark.asyncio
 async def test_extract_invoice_async_success():
     """Test extract_invoice_async with successful extraction."""
-    from ocr.async_client import extract_invoice_async
-    from ocr.engine.types import ExtractionResult
+        from backend.ocr.async_client import extract_invoice_async
+        from backend.ocr.engine.types import ExtractionResult
 
     test_path = "test.pdf"
     mock_payload = {
@@ -104,7 +104,7 @@ async def test_extract_invoice_async_success():
 @pytest.mark.asyncio
 async def test_extract_invoice_async_empty_payload():
     """Test extract_invoice_async with empty payload."""
-    from ocr.async_client import extract_invoice_async
+        from backend.ocr.async_client import extract_invoice_async
 
     test_path = "test.pdf"
 

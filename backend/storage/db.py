@@ -253,7 +253,7 @@ def save_invoice_domain(invoice: Invoice, user_id: int = 0) -> int:
     """
     from typing import cast
 
-    from storage.db_async import AsyncInvoiceStorage
+    from backend.storage.db_async import AsyncInvoiceStorage
 
     storage = AsyncInvoiceStorage(database_path=DB_PATH)
     return cast(int, _run_async(storage.save_invoice(invoice, user_id=user_id)))
@@ -272,7 +272,7 @@ def fetch_invoices_domain(
     """
     from typing import cast
 
-    from storage.db_async import AsyncInvoiceStorage
+    from backend.storage.db_async import AsyncInvoiceStorage
 
     storage = AsyncInvoiceStorage(database_path=DB_PATH)
     return cast(

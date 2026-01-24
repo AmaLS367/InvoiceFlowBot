@@ -18,7 +18,7 @@ target_metadata = None
 
 def get_url() -> str:
     """
-    Get database URL from Alembic config if set, otherwise use DB_PATH from storage.db.
+    Get database URL from Alembic config if set, otherwise use DB_PATH from backend.storage.db.
 
     This allows tests to override the database URL via config.set_main_option("sqlalchemy.url", ...).
     """
@@ -27,7 +27,7 @@ def get_url() -> str:
     if url_from_config:
         return url_from_config
 
-    # Fallback to DB_PATH from storage.db (default behavior)
+    # Fallback to DB_PATH from backend.storage.db (default behavior)
     db_path = Path(DB_PATH)
     return f"sqlite:///{db_path}"
 

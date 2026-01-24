@@ -129,8 +129,8 @@ async def test_cb_act_edit_with_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
-            from handlers.utils import format_invoice_header, header_kb
+            from backend.handlers.deps import get_draft_service
+            from backend.handlers.utils import format_invoice_header, header_kb
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -304,8 +304,8 @@ async def test_cb_act_items_with_items(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
-            from handlers.utils import items_index_kb
+            from backend.handlers.deps import get_draft_service
+            from backend.handlers.utils import items_index_kb
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -419,8 +419,8 @@ async def test_cb_item_pick_valid_index(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service
-            from handlers.utils import format_money, item_fields_kb
+            from backend.handlers.deps import get_draft_service
+            from backend.handlers.utils import format_money, item_fields_kb
 
             draft_service = get_draft_service(draft_container)
             uid = call.from_user.id
@@ -492,7 +492,7 @@ async def test_cb_act_save_with_draft(
             )
         except Exception:
             # Fallback: test logic directly if router approach fails
-            from handlers.deps import get_draft_service, get_invoice_service
+            from backend.handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
             draft_service = get_draft_service(draft_container)
@@ -564,7 +564,7 @@ async def test_cb_itm_field(draft_container: AppContainer, callback_router: Rout
         except Exception:
             # Fallback: if router approach fails, test logic directly
             # This ensures test still works even if router setup is incomplete
-            from handlers.callback_registry import ITEM_FIELD_PREFIX
+            from backend.handlers.callback_registry import ITEM_FIELD_PREFIX
 
             if call.data and call.data.startswith(ITEM_FIELD_PREFIX + ":"):
                 parts = call.data.split(":")
@@ -747,7 +747,7 @@ async def test_cb_act_save_with_sum_mismatch(
         except Exception:
             # Fallback: test logic directly if router approach fails
             from domain.invoices import InvoiceComment
-            from handlers.deps import get_draft_service, get_invoice_service
+            from backend.handlers.deps import get_draft_service, get_invoice_service
 
             invoice_service = get_invoice_service(draft_container)
             draft_service = get_draft_service(draft_container)
