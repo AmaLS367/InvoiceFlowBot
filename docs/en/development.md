@@ -14,11 +14,11 @@ The project uses Alembic to manage the SQLite schema.
 
 ### How the schema is applied
 
-At runtime the database schema is created or upgraded by calling `storage.db.init_db()`.
+At runtime the database schema is created or upgraded by calling `backend.storage.db.init_db()`.
 This function is a thin wrapper around:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
 Every entrypoint that needs a database should call `init_db()` once before using the storage layer.
@@ -28,10 +28,10 @@ Every entrypoint that needs a database should call `init_db()` once before using
 To make sure your local database is up to date, run:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-This upgrades the database pointed to by `storage.db.DB_PATH` to the latest migration.
+This upgrades the database pointed to by `backend.storage.db.DB_PATH` to the latest migration.
 
 ### Creating a new migration
 
@@ -47,12 +47,12 @@ The recommended workflow is:
    python -m alembic revision -m "describe_change"
    ```
 
-3. Edit the generated revision file in `alembic/versions/` and write the `upgrade` and `downgrade` functions using raw SQL for SQLite.
+3. Edit the generated revision file in `backend/alembic/versions/` and write the `upgrade` and `downgrade` functions using raw SQL for SQLite.
 
 4. Apply the migration:
 
    ```powershell
-   python -m alembic upgrade head
+   python -m alembic -c backend/alembic.ini upgrade head
    ```
 
 SQLite support is limited for automatic schema diffs, so migrations are written by hand.
@@ -61,9 +61,9 @@ SQLite support is limited for automatic schema diffs, so migrations are written 
 
 Tests that rely on the database use the same migrations:
 
-* `storage.db.DB_PATH` can be patched to point to a temporary file.
+* `backend.storage.db.DB_PATH` can be patched to point to a temporary file.
 
-* `storage.db.init_db()` is called to apply all migrations to that temporary database.
+* `backend.storage.db.init_db()` is called to apply all migrations to that temporary database.
 
 This keeps the test schema and the runtime schema consistent.
 
@@ -74,7 +74,7 @@ When running the bot inside Docker, migrations must be applied before starting t
 A typical pattern is to run:
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 python bot.py
 ```
 
@@ -93,13 +93,13 @@ The GitHub Actions workflow runs the following steps:
 2. Applies Alembic migrations:
 
    ```powershell
-   python -m alembic upgrade head
+   python -m alembic -c backend/alembic.ini upgrade head
    ```
 
 3. Runs static checks and tests:
 
    ```powershell
    python -m ruff check .
-   python -m mypy domain services ocr storage
+   python -m mypy backend/
    python -m pytest
    ```
