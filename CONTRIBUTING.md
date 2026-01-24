@@ -81,7 +81,7 @@ graph LR
 python -m ruff check .
 
 # 🏷️ Type check
-python -m mypy domain services ocr storage handlers
+python -m mypy backend/
 
 # 🧪 Run tests
 python -m pytest

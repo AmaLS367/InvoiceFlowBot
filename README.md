@@ -309,11 +309,11 @@ The bot uses SQLite database to store invoices. The database schema is managed b
 ### Initial Setup
 
 ```powershell
-python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
 > [!NOTE]
-> The application automatically runs migrations on startup via `storage.db.init_db()`.
+> The application automatically runs migrations on startup via `backend.storage.db.init_db()`.
 
 ### Database Tables
 
@@ -393,7 +393,7 @@ pip install -e .[dev]
 python -m ruff check .
 
 # Run type checker
-python -m mypy domain services ocr storage
+python -m mypy backend/
 
 # Run tests
 python -m pytest
