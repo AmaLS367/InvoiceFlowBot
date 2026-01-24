@@ -88,7 +88,7 @@ pip install -e .[dev]
 python -m ruff check .
 
 # Run type checker
-python -m mypy domain services ocr storage
+python -m mypy backend/
 
 # Run tests
 python -m pytest
