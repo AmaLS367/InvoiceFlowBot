@@ -52,6 +52,7 @@ InvoiceFlowBot is a Telegram assistant that automates invoice capture for financ
 | 📖 [Usage](usage.md) | Commands and interactive buttons |
 | 🧪 [Tests](tests.md) | Pytest and code coverage |
 | 👨‍💻 [Development](development.md) | Developer guide |
+| 📜 [Scripts](scripts.md) | Utility scripts and wrappers |
 | 🔧 [Troubleshooting](troubleshooting.md) | Common issues and solutions |
 | 📸 [Screenshots](screenshots.md) | Visual examples |
 
