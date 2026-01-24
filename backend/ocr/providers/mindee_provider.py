@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from ocr.engine.types import ExtractionResult
-from ocr.engine.util import get_logger
-from ocr.mindee_client import extract_invoice_mindee
-from ocr.providers.base import OcrProvider
+from backend.ocr.engine.types import ExtractionResult
+from backend.ocr.engine.util import get_logger
+from backend.ocr.mindee_client import extract_invoice_mindee
+from backend.ocr.providers.base import OcrProvider
 
 
 class MindeeOcrProvider(OcrProvider):

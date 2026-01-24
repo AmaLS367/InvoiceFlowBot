@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Optional
 
-import config
+from backend import config
 
 _req_var: ContextVar[str] = ContextVar("req", default="-")
 _configured = False

@@ -4,9 +4,9 @@ import asyncio
 from pathlib import Path
 from typing import Any, Dict
 
-from ocr.engine.types import ExtractionResult
-from ocr.engine.util import get_logger
-from ocr.mindee_client import (
+from backend.ocr.engine.types import ExtractionResult
+from backend.ocr.engine.util import get_logger
+from backend.ocr.mindee_client import (
     build_extraction_result,
     mindee_predict,
     mindee_predict_sdk,

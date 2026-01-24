@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from ocr.engine.types import ExtractionResult
+from backend.ocr.engine.types import ExtractionResult
 
 
 class OcrProvider(ABC):

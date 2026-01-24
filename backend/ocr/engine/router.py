@@ -4,11 +4,11 @@ import os
 import shutil
 from typing import Any, Dict
 
-from config import ARTIFACTS_DIR
-from ocr.engine.types import ExtractionResult
-from ocr.engine.util import ensure_dir, file_sha256, get_logger, time_block, write_json
-from ocr.providers.base import OcrProvider
-from ocr.providers.mindee_provider import MindeeOcrProvider
+from backend.config import ARTIFACTS_DIR
+from backend.ocr.engine.types import ExtractionResult
+from backend.ocr.engine.util import ensure_dir, file_sha256, get_logger, time_block, write_json
+from backend.ocr.providers.base import OcrProvider
+from backend.ocr.providers.mindee_provider import MindeeOcrProvider
 
 logger = get_logger("ocr.router")
 
