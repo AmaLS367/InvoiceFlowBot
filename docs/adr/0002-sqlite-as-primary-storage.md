@@ -22,11 +22,11 @@ We do not need a full blown database cluster for the target use case.
 
 We use **SQLite** as the primary storage:
 
-- Schema is managed through Alembic migrations (`alembic/`).
+- Schema is managed through Alembic migrations (`backend/alembic/`).
 
-- The main async access layer is `storage/db_async.py` with `AsyncInvoiceStorage`.
+- The main async access layer is `backend.storage.db_async` with `AsyncInvoiceStorage`.
 
-- Domain mapping is implemented in `storage/mappers.py`.
+- Domain mapping is implemented in `backend.storage.mappers`.
 
 ## Consequences
 

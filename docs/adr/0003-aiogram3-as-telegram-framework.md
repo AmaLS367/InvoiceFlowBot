@@ -26,11 +26,11 @@ We need a framework that is:
 
 We use **aiogram 3** as the Telegram framework:
 
-- All handlers are defined in `handlers/*`.
+- All handlers are defined in `backend.handlers.*`.
 
 - Routers and middlewares are used to structure updates.
 
-- Dependency injection is integrated through `core.container.AppContainer` and a custom middleware.
+- Dependency injection is integrated through `backend.core.container.AppContainer` and a custom middleware.
 
 ## Consequences
 
@@ -50,6 +50,6 @@ Negative:
 
 Mitigations:
 
-- Telegram specific code is isolated in the `handlers` layer.
+- Telegram specific code is isolated in the `backend.handlers` layer.
 
-- Business logic in `services` and `domain` is framework agnostic.
+- Business logic in `backend.services` and `backend.domain` is framework agnostic.

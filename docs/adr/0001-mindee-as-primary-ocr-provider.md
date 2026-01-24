@@ -22,9 +22,9 @@ We want to avoid maintaining our own low level OCR stack and training pipeline i
 
 We use **Mindee** as the primary OCR provider for invoice extraction:
 
-- HTTP integration is implemented in `ocr/mindee_client.py`.
+- HTTP integration is implemented in `backend.ocr.mindee_client`.
 
-- The async OCR abstraction is implemented in `ocr/providers/mindee_provider.py` and `ocr/engine/*`.
+- The async OCR abstraction is implemented in `backend.ocr.providers.mindee_provider` and `backend.ocr.engine.*`.
 
 - The rest of the code depends on `OcrProvider` interface, not on Mindee SDK directly.
 
