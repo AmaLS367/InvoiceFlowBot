@@ -6,7 +6,7 @@ from pathlib import Path
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from storage.db import DB_PATH
+from backend.storage.db import DB_PATH
 
 config = context.config
 
