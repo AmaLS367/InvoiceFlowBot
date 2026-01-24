@@ -64,7 +64,7 @@ def _create_test_draft(invoice: Invoice) -> InvoiceDraft:
 @pytest.fixture()
 def draft_container() -> AppContainer:
     """Create container with fake draft service."""
-    from config import Settings
+    from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -104,7 +104,7 @@ async def test_cb_act_edit_with_draft(
 ) -> None:
     """Test edit callback when draft exists."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -159,7 +159,7 @@ async def test_cb_act_edit_without_draft(
 ) -> None:
     """Test edit callback when no draft exists."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     user_id = 123
     message = FakeMessage()
@@ -200,7 +200,7 @@ async def test_cb_hed_field_supplier(
 ) -> None:
     """Test header field selection for supplier."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -279,7 +279,7 @@ async def test_cb_act_items_with_items(
 ) -> None:
     """Test items action callback when items exist."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -341,7 +341,7 @@ async def test_cb_act_items_without_items(
 ) -> None:
     """Test items action callback when no items exist."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = Invoice(header=InvoiceHeader(), items=[])
     draft = _create_test_draft(invoice)
@@ -394,7 +394,7 @@ async def test_cb_item_pick_valid_index(
 ) -> None:
     """Test item pick callback with valid index."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -463,7 +463,7 @@ async def test_cb_act_save_with_draft(
 ) -> None:
     """Test save action callback when draft exists."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -545,7 +545,7 @@ async def test_cb_itm_field(draft_container: AppContainer, callback_router: Rout
     state = FakeFSMContext()
 
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     # Call handler through router using callback_query.trigger
     with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
@@ -619,7 +619,7 @@ async def test_cb_act_comment_with_draft(
     await draft_container.draft_service.set_current_draft(user_id, draft)
 
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     message = FakeMessage()
     call = FakeCallbackQuery(data=CallbackAction.COMMENT.value, user_id=user_id, message=message)
@@ -674,7 +674,7 @@ async def test_cb_act_comment_without_draft(
 ) -> None:
     """Test comment action callback without draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     message = FakeMessage()
     call = FakeCallbackQuery(data=CallbackAction.COMMENT.value, user_id=123, message=message)
@@ -715,7 +715,7 @@ async def test_cb_act_save_with_sum_mismatch(
 ) -> None:
     """Test save action callback with sum mismatch."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.callbacks_edit  # noqa: F401
+    import backend.handlers.callbacks_edit  # noqa: F401
 
     invoice = _create_test_invoice()
     # Create mismatch: header total is 50, but items total is 100

@@ -51,7 +51,7 @@ def _create_test_draft(invoice: Invoice) -> InvoiceDraft:
 @pytest.fixture()
 def draft_container() -> AppContainer:
     """Create container with fake draft service."""
-    from config import Settings
+    from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -112,7 +112,7 @@ def test_parse_date_str_none() -> None:
 async def test_cmd_show_with_draft(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /show command when draft exists."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -162,7 +162,7 @@ async def test_cmd_show_without_draft(
 ) -> None:
     """Test /show command when no draft exists."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     user_id = 123
     message = FakeMessage(text="/show", user_id=user_id)
@@ -198,7 +198,7 @@ async def test_on_force_reply_comment(
 ) -> None:
     """Test force reply for comment."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -261,7 +261,7 @@ async def test_on_force_reply_header_field(
 ) -> None:
     """Test force reply for header field editing."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -336,7 +336,7 @@ async def test_on_force_reply_item_field(
 ) -> None:
     """Test force reply for item field editing."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -418,7 +418,7 @@ async def test_on_force_reply_header_field_client(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for header field editing - client."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -456,7 +456,7 @@ async def test_on_force_reply_header_field_date(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for header field editing - date."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -494,7 +494,7 @@ async def test_on_force_reply_header_field_doc_number(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for header field editing - doc_number."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -532,7 +532,7 @@ async def test_on_force_reply_header_field_total_sum(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for header field editing - total_sum."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -570,7 +570,7 @@ async def test_on_force_reply_item_field_code(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field editing - code."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -608,7 +608,7 @@ async def test_on_force_reply_item_field_qty(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field editing - qty."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -646,7 +646,7 @@ async def test_on_force_reply_item_field_price(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field editing - price."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -684,7 +684,7 @@ async def test_on_force_reply_item_field_total(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field editing - total."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -722,7 +722,7 @@ async def test_on_force_reply_no_matching_state(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply with no matching state."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     reply_to = FakeMessage(text="Previous message", user_id=123)
     message = FakeMessage(text="Some text", user_id=123, reply_to_message=reply_to)
@@ -751,7 +751,7 @@ async def test_cmd_edit_legacy_insufficient_args(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test /edit legacy command with insufficient arguments."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -782,7 +782,7 @@ async def test_cmd_edititem_legacy_insufficient_args(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test /edititem legacy command with insufficient arguments."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -813,7 +813,7 @@ async def test_cmd_edititem_legacy_code_field(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test /edititem legacy command with code field."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -847,7 +847,7 @@ async def test_on_force_reply_empty_text(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply with empty text."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -882,7 +882,7 @@ async def test_on_force_reply_empty_comment(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for empty comment."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -916,7 +916,7 @@ async def test_on_force_reply_item_field_invalid_index(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field with invalid index."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -951,7 +951,7 @@ async def test_on_force_reply_item_field_no_idx(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field without index."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -986,7 +986,7 @@ async def test_on_force_reply_item_field_invalid_number(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test force reply for item field with invalid number."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1022,7 +1022,7 @@ async def test_cmd_edititem_legacy_invalid_index(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test /edititem legacy command with invalid index."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1053,7 +1053,7 @@ async def test_cmd_edititem_legacy_index_out_of_range(
     draft_container: AppContainer, commands_router: Router
 ) -> None:
     """Test /edititem legacy command with index out of range."""
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1085,7 +1085,7 @@ async def test_cmd_comment_with_draft(
 ) -> None:
     """Test /comment command with draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1135,7 +1135,7 @@ async def test_cmd_comment_without_draft(
 ) -> None:
     """Test /comment command without draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     message = FakeMessage(text="/comment Test comment", user_id=123)
 
@@ -1171,7 +1171,7 @@ async def test_cmd_comment_empty_text(
 ) -> None:
     """Test /comment command with empty text."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1216,7 +1216,7 @@ async def test_cmd_comment_empty_text(
 async def test_cmd_save_with_draft(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /save command with draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1297,7 +1297,7 @@ async def test_cmd_save_without_draft(
 ) -> None:
     """Test /save command without draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     message = FakeMessage(text="/save", user_id=123)
 
@@ -1335,7 +1335,7 @@ async def test_cmd_save_without_draft(
 async def test_cmd_edit_legacy(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /edit legacy command."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)
@@ -1422,7 +1422,7 @@ async def test_cmd_edit_legacy_without_draft(
 ) -> None:
     """Test /edit legacy command without draft."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     message = FakeMessage(text="/edit supplier=Test", user_id=123)
 
@@ -1456,7 +1456,7 @@ async def test_cmd_edit_legacy_without_draft(
 async def test_cmd_edititem_legacy(draft_container: AppContainer, commands_router: Router) -> None:
     """Test /edititem legacy command."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_drafts  # noqa: F401
+    import backend.handlers.commands_drafts  # noqa: F401
 
     invoice = _create_test_invoice()
     draft = _create_test_draft(invoice)

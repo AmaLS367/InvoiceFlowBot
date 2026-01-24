@@ -37,7 +37,7 @@ def test_parse_date_str_empty():
 @pytest.fixture()
 def invoices_container() -> AppContainer:
     """Create container with fake invoice service."""
-    from config import Settings
+    from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -75,7 +75,7 @@ async def test_on_force_reply_invoices_from_date(
 ) -> None:
     """Test force reply for invoices from date."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
 
     # Create a message with reply_to_message to trigger F.reply_to_message filter
     reply_to = FakeMessage(text="Previous message", user_id=123)
@@ -112,7 +112,7 @@ async def test_on_force_reply_invoices_to_date(
 ) -> None:
     """Test force reply for invoices to date."""
     # Import handlers module to ensure it's loaded for coverage
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
 
     # Create a message with reply_to_message to trigger F.reply_to_message filter
     reply_to = FakeMessage(text="Previous message", user_id=123)
@@ -164,7 +164,7 @@ async def test_on_force_reply_invoices_supplier(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test force reply for invoices supplier filter."""
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -212,7 +212,7 @@ async def test_cmd_invoices_basic(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test /invoices command basic functionality."""
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -253,7 +253,7 @@ async def test_cmd_invoices_with_supplier(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test /invoices command with supplier filter."""
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
@@ -297,7 +297,7 @@ async def test_on_force_reply_invoices_missing_dates(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test force reply for invoices with missing dates."""
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
 
     reply_to = FakeMessage(text="Previous message", user_id=123)
     message = FakeMessage(text="Test Supplier", user_id=123, reply_to_message=reply_to)
@@ -326,7 +326,7 @@ async def test_cmd_invoices_long_output(
     invoices_container: AppContainer, invoices_router: Router
 ) -> None:
     """Test /invoices command with output that exceeds 3900 chars."""
-    import handlers.commands_invoices  # noqa: F401
+    import backend.handlers.commands_invoices  # noqa: F401
     from domain.invoices import Invoice, InvoiceHeader
     from tests.fakes.fake_services import FakeInvoiceService
 
