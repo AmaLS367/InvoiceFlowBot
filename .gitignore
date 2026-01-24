@@ -82,6 +82,8 @@ temp/
 data/uploads/
 data/artifacts/
 data/
+full_project_context.txt
+full_project_context(0.4.0).txt
 
 # Logs
 *.log
