@@ -7,8 +7,8 @@ import uuid
 from aiogram import F, Router
 from aiogram.types import Message
 
-from handlers.utils import main_kb
-from ocr.engine.util import get_logger, set_request_id
+from backend.handlers.utils import main_kb
+from backend.ocr.engine.util import get_logger, set_request_id
 
 logger = get_logger("ocr.engine")
 

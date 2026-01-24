@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from core.container import AppContainer
-from services.draft_service import DraftService
-from services.invoice_service import InvoiceService
+from backend.core.container import AppContainer
+from backend.services.draft_service import DraftService
+from backend.services.invoice_service import InvoiceService
 
 
 def get_container(data: Dict[str, Any]) -> AppContainer:

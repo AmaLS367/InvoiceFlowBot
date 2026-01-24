@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 
-from core.container import AppContainer
+from backend.core.container import AppContainer
 
 
 class ContainerMiddleware(BaseMiddleware):

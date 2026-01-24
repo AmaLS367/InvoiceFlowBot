@@ -9,25 +9,25 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
-from core.container import AppContainer
-from domain.invoices import InvoiceComment
-from handlers.callback_registry import (
+from backend.core.container import AppContainer
+from backend.domain.invoices import InvoiceComment
+from backend.handlers.callback_registry import (
     HEADER_PREFIX,
     ITEM_FIELD_PREFIX,
     ITEM_PICK_PREFIX,
     ITEMS_PAGE_PREFIX,
     CallbackAction,
 )
-from handlers.deps import get_draft_service, get_invoice_service
-from handlers.fsm import EditInvoiceState
-from handlers.utils import (
+from backend.handlers.deps import get_draft_service, get_invoice_service
+from backend.handlers.fsm import EditInvoiceState
+from backend.handlers.utils import (
     format_invoice_header,
     format_money,
     header_kb,
     item_fields_kb,
     items_index_kb,
 )
-from ocr.engine.util import get_logger, set_request_id
+from backend.ocr.engine.util import get_logger, set_request_id
 
 logger = get_logger("ocr.engine")
 

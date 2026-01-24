@@ -12,13 +12,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from core.container import AppContainer
-from domain.invoices import InvoiceComment
-from handlers.deps import get_draft_service, get_invoice_service
-from handlers.fsm import EditInvoiceState
-from handlers.utils import format_invoice_full, format_invoice_header
-from ocr.engine.util import get_logger, set_request_id
-from storage.db import to_iso
+from backend.core.container import AppContainer
+from backend.domain.invoices import InvoiceComment
+from backend.handlers.deps import get_draft_service, get_invoice_service
+from backend.handlers.fsm import EditInvoiceState
+from backend.handlers.utils import format_invoice_full, format_invoice_header
+from backend.ocr.engine.util import get_logger, set_request_id
+from backend.storage.db import to_iso
 
 logger = get_logger("ocr.engine")
 

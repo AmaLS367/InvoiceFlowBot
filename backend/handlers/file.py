@@ -8,10 +8,10 @@ from aiogram import F, Router
 from aiogram.types import BufferedInputFile, Message
 from PIL import Image, ImageOps
 
-from core.container import AppContainer
-from domain.drafts import InvoiceDraft
-from handlers.deps import get_draft_service, get_invoice_service
-from handlers.utils import (
+from backend.core.container import AppContainer
+from backend.domain.drafts import InvoiceDraft
+from backend.handlers.deps import get_draft_service, get_invoice_service
+from backend.handlers.utils import (
     MAX_MSG,
     actions_kb,
     csv_bytes_from_items,
@@ -20,8 +20,8 @@ from handlers.utils import (
     format_invoice_items,
     send_chunked,
 )
-from ocr.engine.util import get_logger, save_file, set_request_id
-from services.invoice_service import DEFAULT_MAX_OCR_PAGES
+from backend.ocr.engine.util import get_logger, save_file, set_request_id
+from backend.services.invoice_service import DEFAULT_MAX_OCR_PAGES
 
 router = Router()
 logger = get_logger("ocr.engine")

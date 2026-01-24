@@ -9,10 +9,10 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
-from handlers.callback_registry import CallbackAction
-from handlers.fsm import InvoicesPeriodState
-from handlers.utils import main_kb
-from ocr.engine.util import get_logger, set_request_id
+from backend.handlers.callback_registry import CallbackAction
+from backend.handlers.fsm import InvoicesPeriodState
+from backend.handlers.utils import main_kb
+from backend.ocr.engine.util import get_logger, set_request_id
 
 logger = get_logger("ocr.engine")
 

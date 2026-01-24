@@ -10,13 +10,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 
-from core.container import AppContainer
-from handlers.callback_registry import CallbackAction
-from handlers.deps import get_invoice_service
-from handlers.fsm import InvoicesPeriodState
-from handlers.utils import format_money
-from ocr.engine.util import get_logger, set_request_id
-from storage.db import to_iso
+from backend.core.container import AppContainer
+from backend.handlers.callback_registry import CallbackAction
+from backend.handlers.deps import get_invoice_service
+from backend.handlers.fsm import InvoicesPeriodState
+from backend.handlers.utils import format_money
+from backend.ocr.engine.util import get_logger, set_request_id
+from backend.storage.db import to_iso
 
 logger = get_logger("ocr.engine")
 

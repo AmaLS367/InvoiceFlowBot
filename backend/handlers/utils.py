@@ -4,8 +4,8 @@ from typing import List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from domain.invoices import Invoice, InvoiceItem
-from handlers.callback_registry import (
+from backend.domain.invoices import Invoice, InvoiceItem
+from backend.handlers.callback_registry import (
     CallbackAction,
     CallbackHeader,
     make_item_field_callback,

@@ -6,8 +6,8 @@ Registers all callback handlers from submodules.
 
 from aiogram import Router
 
-from handlers.callbacks_edit import setup as setup_edit
-from handlers.callbacks_misc import setup as setup_misc
+from backend.handlers.callbacks_edit import setup as setup_edit
+from backend.handlers.callbacks_misc import setup as setup_misc
 
 router = Router()
 
