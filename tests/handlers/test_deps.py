@@ -8,7 +8,7 @@ from backend.services.invoice_service import InvoiceService
 
 def test_get_invoice_service():
     """Test get_invoice_service function."""
-        from backend.config import Settings
+    from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -35,7 +35,7 @@ def test_get_invoice_service():
 
 def test_get_draft_service():
     """Test get_draft_service function."""
-        from backend.config import Settings
+    from backend.config import Settings
     from tests.fakes.fake_ocr import FakeOcr, make_fake_ocr_extractor
     from tests.fakes.fake_storage import (
         FakeStorage,
@@ -62,7 +62,7 @@ def test_get_draft_service():
 
 def test_get_container():
     """Test get_container function."""
-        from backend.config import Settings
+    from backend.config import Settings
 
     container = AppContainer(config=Settings())  # type: ignore[call-arg]
     data = {"container": container}

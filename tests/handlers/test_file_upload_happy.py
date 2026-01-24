@@ -36,7 +36,7 @@ async def test_handle_invoice_document_happy_path(
         bot=fake_bot,
     )
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/test_invoice.pdf"
 
         with patch("pathlib.Path.exists", return_value=True):
@@ -77,7 +77,7 @@ async def test_handle_invoice_photo_happy_path(
         bot=fake_bot,
     )
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/test_photo.jpg"
 
         with patch("PIL.Image.open") as mock_image_open:

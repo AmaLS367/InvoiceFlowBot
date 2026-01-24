@@ -22,7 +22,7 @@ def generate_context():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(script_dir))
     os.chdir(project_root)
-    
+
     output_file = "full_project_context.txt"
 
     with open(output_file, "w", encoding="utf-8") as outfile:

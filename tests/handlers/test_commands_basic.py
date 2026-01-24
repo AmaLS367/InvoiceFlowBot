@@ -124,7 +124,7 @@ async def test_cmd_invoices_with_results(
     from datetime import date
     from decimal import Decimal
 
-            from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+    from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
 
     invoice = Invoice(
         header=InvoiceHeader(

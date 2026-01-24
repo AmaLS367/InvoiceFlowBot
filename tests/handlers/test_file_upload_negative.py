@@ -55,7 +55,7 @@ async def test_handle_invoice_document_ocr_failure_sends_error(
         bot=fake_bot,
     )
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/fail.pdf"
 
         original_extractor = file_handlers_container.invoice_service._ocr_extractor
@@ -115,7 +115,7 @@ async def test_handle_invoice_document_draft_failure_sends_error(
 
     draft_service.raise_error = True
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/draft_fail.pdf"
 
         with patch("pathlib.Path.exists", return_value=True):
@@ -174,7 +174,7 @@ async def test_handle_invoice_photo_ocr_failure_sends_error(
         bot=fake_bot,
     )
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/photo_fail.jpg"
 
         original_extractor = file_handlers_container.invoice_service._ocr_extractor
@@ -241,7 +241,7 @@ async def test_handle_invoice_photo_draft_failure_sends_error(
 
     draft_service.raise_error = True
 
-    with patch("handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
         mock_save_file.return_value = "temp/photo_draft_fail.jpg"
 
         with patch("PIL.Image.open") as mock_image_open:

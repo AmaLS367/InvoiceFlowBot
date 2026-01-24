@@ -123,7 +123,7 @@ async def test_cmd_show_with_draft(draft_container: AppContainer, commands_route
     message = FakeMessage(text="/show", user_id=user_id)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -168,7 +168,7 @@ async def test_cmd_show_without_draft(
     message = FakeMessage(text="/show", user_id=user_id)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -213,7 +213,7 @@ async def test_on_force_reply_comment(
     await state.set_state(EditInvoiceState.waiting_for_comment)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -277,7 +277,7 @@ async def test_on_force_reply_header_field(
     await state.update_data({"edit_config": {"kind": "header", "key": "supplier"}})
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -352,7 +352,7 @@ async def test_on_force_reply_item_field(
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "name"}})
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -432,7 +432,7 @@ async def test_on_force_reply_header_field_client(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "client"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -470,7 +470,7 @@ async def test_on_force_reply_header_field_date(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "date"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -508,7 +508,7 @@ async def test_on_force_reply_header_field_doc_number(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "doc_number"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -546,7 +546,7 @@ async def test_on_force_reply_header_field_total_sum(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "total_sum"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -584,7 +584,7 @@ async def test_on_force_reply_item_field_code(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "code"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -622,7 +622,7 @@ async def test_on_force_reply_item_field_qty(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "qty"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -660,7 +660,7 @@ async def test_on_force_reply_item_field_price(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "price"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -698,7 +698,7 @@ async def test_on_force_reply_item_field_total(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "total"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -729,7 +729,7 @@ async def test_on_force_reply_no_matching_state(
     state = FakeFSMContext()
     await state.set_state(None)  # No matching state
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -761,7 +761,7 @@ async def test_cmd_edit_legacy_insufficient_args(
 
     message = FakeMessage(text="/edit", user_id=user_id)  # No args after /edit
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -792,7 +792,7 @@ async def test_cmd_edititem_legacy_insufficient_args(
 
     message = FakeMessage(text="/edititem 1", user_id=user_id)  # No args after index
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -823,7 +823,7 @@ async def test_cmd_edititem_legacy_code_field(
 
     message = FakeMessage(text="/edititem 1 code=NEW-CODE", user_id=user_id)
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -861,7 +861,7 @@ async def test_on_force_reply_empty_text(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "header", "key": "supplier"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -895,7 +895,7 @@ async def test_on_force_reply_empty_comment(
     state = FakeFSMContext()
     await state.set_state(EditInvoiceState.waiting_for_comment)
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -930,7 +930,7 @@ async def test_on_force_reply_item_field_invalid_index(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 999, "key": "name"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -965,7 +965,7 @@ async def test_on_force_reply_item_field_no_idx(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "key": "name"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -1000,7 +1000,7 @@ async def test_on_force_reply_item_field_invalid_number(
     await state.set_state(EditInvoiceState.waiting_for_field_value)
     await state.update_data({"edit_config": {"kind": "item", "idx": 1, "key": "qty"}})
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -1032,7 +1032,7 @@ async def test_cmd_edititem_legacy_invalid_index(
 
     message = FakeMessage(text="/edititem invalid name=Test", user_id=user_id)
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1063,7 +1063,7 @@ async def test_cmd_edititem_legacy_index_out_of_range(
 
     message = FakeMessage(text="/edititem 999 name=Test", user_id=user_id)
 
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1096,7 +1096,7 @@ async def test_cmd_comment_with_draft(
     message = FakeMessage(text="/comment Test comment", user_id=user_id)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1140,7 +1140,7 @@ async def test_cmd_comment_without_draft(
     message = FakeMessage(text="/comment Test comment", user_id=123)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1182,7 +1182,7 @@ async def test_cmd_comment_empty_text(
     message = FakeMessage(text="/comment ", user_id=user_id)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1229,8 +1229,8 @@ async def test_cmd_save_with_draft(draft_container: AppContainer, commands_route
 
     # Call handler through router using message.trigger
     with (
-        patch("handlers.commands_drafts.get_draft_service") as mock_get_draft,
-        patch("handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
+        patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft,
+        patch("backend.handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
     ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
@@ -1303,8 +1303,8 @@ async def test_cmd_save_without_draft(
 
     # Call handler through router using message.trigger
     with (
-        patch("handlers.commands_drafts.get_draft_service") as mock_get_draft,
-        patch("handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
+        patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft,
+        patch("backend.handlers.commands_drafts.get_invoice_service") as mock_get_invoice,
     ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
@@ -1349,7 +1349,7 @@ async def test_cmd_edit_legacy(draft_container: AppContainer, commands_router: R
     )
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1427,7 +1427,7 @@ async def test_cmd_edit_legacy_without_draft(
     message = FakeMessage(text="/edit supplier=Test", user_id=123)
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}
@@ -1469,7 +1469,7 @@ async def test_cmd_edititem_legacy(draft_container: AppContainer, commands_route
     )
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_drafts.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container}

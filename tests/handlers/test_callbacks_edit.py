@@ -117,7 +117,7 @@ async def test_cb_act_edit_with_draft(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -167,7 +167,7 @@ async def test_cb_act_edit_without_draft(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -213,7 +213,7 @@ async def test_cb_hed_field_supplier(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -292,7 +292,7 @@ async def test_cb_act_items_with_items(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -354,7 +354,7 @@ async def test_cb_act_items_without_items(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -407,7 +407,7 @@ async def test_cb_item_pick_valid_index(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -477,8 +477,8 @@ async def test_cb_act_save_with_draft(
 
     # Call handler through router using callback_query.trigger
     with (
-        patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft,
-        patch("handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
+        patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft,
+        patch("backend.handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
     ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service
@@ -548,7 +548,7 @@ async def test_cb_itm_field(draft_container: AppContainer, callback_router: Rout
     import backend.handlers.callbacks_edit  # noqa: F401
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         # Prepare data for handler
@@ -626,7 +626,7 @@ async def test_cb_act_comment_with_draft(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         # Prepare data for handler
@@ -681,7 +681,7 @@ async def test_cb_act_comment_without_draft(
     state = FakeFSMContext()
 
     # Call handler through router using callback_query.trigger
-    with patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft:
+    with patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft:
         mock_get_draft.return_value = draft_container.draft_service
 
         data = {"container": draft_container, "state": state}
@@ -731,8 +731,8 @@ async def test_cb_act_save_with_sum_mismatch(
 
     # Call handler through router using callback_query.trigger
     with (
-        patch("handlers.callbacks_edit.get_draft_service") as mock_get_draft,
-        patch("handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
+        patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft,
+        patch("backend.handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
     ):
         mock_get_draft.return_value = draft_container.draft_service
         mock_get_invoice.return_value = draft_container.invoice_service

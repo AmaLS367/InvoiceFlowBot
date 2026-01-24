@@ -94,7 +94,7 @@ async def test_cb_act_help(misc_router: Router) -> None:
         )
     except Exception:
         # Fallback: test logic directly if router approach fails
-            from backend.handlers.utils import main_kb
+        from backend.handlers.utils import main_kb
 
         if call.message is not None:
             await call.message.answer(

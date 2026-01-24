@@ -122,7 +122,7 @@ async def test_on_force_reply_invoices_to_date(
     await state.update_data({"period": {"from_date": date(2025, 1, 1)}})
 
     # Call handler through router using message.trigger
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container, "state": state}
@@ -191,7 +191,7 @@ async def test_on_force_reply_invoices_supplier(
     # Ensure invoice service has invoices
     invoice_service.return_invoices = [test_invoice]
 
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container, "state": state}
@@ -232,7 +232,7 @@ async def test_cmd_invoices_basic(
 
     message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
 
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container}
@@ -276,7 +276,7 @@ async def test_cmd_invoices_with_supplier(
     # Ensure invoice service has invoices
     invoice_service.return_invoices = [test_invoice]
 
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container}
@@ -305,7 +305,7 @@ async def test_on_force_reply_invoices_missing_dates(
     await state.set_state(InvoicesPeriodState.waiting_for_supplier)
     await state.update_data({"period": {"from": None, "to": None}})  # Missing dates
 
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container, "state": state}
@@ -350,7 +350,7 @@ async def test_cmd_invoices_long_output(
 
     message = FakeMessage(text="/invoices 2025-01-01 2025-01-31", user_id=123)
 
-    with patch("handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
+    with patch("backend.handlers.commands_invoices.get_invoice_service") as mock_get_invoice:
         mock_get_invoice.return_value = invoices_container.invoice_service
 
         data = {"container": invoices_container}

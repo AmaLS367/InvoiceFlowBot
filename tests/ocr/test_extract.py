@@ -39,8 +39,8 @@ def test_parse_invoice_text_success():
         warnings=[],
     )
 
-    with patch("ocr.extract.extract_invoice", return_value=expected_result):
-        with patch("ocr.extract.time_block"):
+    with patch("backend.ocr.extract.extract_invoice", return_value=expected_result):
+        with patch("backend.ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):
                     result = parse_invoice_text("test.pdf", fast=True, max_pages=12)
@@ -68,8 +68,8 @@ def test_parse_invoice_text_with_warnings():
         warnings=["missing_tax", "low_confidence"],
     )
 
-    with patch("ocr.extract.extract_invoice", return_value=expected_result):
-        with patch("ocr.extract.time_block"):
+    with patch("backend.ocr.extract.extract_invoice", return_value=expected_result):
+        with patch("backend.ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):
                     result = parse_invoice_text("test.pdf", fast=False, max_pages=5)
@@ -91,8 +91,8 @@ def test_parse_invoice_text_no_items():
         warnings=[],
     )
 
-    with patch("ocr.extract.extract_invoice", return_value=expected_result):
-        with patch("ocr.extract.time_block"):
+    with patch("backend.ocr.extract.extract_invoice", return_value=expected_result):
+        with patch("backend.ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):
                     result = parse_invoice_text("test.pdf")
@@ -112,7 +112,7 @@ def test_parse_invoice_text_file_not_found():
 
 def test_parse_invoice_text_with_pages():
     """Test parse_invoice_text with pages."""
-        from backend.ocr.engine.types import PageInfo
+    from backend.ocr.engine.types import PageInfo
 
     expected_result = ExtractionResult(
         document_id="test-doc",
@@ -135,8 +135,8 @@ def test_parse_invoice_text_with_pages():
         warnings=[],
     )
 
-    with patch("ocr.extract.extract_invoice", return_value=expected_result):
-        with patch("ocr.extract.time_block"):
+    with patch("backend.ocr.extract.extract_invoice", return_value=expected_result):
+        with patch("backend.ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):
                     result = parse_invoice_text("test.pdf")
@@ -149,7 +149,7 @@ def test_parse_invoice_text_with_pages():
 def test_parse_invoice_text_exception_handling():
     """Test parse_invoice_text exception handling."""
     with patch("backend.ocr.extract.extract_invoice", side_effect=RuntimeError("OCR failed")):
-        with patch("ocr.extract.time_block"):
+        with patch("backend.ocr.extract.time_block"):
             with patch("pathlib.Path.exists", return_value=True):
                 with patch("os.path.getsize", return_value=1024):
                     with pytest.raises(RuntimeError):

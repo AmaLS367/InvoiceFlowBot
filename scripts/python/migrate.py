@@ -18,19 +18,19 @@ def get_project_root() -> Path:
 
 def run_migration(command: str = "upgrade head") -> None:
     """Run Alembic migration command.
-    
+
     Args:
         command: Alembic command (e.g., "upgrade head", "downgrade -1", "revision -m 'message'")
     """
     project_root = get_project_root()
     os.chdir(project_root)
-    
+
     alembic_ini = project_root / "backend" / "alembic.ini"
-    
+
     if not alembic_ini.exists():
         print(f"Error: alembic.ini not found at {alembic_ini}", file=sys.stderr)
         sys.exit(1)
-    
+
     cmd_parts = command.split()
     alembic_cmd = [
         sys.executable,
@@ -39,14 +39,14 @@ def run_migration(command: str = "upgrade head") -> None:
         "-c",
         str(alembic_ini),
     ] + cmd_parts
-    
+
     print(f"Running: {' '.join(alembic_cmd)}")
     result = subprocess.run(alembic_cmd, cwd=project_root)
-    
+
     if result.returncode != 0:
         print("Error: Migration failed", file=sys.stderr)
         sys.exit(1)
-    
+
     print("✓ Migration completed successfully")
 
 
@@ -58,7 +58,7 @@ def main() -> None:
     else:
         # Default: upgrade to head
         command = "upgrade head"
-    
+
     run_migration(command)
 
 

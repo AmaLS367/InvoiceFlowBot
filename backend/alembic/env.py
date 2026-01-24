@@ -3,9 +3,9 @@ from __future__ import annotations
 from logging.config import fileConfig
 from pathlib import Path
 
+from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context
 from backend.storage.db import DB_PATH
 
 config = context.config

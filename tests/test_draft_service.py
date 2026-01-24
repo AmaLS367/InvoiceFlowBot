@@ -56,7 +56,7 @@ def _make_sample_draft() -> InvoiceDraft:
 async def test_draft_service_roundtrip(tmp_path, monkeypatch) -> None:
     db_file = tmp_path / "test_drafts.sqlite"
     monkeypatch.setattr(storage_db, "DB_PATH", str(db_file), raising=True)
-    monkeypatch.setattr("storage.drafts_async.DB_PATH", str(db_file), raising=True)
+    monkeypatch.setattr("backend.storage.drafts_async.DB_PATH", str(db_file), raising=True)
 
     storage_db.init_db()
 

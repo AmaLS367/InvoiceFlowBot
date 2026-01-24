@@ -20,17 +20,17 @@ def run_format() -> None:
     """Run ruff format."""
     project_root = get_project_root()
     os.chdir(project_root)
-    
+
     print("Formatting code with ruff...")
     result = subprocess.run(
         [sys.executable, "-m", "ruff", "format", "."],
         cwd=project_root,
     )
-    
+
     if result.returncode != 0:
         print("Error: Formatting failed", file=sys.stderr)
         sys.exit(1)
-    
+
     print("✓ Code formatted successfully")
 
 

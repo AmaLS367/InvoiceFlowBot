@@ -43,7 +43,7 @@ def _make_simple_invoice(source_path: str = "") -> Invoice:
 async def test_save_invoice_domain_async_persists_data(tmp_path, monkeypatch) -> None:
     db_file = tmp_path / "test_async_db.sqlite"
     monkeypatch.setattr(storage_db, "DB_PATH", str(db_file), raising=True)
-    monkeypatch.setattr("storage.db_async.DB_PATH", str(db_file), raising=True)
+    monkeypatch.setattr("backend.storage.db_async.DB_PATH", str(db_file), raising=True)
 
     storage_db.init_db()
 
@@ -75,7 +75,7 @@ async def test_save_invoice_domain_async_persists_data(tmp_path, monkeypatch) ->
 async def test_fetch_invoices_domain_async_matches_sync(tmp_path, monkeypatch) -> None:
     db_file = tmp_path / "test_async_db_fetch.sqlite"
     monkeypatch.setattr(storage_db, "DB_PATH", str(db_file), raising=True)
-    monkeypatch.setattr("storage.db_async.DB_PATH", str(db_file), raising=True)
+    monkeypatch.setattr("backend.storage.db_async.DB_PATH", str(db_file), raising=True)
 
     storage_db.init_db()
 
