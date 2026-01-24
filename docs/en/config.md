@@ -10,7 +10,7 @@
 
 ## 📋 About Configuration
 
-All settings live in environment variables. `config.py` loads `.env` with `os.getenv`, so updating the file and restarting the process is enough to apply changes.
+All settings live in environment variables. `backend.config` loads `.env` with `os.getenv`, so updating the file and restarting the process is enough to apply changes.
 
 > [!IMPORTANT]
 > The bot will not start without required variables!

@@ -10,7 +10,7 @@
 
 ## 📋 About Logging
 
-`ocr/engine/util.py` configures rotating log handlers the first time `get_logger` runs. By default logs live in `logs/` next to the source code or inside the directory specified via `LOG_DIR`.
+`backend.ocr.engine.util` configures rotating log handlers the first time `get_logger` runs. By default logs live in `logs/` next to the source code or inside the directory specified via `LOG_DIR`.
 
 > [!TIP]
 > When troubleshooting, always check files in `logs/` first!
@@ -19,8 +19,8 @@
 
 - `ocr_engine.log` — general application events, OCR steps, and file processing.
 - `errors.log` — warnings and errors (level `WARNING` and above).
-- `router.log` — detailed output from the OCR router (`ocr.router` logger).
-- `extract.log` — traces produced by `ocr.extract`, useful for Mindee debugging.
+- `router.log` — detailed output from the OCR router (`backend.ocr.engine.router` logger).
+- `extract.log` — traces produced by `backend.ocr.extract`, useful for Mindee debugging.
 
 ## Configuration knobs
 
