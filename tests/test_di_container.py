@@ -6,10 +6,10 @@ from typing import Any, Dict
 import pytest
 from aiogram.types import TelegramObject
 
-from core.container import AppContainer, create_app_container
-from handlers.di_middleware import ContainerMiddleware
-from services.draft_service import DraftService
-from services.invoice_service import InvoiceService
+from backend.core.container import AppContainer, create_app_container
+from backend.handlers.di_middleware import ContainerMiddleware
+from backend.services.draft_service import DraftService
+from backend.services.invoice_service import InvoiceService
 
 
 def test_create_app_container_wires_real_services() -> None:

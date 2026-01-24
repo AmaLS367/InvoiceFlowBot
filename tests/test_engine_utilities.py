@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from ocr.engine import util
+from backend.ocr.engine import util
 
 
 def test_file_sha256_matches_known_value(tmp_path: Path) -> None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import List, Optional
 
-from domain.invoices import Invoice
+from backend.domain.invoices import Invoice
 
 
 class FakeInvoiceService:

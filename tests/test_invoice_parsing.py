@@ -3,9 +3,9 @@ from decimal import Decimal
 
 import pytest
 
-from handlers import utils
-from ocr.engine.router import _result_payload
-from ocr.engine.types import ExtractionResult, Item, PageInfo
+from backend.handlers import utils
+from backend.ocr.engine.router import _result_payload
+from backend.ocr.engine.types import ExtractionResult, Item, PageInfo
 
 
 def test_result_payload_transforms_dataclasses():
@@ -79,7 +79,7 @@ def test_fmt_items_and_csv_output():
 
 def test_format_invoice_summary():
     """Test format_invoice_summary function."""
-    from domain.invoices import Invoice, InvoiceHeader
+        from backend.domain.invoices import Invoice, InvoiceHeader
 
     header = InvoiceHeader(
         subtotal=Decimal("90.00"),
@@ -98,7 +98,7 @@ def test_format_invoice_summary():
 
 def test_format_invoice_summary_empty():
     """Test format_invoice_summary with empty values."""
-    from domain.invoices import Invoice, InvoiceHeader
+        from backend.domain.invoices import Invoice, InvoiceHeader
 
     header = InvoiceHeader()
     invoice = Invoice(header=header)
@@ -109,7 +109,7 @@ def test_format_invoice_summary_empty():
 
 def test_csv_bytes_from_items():
     """Test csv_bytes_from_items function."""
-    from domain.invoices import InvoiceItem
+        from backend.domain.invoices import InvoiceItem
 
     items = [
         InvoiceItem(
@@ -137,7 +137,7 @@ def test_csv_bytes_from_items():
 
 def test_format_invoice_items_empty():
     """Test format_invoice_items with empty list."""
-    from domain.invoices import InvoiceItem
+        from backend.domain.invoices import InvoiceItem
 
     items: list[InvoiceItem] = []
     result = utils.format_invoice_items(items)
@@ -146,7 +146,7 @@ def test_format_invoice_items_empty():
 
 def test_format_invoice_items_with_items():
     """Test format_invoice_items with items."""
-    from domain.invoices import InvoiceItem
+        from backend.domain.invoices import InvoiceItem
 
     items = [
         InvoiceItem(
@@ -166,7 +166,7 @@ def test_format_invoice_items_with_items():
 
 def test_format_invoice_full():
     """Test format_invoice_full function."""
-    from domain.invoices import Invoice, InvoiceHeader, InvoiceItem
+        from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
 
     header = InvoiceHeader(
         supplier_name="Supplier",
@@ -273,7 +273,7 @@ def test_fmt_header_with_none_values():
 
 def test_format_invoice_header_with_none():
     """Test format_invoice_header with None values."""
-    from domain.invoices import Invoice, InvoiceHeader
+        from backend.domain.invoices import Invoice, InvoiceHeader
 
     header = InvoiceHeader()
     invoice = Invoice(header=header)

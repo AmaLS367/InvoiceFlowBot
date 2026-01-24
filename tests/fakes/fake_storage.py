@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, List, Optional
 
-from domain.drafts import InvoiceDraft
-from domain.invoices import Invoice
+from backend.domain.drafts import InvoiceDraft
+from backend.domain.invoices import Invoice
 
 
 class FakeStorage:

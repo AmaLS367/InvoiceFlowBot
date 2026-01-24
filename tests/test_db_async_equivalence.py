@@ -5,9 +5,9 @@ from decimal import Decimal
 
 import pytest
 
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from storage import db as storage_db
-from storage import db_async
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
+from backend.storage import db as storage_db
+from backend.storage import db_async
 
 
 def _make_simple_invoice(source_path: str = "") -> Invoice:

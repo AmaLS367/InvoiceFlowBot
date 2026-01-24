@@ -6,9 +6,9 @@ from typing import List
 
 import pytest
 
-from core.container import AppContainer
-from domain.drafts import InvoiceDraft
-from ocr.engine.types import ExtractionResult, Item
+from backend.core.container import AppContainer
+from backend.domain.drafts import InvoiceDraft
+from backend.ocr.engine.types import ExtractionResult, Item
 from tests.fakes.fake_ocr import FakeOcr
 
 pytestmark = pytest.mark.storage_db

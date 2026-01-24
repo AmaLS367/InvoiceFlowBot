@@ -4,8 +4,8 @@ from typing import List
 
 import pytest
 
-from domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from services.invoice_service import InvoiceService
+from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
+from backend.services.invoice_service import InvoiceService
 
 
 class DummyItem:
