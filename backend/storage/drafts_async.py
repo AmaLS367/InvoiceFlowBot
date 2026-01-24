@@ -7,15 +7,15 @@ from typing import Any, Dict, Optional
 
 import aiosqlite
 
-from domain.drafts import InvoiceDraft
-from domain.invoices import (
+from backend.domain.drafts import InvoiceDraft
+from backend.domain.invoices import (
     Invoice,
     InvoiceComment,
     InvoiceHeader,
     InvoiceItem,
     InvoiceSourceInfo,
 )
-from storage.db import DB_PATH
+from backend.storage.db import DB_PATH
 
 
 async def _connect() -> aiosqlite.Connection:

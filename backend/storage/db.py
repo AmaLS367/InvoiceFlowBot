@@ -12,11 +12,11 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import config
+from backend import config
 from alembic import command
 from alembic.config import Config
-from domain.invoices import Invoice
-from storage.mappers import (
+from backend.domain.invoices import Invoice
+from backend.storage.mappers import (
     db_row_to_invoice,
     invoice_item_to_db_row,
     invoice_to_db_row,

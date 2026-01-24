@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Awaitable, Callable, Optional
 
-from domain.drafts import InvoiceDraft
+from backend.domain.drafts import InvoiceDraft
 
 
 class DraftService:

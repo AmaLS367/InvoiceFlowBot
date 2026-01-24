@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Dict, List
 
-from domain.invoices import (
+from backend.domain.invoices import (
     Invoice,
     InvoiceHeader,
     InvoiceItem,

@@ -5,13 +5,13 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Awaitable, Callable, List, Optional
 
-from domain.invoices import (
+from backend.domain.invoices import (
     Invoice,
     InvoiceHeader,
     InvoiceItem,
     InvoiceSourceInfo,
 )
-from ocr.engine.types import ExtractionResult, Item
+from backend.ocr.engine.types import ExtractionResult, Item
 
 DEFAULT_MAX_OCR_PAGES = 12
 
