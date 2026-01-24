@@ -17,7 +17,7 @@ InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default d
 
 ## 📊 Schema
 
-`storage/db.py:init_db()` runs on startup and ensures these tables exist:
+`backend.storage.db:init_db()` runs on startup and ensures these tables exist:
 
 - `invoices` — invoice headers: Telegram user, supplier, client, document number, date fields, total amount, raw text, and source path.
 - `invoice_items` — line items: row index, code, name, quantity, price, total per line.

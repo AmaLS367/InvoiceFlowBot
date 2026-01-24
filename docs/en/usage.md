@@ -39,7 +39,7 @@
 
 ## Inline buttons
 
-`handlers/utils.py` supplies inline keyboards for:
+`backend.handlers.utils` supplies inline keyboards for:
 - Uploading another invoice.
 - Editing header attributes directly.
 - Adding comments or line items.

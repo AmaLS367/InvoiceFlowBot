@@ -58,7 +58,7 @@ sequenceDiagram
 </tr>
 <tr>
 <td width="5%" align="center">2️⃣</td>
-<td><code>handlers/file.py</code> получает файл и вызывает <code>services/invoice_service.process_invoice_file()</code></td>
+<td><code>backend.handlers.file</code> получает файл и вызывает <code>backend.services.invoice_service.process_invoice_file()</code></td>
 </tr>
 <tr>
 <td width="5%" align="center">3️⃣</td>
@@ -66,7 +66,7 @@ sequenceDiagram
 </tr>
 <tr>
 <td width="5%" align="center">4️⃣</td>
-<td><code>services/invoice_service.py</code> конвертирует <code>ExtractionResult</code> в доменную <code>Invoice</code></td>
+<td><code>backend.services.invoice_service</code> конвертирует <code>ExtractionResult</code> в доменную <code>Invoice</code></td>
 </tr>
 <tr>
 <td width="5%" align="center">5️⃣</td>
@@ -74,7 +74,7 @@ sequenceDiagram
 </tr>
 <tr>
 <td width="5%" align="center">6️⃣</td>
-<td>Команда <code>/save</code> → <code>save_invoice()</code> → <code>storage/db.py</code> → <code>data.sqlite</code></td>
+<td>Команда <code>/save</code> → <code>save_invoice()</code> → <code>backend.storage.db</code> → <code>data.sqlite</code></td>
 </tr>
 <tr>
 <td width="5%" align="center">7️⃣</td>
@@ -133,7 +133,7 @@ graph TD
 </details>
 
 <details>
-<summary><b>🔍 Подробная структура ocr/</b></summary>
+<summary><b>🔍 Подробная структура backend.ocr/</b></summary>
 
 **providers/** — абстракция провайдеров:
 - `base.py` — интерфейс `OcrProvider`

@@ -244,29 +244,31 @@ The bot provides inline keyboard buttons for:
 ```
 InvoiceFlowBot/
 ├── bot.py                 # Main bot entry point
-├── config.py              # Configuration management
-├── domain/
-│   └── invoices.py        # Domain entities (Invoice, InvoiceHeader, InvoiceItem, etc.)
-├── services/
-│   └── invoice_service.py # Service layer (OCR orchestration, domain conversion)
-├── handlers/
-│   ├── commands.py        # Text command handlers (/show, /edit, /invoices, etc.)
-│   ├── callbacks.py       # Callback query handlers (inline button actions)
-│   ├── file.py            # File upload handlers
-│   ├── state.py           # Global state management
-│   └── utils.py           # Utility functions and keyboards
-├── ocr/
-│   ├── extract.py         # Invoice extraction entry point
-│   ├── mindee_client.py   # Mindee API integration
-│   ├── providers/         # OCR provider abstraction layer
-│   │   ├── base.py        # OcrProvider interface
-│   │   └── mindee_provider.py  # Mindee provider implementation
-│   └── engine/
-│       ├── router.py      # OCR routing logic (uses providers)
-│       ├── types.py       # Data type definitions
-│       └── util.py        # OCR utilities and logging
-└── storage/
-    └── db.py              # Database operations
+├── backend/
+│   ├── config.py          # Configuration management
+│   ├── domain/
+│   │   └── invoices.py    # Domain entities (Invoice, InvoiceHeader, InvoiceItem, etc.)
+│   ├── services/
+│   │   └── invoice_service.py # Service layer (OCR orchestration, domain conversion)
+│   ├── handlers/
+│   │   ├── commands.py    # Text command handlers (/show, /edit, /invoices, etc.)
+│   │   ├── callbacks.py   # Callback query handlers (inline button actions)
+│   │   ├── file.py        # File upload handlers
+│   │   ├── fsm.py         # Global state management
+│   │   └── utils.py       # Utility functions and keyboards
+│   ├── ocr/
+│   │   ├── extract.py     # Invoice extraction entry point
+│   │   ├── mindee_client.py # Mindee API integration
+│   │   ├── providers/     # OCR provider abstraction layer
+│   │   │   ├── base.py    # OcrProvider interface
+│   │   │   └── mindee_provider.py # Mindee provider implementation
+│   │   └── engine/
+│   │       ├── router.py  # OCR routing logic (uses providers)
+│   │       ├── types.py   # Data type definitions
+│   │       └── util.py    # OCR utilities and logging
+│   ├── storage/
+│   │   └── db.py          # Database operations
+│   └── alembic/           # Database migrations
 ```
 
 ## ⚙️ Configuration

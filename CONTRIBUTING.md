@@ -185,12 +185,13 @@ graph TD
 
 ```
 InvoiceFlowBot/
-├── 🎯 domain/          # Business entities
-├── ⚙️ services/        # Business logic
-├── 🔍 ocr/             # OCR providers
-├── 💾 storage/         # Database layer
-├── 🤖 handlers/        # Telegram handlers
-└── 🔧 core/            # Configuration & DI
+├── backend/
+│   ├── 🎯 domain/      # Business entities
+│   ├── ⚙️ services/    # Business logic
+│   ├── 🔍 ocr/         # OCR providers
+│   ├── 💾 storage/     # Database layer
+│   ├── 🤖 handlers/    # Telegram handlers
+│   └── 🔧 core/        # Configuration & DI
 ```
 
 </details>
