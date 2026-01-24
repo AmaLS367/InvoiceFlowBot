@@ -34,11 +34,11 @@ The project has **80% code coverage** with **160+ tests**, covering all major mo
 
 ### Core test files
 
-- `test_invoice_parsing.py` — converts Mindee responses into the internal format, formatting and utilities
-- `test_engine_utilities.py` — validates OCR engine helpers and logging utilities
-- `test_storage_dates.py` — checks ISO date conversions and database queries
-- `test_imports.py` — quick smoke test ensuring core modules import correctly
-- `test_invoice_service.py` — service layer tests with mocked OCR and storage:
+- `tests/test_invoice_parsing.py` — converts Mindee responses into the internal format, formatting and utilities
+- `tests/test_engine_utilities.py` — validates OCR engine helpers and logging utilities
+- `tests/test_storage_dates.py` — checks ISO date conversions and database queries
+- `tests/test_imports.py` — quick smoke test ensuring core modules import correctly
+- `tests/test_invoice_service.py` — service layer tests with mocked OCR and storage:
   - `process_invoice_file` — tests OCR integration and domain model conversion
   - `save_invoice` and `list_invoices` — tests storage layer delegation
 
@@ -69,7 +69,7 @@ The project has **80% code coverage** with **160+ tests**, covering all major mo
 
 ### Integration tests
 
-- `integration/test_flow_ocr_draft_save.py` — full flow test from OCR to invoice saving
+- `tests/integration/test_flow_ocr_draft_save.py` — full flow test from OCR to invoice saving
 
 ## Code Quality Tools
 

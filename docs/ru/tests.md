@@ -34,11 +34,11 @@ pytest
 
 ### Основные тестовые файлы
 
-- `test_invoice_parsing.py` — проверка преобразования ответа Mindee в внутреннюю структуру, форматирование и утилиты
-- `test_engine_utilities.py` — валидация утилит OCR-движка и логирования
-- `test_storage_dates.py` — конвертация дат, ISO форматы и выборки из БД
-- `test_imports.py` — быстрый smoke-тест импорта ключевых модулей
-- `test_invoice_service.py` — тесты сервисного слоя с замоканными OCR и хранилищем:
+- `tests/test_invoice_parsing.py` — проверка преобразования ответа Mindee в внутреннюю структуру, форматирование и утилиты
+- `tests/test_engine_utilities.py` — валидация утилит OCR-движка и логирования
+- `tests/test_storage_dates.py` — конвертация дат, ISO форматы и выборки из БД
+- `tests/test_imports.py` — быстрый smoke-тест импорта ключевых модулей
+- `tests/test_invoice_service.py` — тесты сервисного слоя с замоканными OCR и хранилищем:
   - `process_invoice_file` — проверка интеграции OCR и конвертации в доменную модель
   - `save_invoice` и `list_invoices` — проверка делегирования в слой хранилища
 
@@ -69,7 +69,7 @@ pytest
 
 ### Интеграционные тесты
 
-- `integration/test_flow_ocr_draft_save.py` — полный flow обработки счета от OCR до сохранения
+- `tests/integration/test_flow_ocr_draft_save.py` — полный flow обработки счета от OCR до сохранения
 
 ## Инструменты качества кода
 
