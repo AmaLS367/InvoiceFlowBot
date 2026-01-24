@@ -20,17 +20,17 @@ This document describes the high level architecture of InvoiceFlowBot.
 
 The project is split into several layers:
 
-- **domain** - pure domain model for invoices and drafts.
+- **backend.domain** - pure domain model for invoices and drafts.
 
-- **services** - business logic that orchestrates domain, OCR and storage.
+- **backend.services** - business logic that orchestrates domain, OCR and storage.
 
-- **ocr** - OCR engine and providers (Mindee), responsible for turning files into structured data.
+- **backend.ocr** - OCR engine and providers (Mindee), responsible for turning files into structured data.
 
-- **storage** - async storage layer on top of SQLite and Alembic migrations.
+- **backend.storage** - async storage layer on top of SQLite and Alembic migrations.
 
-- **handlers** - Telegram entrypoint implemented with aiogram 3.
+- **backend.handlers** - Telegram entrypoint implemented with aiogram 3.
 
-- **core** - configuration and dependency injection container.
+- **backend.core** - configuration and dependency injection container.
 
 ## High level component diagram
 
@@ -39,12 +39,12 @@ flowchart LR
     TgUser[Telegram user] -->|files, commands| Handlers
 
     subgraph Bot
-        Handlers[handlers/*]
-        Services[services/*]
-        Domain[domain/*]
-        OCR[ocr/*]
-        Storage[storage/*]
-        Config[config.py / core/*]
+        Handlers[backend.handlers/*]
+        Services[backend.services/*]
+        Domain[backend.domain/*]
+        OCR[backend.ocr/*]
+        Storage[backend.storage/*]
+        Config[backend.config.py / backend.core/*]
     end
 
     Handlers --> Services
@@ -64,7 +64,7 @@ flowchart LR
 sequenceDiagram
     participant User as Telegram user
     participant TG as Telegram Bot API
-    participant H as handlers/file.py
+    participant H as backend.handlers.file
     participant S as InvoiceService
     participant O as OcrProvider (Mindee)
     participant ST as AsyncInvoiceStorage
