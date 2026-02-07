@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import sqlite3
 from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, engine_from_config, pool
 
 from backend.storage.db import DB_PATH
 
@@ -18,18 +19,14 @@ target_metadata = None
 
 def get_url() -> str:
     """
-    Get database URL from Alembic config if set, otherwise use DB_PATH from backend.storage.db.
-
-    This allows tests to override the database URL via config.set_main_option("sqlalchemy.url", ...).
+    Database URL for migrations. Uses DB_PATH from app config so we migrate the same DB the app uses.
+    Tests can override with config.set_main_option("sqlalchemy.url", "sqlite:///:memory:").
     """
-    # Check if URL is set in Alembic config (e.g., by tests)
     url_from_config = config.get_main_option("sqlalchemy.url")
-    if url_from_config:
+    if url_from_config and ":memory:" in url_from_config:
         return url_from_config
-
-    # Fallback to DB_PATH from backend.storage.db (default behavior)
-    db_path = Path(DB_PATH)
-    return f"sqlite:///{db_path}"
+    db_path = Path(DB_PATH).resolve()
+    return f"sqlite:///{db_path.as_posix()}"
 
 
 def run_migrations_offline() -> None:
@@ -45,15 +42,32 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    url = get_url()
-    configuration = config.get_section(config.config_ini_section) or {}
-    configuration["sqlalchemy.url"] = url
+    url_from_config = config.get_main_option("sqlalchemy.url")
+    # Prefer app DB_PATH so we migrate the same DB the app uses (alembic.ini may have a different path)
+    use_app_path = True
+    if url_from_config and ":memory:" in url_from_config:
+        use_app_path = False  # tests override with in-memory DB
+    if use_app_path:
+        db_path = Path(DB_PATH).resolve()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        path_str = str(db_path)
 
-    connectable = engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+        def _sqlite_creator():
+            return sqlite3.connect(path_str)
+
+        connectable = create_engine(
+            "sqlite://",
+            creator=_sqlite_creator,
+            poolclass=pool.NullPool,
+        )
+    else:
+        configuration = config.get_section(config.config_ini_section) or {}
+        configuration["sqlalchemy.url"] = url_from_config
+        connectable = engine_from_config(
+            configuration,
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
 
     with connectable.connect() as connection:
         context.configure(

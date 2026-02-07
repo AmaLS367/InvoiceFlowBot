@@ -25,6 +25,52 @@ InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default d
 
 The database enables WAL mode for safer concurrent writes.
 
+## 🔄 Migrations
+
+Schema changes are managed by [Alembic](https://alembic.sqlalchemy.org/). Migrations create and update tables (including `invoice_drafts` for draft invoices).
+
+### When to run migrations
+
+- **First-time setup** — before first run, so all tables exist.
+- **After pulling changes** — if new migrations were added to the repo.
+- **After cloning** — so the local database matches the current schema.
+
+The bot also runs migrations on startup via `backend.storage.db.init_db()`, but running them manually once from the project root is recommended so the same database file is used (see below).
+
+### How to run migrations
+
+**Always run from the project root** (the `InvoiceFlowBot` directory) so the app config and `.env` are loaded and migrations apply to the same database the bot uses (by default `backend/data.sqlite`).
+
+```powershell
+# From project root (Windows)
+python -m alembic -c backend/alembic.ini upgrade head
+```
+
+Or use the script:
+
+```powershell
+python scripts/python/migrate.py
+```
+
+Linux/macOS:
+
+```bash
+./scripts/linux/migrate.sh
+```
+
+Other commands (from project root):
+
+```powershell
+# Roll back one migration
+python scripts/python/migrate.py downgrade -1
+
+# Create a new migration (developers)
+python -m alembic -c backend/alembic.ini revision -m "describe_change"
+```
+
+> [!TIP]
+> If you see `no such table: invoice_drafts` or `unable to open database file`, run migrations from the project root as above. The path to the database is taken from the app config (`INVOICE_DB_PATH` / `backend/data.sqlite`), not from `alembic.ini`.
+
 ## ⚠️ Best practices
 
 > [!WARNING]

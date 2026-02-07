@@ -359,12 +359,16 @@ The bot uses SQLite database to store invoices. The database schema is managed b
 
 ### Initial Setup
 
+Run migrations **from the project root** so they apply to the same database the bot uses (e.g. `backend/data.sqlite`):
+
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
 ```
 
+Or: `python scripts/python/migrate.py` (see [Database docs](docs/en/database.md#-migrations) for details).
+
 > [!NOTE]
-> The application automatically runs migrations on startup via `backend.storage.db.init_db()`.
+> The application also runs migrations on startup via `backend.storage.db.init_db()`. Running them once manually from the project root is recommended to avoid path issues (e.g. on Windows).
 
 ### Database Tables
 
