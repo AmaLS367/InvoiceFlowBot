@@ -8,6 +8,9 @@ version = "0.4.0"
 description = "Telegram bot for processing invoices via OCR and storing them in SQLite"
 requires-python = ">=3.11"
 readme = "README.md"
+authors = [
+    { name = "Ama", email = "amalsdev367@gmail.com" },
+]
 dependencies = [
     "aiogram>=3.10",
     "aiosqlite>=0.20.0",
@@ -36,6 +39,14 @@ dev = [
 
 [project.scripts]
 invoiceflowbot = "bot:main"
+
+[project.urls]
+repository = "https://github.com/AmaLS367/InvoiceFlowBot"
+documentation = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/docs/README.md"
+issues = "https://github.com/AmaLS367/InvoiceFlowBot/issues"
+changelog = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/CHANGELOG.md"
+contributing = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/CONTRIBUTING.md"
+license = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/LICENSE"
 
 [tool.setuptools]
 packages = [

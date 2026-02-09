@@ -20,10 +20,10 @@ target_metadata = None
 def get_url() -> str:
     """
     Database URL for migrations. Uses DB_PATH from app config so we migrate the same DB the app uses.
-    Tests can override with config.set_main_option("sqlalchemy.url", "sqlite:///:memory:").
+    Tests can override with config.set_main_option("sqlalchemy.url", "sqlite:///path" or "sqlite:///:memory:").
     """
     url_from_config = config.get_main_option("sqlalchemy.url")
-    if url_from_config and ":memory:" in url_from_config:
+    if url_from_config:
         return url_from_config
     db_path = Path(DB_PATH).resolve()
     return f"sqlite:///{db_path.as_posix()}"
@@ -43,11 +43,37 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     url_from_config = config.get_main_option("sqlalchemy.url")
-    # Prefer app DB_PATH so we migrate the same DB the app uses (alembic.ini may have a different path)
-    use_app_path = True
-    if url_from_config and ":memory:" in url_from_config:
-        use_app_path = False  # tests override with in-memory DB
-    if use_app_path:
+    # Use url_from_config when set (tests or explicit override); otherwise use app DB_PATH
+    if url_from_config:
+        url_str: str = url_from_config
+        if ":memory:" in url_str:
+            configuration = config.get_section(config.config_ini_section) or {}
+            configuration["sqlalchemy.url"] = url_str
+            connectable = engine_from_config(
+                configuration,
+                prefix="sqlalchemy.",
+                poolclass=pool.NullPool,
+            )
+        else:
+            # File path: extract path and use creator so SQLite creates the file
+            path_str = url_str.replace("sqlite:///", "").replace("sqlite://", "")
+            path_obj = Path(path_str)
+            if not path_obj.is_absolute():
+                # Resolve relative to the directory containing alembic.ini so
+                # "data.sqlite" in backend/alembic.ini -> backend/data.sqlite
+                config_dir = Path(config.config_file_name or "").resolve().parent
+                path_obj = (config_dir / path_str).resolve()
+            path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+            def _sqlite_creator():
+                return sqlite3.connect(str(path_obj))
+
+            connectable = create_engine(
+                "sqlite://",
+                creator=_sqlite_creator,
+                poolclass=pool.NullPool,
+            )
+    else:
         db_path = Path(DB_PATH).resolve()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         path_str = str(db_path)
@@ -58,14 +84,6 @@ def run_migrations_online() -> None:
         connectable = create_engine(
             "sqlite://",
             creator=_sqlite_creator,
-            poolclass=pool.NullPool,
-        )
-    else:
-        configuration = config.get_section(config.config_ini_section) or {}
-        configuration["sqlalchemy.url"] = url_from_config
-        connectable = engine_from_config(
-            configuration,
-            prefix="sqlalchemy.",
             poolclass=pool.NullPool,
         )
 
