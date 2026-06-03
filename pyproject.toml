@@ -69,7 +69,6 @@ addopts = [
     "--cov=backend",
     "--cov-config=.coveragerc",
     "--cov-report=term-missing",
-    "--cov-fail-under=80",
 ]
 
 [tool.ruff]

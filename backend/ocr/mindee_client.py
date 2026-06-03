@@ -1,10 +1,12 @@
 import json
 import os
-from typing import Any, Dict, List, Optional, cast
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Protocol, cast
 
 import requests
 from mindee import ClientV2, InferenceParameters
 from mindee.input import PathInput
+from mindee.parsing.v2.inference_response import InferenceResponse
 
 from backend import config
 from backend.ocr.engine.types import ExtractionResult, Item
@@ -17,6 +19,37 @@ MODEL_ID_MINDEE = config.MINDEE_MODEL_ID
 MINDEE_HTTP_TIMEOUT_SECONDS = 60
 
 logger = get_logger("ocr.mindee")
+
+
+class _MindeeResultClient(Protocol):
+    def enqueue_and_get_result(
+        self,
+        response_cls: type[InferenceResponse],
+        input_source: PathInput,
+        params: InferenceParameters,
+    ) -> InferenceResponse: ...
+
+
+def _mindee_predict_url(model_id: str) -> str:
+    normalized = model_id.strip().strip("/")
+    return f"https://api.mindee.net/v1/products/{normalized}/predict"
+
+
+def _dump_sdk_debug(response: Any) -> None:
+    log_dir = Path(config.LOG_DIR) if config.LOG_DIR else Path("logs")
+    debug_path = log_dir / "mindee_v2_debug.json"
+
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        raw_json = getattr(response, "to_json", None)
+        if callable(raw_json):
+            raw_str = cast(str, raw_json())
+        else:
+            raw_str = json.dumps(response, default=lambda o: getattr(o, "__dict__", str(o)))
+        with open(debug_path, "w", encoding="utf-8") as f:
+            json.dump(json.loads(raw_str), f, ensure_ascii=False, indent=2)
+    except Exception as exc:
+        logger.warning("[Mindee ClientV2] failed to write debug dump to %s: %s", debug_path, exc)
 
 
 def _field_value(field: Any) -> Optional[Any]:
@@ -38,11 +71,12 @@ def _field_value(field: Any) -> Optional[Any]:
 
 def mindee_predict(path: str) -> Optional[dict]:
     api = MINDEE_API
-    if not api:
-        logger.warning("[Mindee HTTP] no API key in env")
+    model_id = MODEL_ID_MINDEE
+    if not api or not model_id:
+        logger.warning("[Mindee HTTP] no API key or model id in env")
         return None
     try:
-        url = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
+        url = _mindee_predict_url(model_id)
         with open(path, "rb") as f:
             r = requests.post(
                 url,
@@ -70,17 +104,11 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
             rag=False,
         )
         input_source = PathInput(path)
-        response = client.enqueue_and_get_inference(input_source, params)
+        result_client = cast(_MindeeResultClient, client)
+        response = result_client.enqueue_and_get_result(InferenceResponse, input_source, params)
 
-        # Debug dump of raw response from SDK
-        os.makedirs("logs", exist_ok=True)
-        raw_json = getattr(response, "to_json", None)
-        if callable(raw_json):
-            raw_str = cast(str, raw_json())
-        else:
-            raw_str = json.dumps(response, default=lambda o: getattr(o, "__dict__", str(o)))
-        with open("logs/mindee_v2_debug.json", "w", encoding="utf-8") as f:
-            json.dump(json.loads(raw_str), f, ensure_ascii=False, indent=2)
+        # Debug dump must never turn a successful SDK response into a failed OCR request.
+        _dump_sdk_debug(response)
 
         fields: Dict[str, Any] = getattr(response.inference.result, "fields", {})
 

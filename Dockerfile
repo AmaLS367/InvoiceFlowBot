@@ -55,7 +55,7 @@ RUN chown -R botuser:botuser /app
 
 USER botuser
 
-ENV DB_FILENAME=data.sqlite
+ENV INVOICE_DB_PATH=../data.sqlite
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD python backend/healthcheck.py || exit 1

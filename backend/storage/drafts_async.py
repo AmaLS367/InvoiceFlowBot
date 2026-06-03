@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import aiosqlite
@@ -19,6 +20,7 @@ from backend.storage.db import DB_PATH
 
 
 async def _connect() -> aiosqlite.Connection:
+    Path(DB_PATH).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
     connection = await aiosqlite.connect(DB_PATH)
     connection.row_factory = aiosqlite.Row
     return connection

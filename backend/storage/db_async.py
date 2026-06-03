@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
 import aiosqlite
@@ -27,6 +28,7 @@ class AsyncInvoiceStorage:
 
     async def _get_connection(self) -> aiosqlite.Connection:
         """Open an aiosqlite connection with dict-like row access."""
+        Path(self._database_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
         connection = await aiosqlite.connect(self._database_path)
         connection.row_factory = aiosqlite.Row
         return connection

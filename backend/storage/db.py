@@ -38,6 +38,7 @@ def _get_alembic_config() -> Config:
 
 
 def _conn():
+    Path(DB_PATH).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con

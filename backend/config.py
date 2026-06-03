@@ -7,6 +7,21 @@ from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BACKEND_DIR = Path(__file__).resolve().parent
+
+
+def resolve_db_path(db_path_value: str) -> Path:
+    """
+    Resolve the SQLite path from INVOICE_DB_PATH.
+
+    Relative paths are interpreted relative to the backend directory so the default
+    "../data.sqlite" points to the project/app root in both local and Docker runs.
+    """
+    raw_path = Path(db_path_value)
+    if raw_path.is_absolute():
+        return raw_path
+    return (BACKEND_DIR / raw_path).resolve()
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -28,11 +43,7 @@ class Settings(BaseSettings):
     LOG_CONSOLE: str = "0"
     LOG_DIR: Optional[str] = None
 
-    DB_FILENAME: str = Field("data.sqlite", alias="INVOICE_DB_PATH")
-    DB_DIR: Path = Field(
-        default_factory=lambda: Path(__file__).resolve().parent,
-        alias="DB_DIR",
-    )
+    INVOICE_DB_PATH: str = Field("../data.sqlite", alias="INVOICE_DB_PATH")
 
 
 @lru_cache()
@@ -61,5 +72,4 @@ LOG_CONSOLE: bool = settings.LOG_CONSOLE in ("1", "true", "True")
 LOG_DIR: Optional[str] = settings.LOG_DIR
 
 # Database configuration
-BASE_DIR: Path = settings.DB_DIR
-DB_PATH: str = str(BASE_DIR / settings.DB_FILENAME)
+DB_PATH: str = str(resolve_db_path(settings.INVOICE_DB_PATH))

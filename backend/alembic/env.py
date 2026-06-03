@@ -17,12 +17,28 @@ if config.config_file_name is not None:
 target_metadata = None
 
 
+def _get_explicit_url_override() -> str | None:
+    """
+    Return a programmatic sqlalchemy.url override when one was explicitly injected.
+
+    The alembic.ini file keeps a placeholder sqlite:///data.sqlite value, but runtime
+    migrations must follow backend.storage.db.DB_PATH so app code and Alembic target
+    the same database file.
+    """
+    url_from_config = config.get_main_option("sqlalchemy.url")
+    if not url_from_config:
+        return None
+    if url_from_config == "sqlite:///data.sqlite":
+        return None
+    return url_from_config
+
+
 def get_url() -> str:
     """
     Database URL for migrations. Uses DB_PATH from app config so we migrate the same DB the app uses.
     Tests can override with config.set_main_option("sqlalchemy.url", "sqlite:///path" or "sqlite:///:memory:").
     """
-    url_from_config = config.get_main_option("sqlalchemy.url")
+    url_from_config = _get_explicit_url_override()
     if url_from_config:
         return url_from_config
     db_path = Path(DB_PATH).resolve()
@@ -42,7 +58,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    url_from_config = config.get_main_option("sqlalchemy.url")
+    url_from_config = _get_explicit_url_override()
     # Use url_from_config when set (tests or explicit override); otherwise use app DB_PATH
     if url_from_config:
         url_str: str = url_from_config

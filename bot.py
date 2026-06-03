@@ -2,6 +2,7 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import BotCommand
 
 from backend.config import BOT_TOKEN
 from backend.core.container import create_app_container
@@ -10,6 +11,7 @@ from backend.handlers.commands import router as cmd_router
 from backend.handlers.di_middleware import ContainerMiddleware
 from backend.handlers.file import router as file_router
 from backend.ocr.engine.util import get_logger
+from backend.storage.db import init_db
 
 logger = get_logger("ocr.engine")
 logger.info("Bot startup")
@@ -20,8 +22,21 @@ async def _run_bot() -> None:
         raise ValueError(
             "BOT_TOKEN is not set. Please check your config.py or environment variables."
         )
+    init_db()
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
+
+    await bot.set_my_commands(
+        [
+            BotCommand(command="start", description="Démarrer le bot"),
+            BotCommand(command="help", description="Aide"),
+            BotCommand(command="show", description="Afficher le brouillon en cours"),
+            BotCommand(command="save", description="Enregistrer le brouillon"),
+            BotCommand(command="invoices", description="Liste des documents enregistrés"),
+            BotCommand(command="rapport", description="Générer un rapport de rapprochement (.xlsx)"),
+            BotCommand(command="import_prix", description="Importer le référentiel de prix depuis Google Sheets"),
+        ]
+    )
 
     container = create_app_container()
     dp.update.outer_middleware(ContainerMiddleware(container))
