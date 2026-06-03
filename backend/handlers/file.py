@@ -21,7 +21,7 @@ from backend.handlers.utils import (
     send_chunked,
 )
 from backend.ocr.engine.util import get_logger, save_file, set_request_id
-from backend.services.invoice_service import DEFAULT_MAX_OCR_PAGES
+from backend.services.invoice_service import DEFAULT_MAX_OCR_PAGES, EmptyOcrResultError
 
 router = Router()
 logger = get_logger("ocr.engine")
@@ -72,6 +72,12 @@ async def _process_file_and_create_draft(
             return
 
     uid = message.from_user.id if message.from_user else 0
+    logger.info(
+        "[TG] processing uploaded file user_id=%s path=%s ext=%s",
+        uid,
+        file_path,
+        Path(file_path).suffix.lower(),
+    )
     await message.answer("📥 Получил файл. Распознаю…")
 
     try:
@@ -80,6 +86,21 @@ async def _process_file_and_create_draft(
             fast=True,
             max_pages=DEFAULT_MAX_OCR_PAGES,
         )
+        logger.info(
+            "[TG] OCR result user_id=%s path=%s doc=%r supplier=%r client=%r date=%r total=%r items=%s",
+            uid,
+            file_path,
+            invoice.header.invoice_number,
+            invoice.header.supplier_name,
+            invoice.header.customer_name,
+            invoice.header.invoice_date,
+            invoice.header.total_amount,
+            len(invoice.items),
+        )
+    except EmptyOcrResultError as e:
+        logger.warning(f"[TG] OCR empty result for file {file_path}: {e}")
+        await message.answer("Распознавание завершилось без данных. Попробуйте другой файл или фото.")
+        return
     except Exception as e:
         logger.exception(f"[TG] OCR failed for file {file_path}: {e}")
         await message.answer("Сервис распознавания сейчас недоступен. Попробуйте чуть позже.")
@@ -131,6 +152,14 @@ async def handle_invoice_document(message: Message, container: AppContainer) -> 
         await message.answer("Ошибка: бот недоступен")
         return
 
+    logger.info(
+        "[TG] document received user_id=%s file_id=%s file_name=%s mime=%s",
+        message.from_user.id if message.from_user else 0,
+        message.document.file_id,
+        message.document.file_name,
+        message.document.mime_type,
+    )
+
     path = await save_file(message.document, message.bot)
     if path is None:
         await message.answer("Ошибка при сохранении файла")
@@ -156,6 +185,14 @@ async def handle_invoice_photo(message: Message, container: AppContainer) -> Non
 
     # Get the largest photo
     photo: PhotoSize = message.photo[-1]
+
+    logger.info(
+        "[TG] photo received user_id=%s file_id=%s width=%s height=%s",
+        message.from_user.id if message.from_user else 0,
+        photo.file_id,
+        photo.width,
+        photo.height,
+    )
 
     if message.bot is None:
         await message.answer("Ошибка: бот недоступен")

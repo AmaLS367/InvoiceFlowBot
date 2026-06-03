@@ -25,6 +25,7 @@ class PageInfo:
 @dataclass
 class ExtractionResult:
     document_id: str
+    doc_number: Optional[str] = None
     supplier: Optional[str] = None
     client: Optional[str] = None
     date: Optional[str] = None

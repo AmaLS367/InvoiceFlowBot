@@ -105,7 +105,7 @@ def set_request_id(req: str) -> None:
 
 
 def _log_dir() -> Path:
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     d = Path(config.LOG_DIR) if config.LOG_DIR else (root / "logs")
     d.mkdir(parents=True, exist_ok=True)
     return d

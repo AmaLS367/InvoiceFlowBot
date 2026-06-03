@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, cast
 
@@ -19,6 +20,10 @@ MODEL_ID_MINDEE = config.MINDEE_MODEL_ID
 MINDEE_HTTP_TIMEOUT_SECONDS = 60
 
 logger = get_logger("ocr.mindee")
+
+_UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
 
 
 class _MindeeResultClient(Protocol):
@@ -75,6 +80,9 @@ def mindee_predict(path: str) -> Optional[dict]:
     if not api or not model_id:
         logger.warning("[Mindee HTTP] no API key or model id in env")
         return None
+    if "/" not in model_id or _UUID_RE.match(model_id):
+        logger.info("[Mindee HTTP] skipping v1 fallback for v2/custom model id %s", model_id)
+        return None
     try:
         url = _mindee_predict_url(model_id)
         with open(path, "rb") as f:
@@ -109,6 +117,15 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
 
         # Debug dump must never turn a successful SDK response into a failed OCR request.
         _dump_sdk_debug(response)
+
+        raw_json = getattr(response, "to_json", None)
+        if callable(raw_json):
+            try:
+                payload = json.loads(cast(str, raw_json()))
+                if isinstance(payload, dict):
+                    return payload
+            except Exception:
+                logger.exception("[Mindee ClientV2] failed to decode response.to_json() for file %s", path)
 
         fields: Dict[str, Any] = getattr(response.inference.result, "fields", {})
 
@@ -190,12 +207,44 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
             return cast(Dict[str, Any], pred)
         except Exception:
             pred = payload.get("document", {}).get("inference", {}).get("prediction", {}) or {}
-            return cast(Dict[str, Any], pred)
+            if pred:
+                return cast(Dict[str, Any], pred)
+
+        v2_fields = payload.get("inference", {}).get("result", {}).get("fields", {}) or {}
+        if not v2_fields:
+            v2_fields = payload.get("_raw_http", {}).get("inference", {}).get("result", {}).get("fields", {}) or {}
+
+        if isinstance(v2_fields, dict) and v2_fields:
+            return {
+                "supplier": v2_fields.get("supplier") or v2_fields.get("supplier_name"),
+                "customer": (
+                    v2_fields.get("customer")
+                    or v2_fields.get("customer_name")
+                    or v2_fields.get("customer_id")
+                ),
+                "invoice_number": v2_fields.get("invoice_number"),
+                "invoice_date": v2_fields.get("invoice_date") or v2_fields.get("date"),
+                "date": v2_fields.get("date"),
+                "total_amount": (
+                    v2_fields.get("total_amount")
+                    or v2_fields.get("amount_due")
+                    or v2_fields.get("total_including_tax")
+                    or v2_fields.get("total_net")
+                ),
+                "line_items": v2_fields.get("line_items") or [],
+            }
+
+        return {}
 
     def _line_items(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         items: List[Dict[str, Any]] = []
 
         raw_line_items = doc.get("line_items") or []
+
+        if isinstance(raw_line_items, dict) and "items" in raw_line_items:
+            candidate_items = raw_line_items.get("items") or []
+            if isinstance(candidate_items, list):
+                raw_line_items = candidate_items
 
         if isinstance(raw_line_items, dict) and "values" in raw_line_items:
             candidate_values = raw_line_items.get("values") or []
@@ -209,11 +258,14 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
             if not isinstance(li, dict):
                 continue
 
-            product_code = _field_value(li.get("product_code"))
-            description = _field_value(li.get("description"))
-            quantity = _field_value(li.get("quantity"))
-            unit_price = _field_value(li.get("unit_price"))
-            total_amount = _field_value(li.get("total_amount") or li.get("total_price"))
+            fields_candidate = li.get("fields")
+            item_fields = fields_candidate if isinstance(fields_candidate, dict) else li
+
+            product_code = _field_value(item_fields.get("product_code"))
+            description = _field_value(item_fields.get("description"))
+            quantity = _field_value(item_fields.get("quantity"))
+            unit_price = _field_value(item_fields.get("unit_price"))
+            total_amount = _field_value(item_fields.get("total_amount") or item_fields.get("total_price"))
 
             items.append(
                 {
@@ -350,6 +402,7 @@ def build_extraction_result(
     document_id = data.get("document_id") or file_sha256(pdf_path)
     result = ExtractionResult(
         document_id=document_id,
+        doc_number=data.get("doc_number"),
         supplier=data.get("supplier"),
         client=data.get("client"),
         date=data.get("date"),

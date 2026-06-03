@@ -28,8 +28,18 @@ async def _mindee_predict_async(pdf_path: str) -> Dict[str, Any]:
         loop = None
 
     def _do_predict() -> Dict[str, Any]:
-        resp = mindee_predict_sdk(str(pdf_file)) or mindee_predict(str(pdf_file))
-        return resp or {}
+        sdk_resp = mindee_predict_sdk(str(pdf_file))
+        if sdk_resp:
+            logger.info("[OCR ASYNC] Mindee SDK response received for %s", pdf_path)
+            return sdk_resp
+
+        http_resp = mindee_predict(str(pdf_file))
+        if http_resp:
+            logger.info("[OCR ASYNC] Mindee HTTP fallback response received for %s", pdf_path)
+            return http_resp
+
+        logger.warning("[OCR ASYNC] Mindee returned no payload for %s", pdf_path)
+        return {}
 
     if loop:
         return await loop.run_in_executor(None, _do_predict)

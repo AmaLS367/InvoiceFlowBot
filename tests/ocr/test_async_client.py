@@ -84,6 +84,7 @@ async def test_extract_invoice_async_success():
         with patch("backend.ocr.async_client.build_extraction_result") as mock_build:
             mock_build.return_value = ExtractionResult(
                 document_id="test",
+                doc_number="INV-001",
                 supplier="Test Supplier",
                 client="Test Client",
                 date="2025-01-15",
@@ -98,6 +99,7 @@ async def test_extract_invoice_async_success():
 
             assert result.supplier == "Test Supplier"
             assert result.client == "Test Client"
+            assert result.doc_number == "INV-001"
             assert result.total_sum == 100.0
 
 

@@ -16,6 +16,23 @@ from backend.ocr.engine.types import ExtractionResult, Item
 DEFAULT_MAX_OCR_PAGES = 12
 
 
+class EmptyOcrResultError(RuntimeError):
+    """Raised when OCR completes but produces no structured data."""
+
+
+def _has_extraction_content(result: ExtractionResult) -> bool:
+    return any(
+        [
+            bool(result.doc_number),
+            bool(result.supplier),
+            bool(result.client),
+            bool(result.date),
+            result.total_sum is not None,
+            bool(result.items),
+        ]
+    )
+
+
 def _parse_date(value: Optional[str]) -> Optional[date]:
     if not value:
         return None
@@ -45,6 +62,7 @@ def _build_header(result: ExtractionResult) -> InvoiceHeader:
     return InvoiceHeader(
         supplier_name=result.supplier,
         customer_name=result.client,
+        invoice_number=result.doc_number,
         invoice_date=invoice_date,
         total_amount=total_amount,
     )
@@ -111,6 +129,13 @@ class InvoiceService:
             fast,
             max_pages,
         )
+        if not _has_extraction_content(result):
+            self._logger.warning(
+                "[SERVICE] process_invoice_file empty OCR result path=%s warnings=%s",
+                pdf_path,
+                getattr(result, "warnings", []),
+            )
+            raise EmptyOcrResultError("OCR returned an empty result")
         invoice = build_invoice_from_extraction(result)
 
         self._logger.info(
@@ -152,6 +177,7 @@ class InvoiceService:
 
 __all__ = [
     "DEFAULT_MAX_OCR_PAGES",
+    "EmptyOcrResultError",
     "InvoiceService",
     "build_invoice_from_extraction",
 ]

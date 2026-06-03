@@ -7,8 +7,21 @@ import pytest
 
 from backend.core.container import AppContainer
 from backend.handlers.file import handle_invoice_document, handle_invoice_photo
+from backend.ocr.engine.types import ExtractionResult, Item
 from tests.fakes.fake_services_drafts import FakeDraftService
 from tests.fakes.fake_telegram import FakeDocument, FakeMessage, FakePhotoSize
+
+
+def _non_empty_extraction_result() -> ExtractionResult:
+    return ExtractionResult(
+        document_id="doc-1",
+        doc_number="INV-001",
+        supplier="Test Supplier",
+        client="Test Client",
+        items=[
+            Item(code="SKU-001", name="Test Item", qty=1.0, price=2.35, total=2.35),
+        ],
+    )
 
 
 @pytest.mark.asyncio
@@ -17,6 +30,9 @@ async def test_handle_invoice_document_happy_path(
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
+    file_handlers_container.invoice_service._ocr_extractor = AsyncMock(
+        return_value=_non_empty_extraction_result()
+    )
 
     document = FakeDocument(
         file_id="file_123",
@@ -59,6 +75,9 @@ async def test_handle_invoice_photo_happy_path(
 ) -> None:
     draft_service = file_handlers_container.draft_service
     assert isinstance(draft_service, FakeDraftService)
+    file_handlers_container.invoice_service._ocr_extractor = AsyncMock(
+        return_value=_non_empty_extraction_result()
+    )
 
     photos = [
         FakePhotoSize(file_id="photo_small", width=320, height=240),

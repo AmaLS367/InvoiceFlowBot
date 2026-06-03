@@ -5,7 +5,7 @@ from typing import List
 import pytest
 
 from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem, InvoiceSourceInfo
-from backend.services.invoice_service import InvoiceService
+from backend.services.invoice_service import EmptyOcrResultError, InvoiceService
 
 
 class DummyItem:
@@ -27,13 +27,15 @@ class DummyItem:
 class DummyExtractionResult:
     def __init__(
         self,
-        supplier: str,
-        client: str,
-        invoice_date: str,
-        total_sum: float,
+        supplier: str | None,
+        client: str | None,
+        invoice_date: str | None,
+        total_sum: float | None,
         items: List[DummyItem],
         document_id: str = "dummy-doc-id",
+        doc_number: str | None = None,
     ) -> None:
+        self.doc_number = doc_number
         self.supplier = supplier
         self.client = client
         self.date = invoice_date
@@ -66,6 +68,7 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
             invoice_date="2024-01-02",
             total_sum=121.00,
             items=items,
+            doc_number="INV-2024-001",
         )
 
     async def fake_save_invoice_func(invoice: Invoice, user_id: int = 0) -> int:
@@ -94,6 +97,7 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
     assert isinstance(invoice, Invoice)
     assert invoice.header.supplier_name == "Test Supplier"
     assert invoice.header.customer_name == "Test Customer"
+    assert invoice.header.invoice_number == "INV-2024-001"
     assert invoice.header.total_amount == Decimal("121.00")
     assert len(invoice.items) == 2
     assert invoice.items[0].description == "Item 1"
@@ -104,6 +108,43 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
     assert called["pdf_path"] == "tests/data/sample.pdf"
     assert called["fast"] is False
     assert called["max_pages"] == 5
+
+
+@pytest.mark.asyncio
+async def test_process_invoice_file_raises_on_empty_ocr_result() -> None:
+    import logging
+
+    async def fake_extract_invoice_async(
+        pdf_path: str, fast: bool = True, max_pages: int = 12
+    ) -> DummyExtractionResult:
+        return DummyExtractionResult(
+            supplier=None,
+            client=None,
+            invoice_date=None,
+            total_sum=None,
+            items=[],
+            doc_number=None,
+        )
+
+    async def fake_save_invoice_func(invoice: Invoice, user_id: int = 0) -> int:
+        return 0
+
+    async def fake_fetch_invoices_func(
+        from_date: date | None,
+        to_date: date | None,
+        supplier: str | None = None,
+    ) -> List[Invoice]:
+        return []
+
+    service = InvoiceService(
+        ocr_extractor=fake_extract_invoice_async,
+        save_invoice_func=fake_save_invoice_func,
+        fetch_invoices_func=fake_fetch_invoices_func,
+        logger=logging.getLogger("test"),
+    )
+
+    with pytest.raises(EmptyOcrResultError, match="empty result"):
+        await service.process_invoice_file(pdf_path="tests/data/sample.pdf")
 
 
 def test_build_invoice_from_extraction():
@@ -118,12 +159,14 @@ def test_build_invoice_from_extraction():
         items=[
             DummyItem(name="Item 1", code="SKU-1", qty=2.0, price=25.0, total=50.0),
         ],
+        doc_number="INV-001",
     )
 
     invoice = build_invoice_from_extraction(result)
 
     assert invoice.header.supplier_name == "Test Supplier"
     assert invoice.header.customer_name == "Test Client"
+    assert invoice.header.invoice_number == "INV-001"
     assert invoice.header.total_amount == Decimal("100.0")
     assert len(invoice.items) == 1
     assert invoice.items[0].description == "Item 1"
@@ -185,6 +228,7 @@ def test_build_header_function():
 
     result = ExtractionResult(
         document_id="test",
+        doc_number="INV-001",
         supplier="Supplier",
         client="Client",
         date="2025-01-15",
@@ -198,6 +242,7 @@ def test_build_header_function():
     header = _build_header(result)
     assert header.supplier_name == "Supplier"
     assert header.customer_name == "Client"
+    assert header.invoice_number == "INV-001"
     assert header.invoice_date == date(2025, 1, 15)
     assert header.total_amount == Decimal("100.0")
 
