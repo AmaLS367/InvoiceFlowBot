@@ -16,7 +16,7 @@ from backend.core.container import AppContainer
 from backend.domain.invoices import InvoiceComment
 from backend.handlers.deps import get_draft_service, get_invoice_service
 from backend.handlers.fsm import EditInvoiceState
-from backend.handlers.utils import format_invoice_full, format_invoice_header
+from backend.handlers.utils import actions_kb, format_invoice_full, format_invoice_header
 from backend.ocr.engine.util import get_logger, set_request_id
 from backend.storage.db import to_iso
 
@@ -39,7 +39,140 @@ def _parse_date_str(date_str: str) -> date | None:
     return None
 
 
-def setup(router: Router) -> None:
+def _state_matches(current_state: object, expected_state: object) -> bool:
+    expected_value = getattr(expected_state, "state", None)
+    return current_state == expected_state or (
+        isinstance(current_state, str) and expected_value is not None and current_state == expected_value
+    )
+
+
+async def handle_force_reply(
+    message: Message,
+    state: FSMContext,
+    container: AppContainer,
+) -> bool:
+    """Handle draft-related force replies. Returns True when the reply was consumed."""
+    req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
+    set_request_id(req)
+    logger.info(f"[TG] update start req={req} h=on_force_reply")
+    draft_service = get_draft_service(container)
+    uid = message.from_user.id if message.from_user else 0
+
+    current_state = await state.get_state()
+
+    if _state_matches(current_state, EditInvoiceState.waiting_for_comment):
+        draft = await draft_service.get_current_draft(uid)
+        if draft is None:
+            await message.answer("Нет черновика. Загрузите документ.")
+            await state.clear()
+            return True
+        text = (message.text or "").strip()
+        if not text:
+            await message.answer("Пустой комментарий игнорирован.")
+        else:
+            draft.comments.append(text)
+            await draft_service.set_current_draft(uid, draft)
+            await message.answer(
+                "Комментарий добавлен. /save чтобы сохранить в БД.",
+                reply_markup=actions_kb(),
+            )
+        await state.clear()
+        logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
+        return True
+
+    if not _state_matches(current_state, EditInvoiceState.waiting_for_field_value):
+        logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
+        return False
+
+    state_data = await state.get_data()
+    edit_config = state_data.get("edit_config") or {}
+    kind = edit_config.get("kind")
+
+    draft = await draft_service.get_current_draft(uid)
+    if draft is None:
+        await message.answer("Нет черновика. Загрузите документ.")
+        await state.clear()
+        return True
+
+    invoice = draft.invoice
+    val = (message.text or "").strip()
+
+    if kind == "header":
+        k = edit_config.get("key")
+        header = invoice.header
+        if k == "supplier":
+            header.supplier_name = val
+        elif k == "client":
+            header.customer_name = val
+        elif k == "date":
+            parsed_date = _parse_date_str(val)
+            header.invoice_date = parsed_date
+        elif k == "doc_number":
+            header.invoice_number = val
+        elif k == "total_sum":
+            try:
+                header.total_amount = Decimal(str(val.replace(",", ".")))
+                ok = True
+            except (ValueError, TypeError, Exception):
+                ok = False
+            await message.answer(
+                'Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+                if ok
+                else "Итого обновлено как текст (не число)."
+            )
+            await draft_service.set_current_draft(uid, draft)
+            await state.clear()
+            return True
+        await message.answer(
+            'Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+        )
+    elif kind == "item":
+        idx_raw = edit_config.get("idx")
+        if not isinstance(idx_raw, int):
+            await message.answer("Индекс не указан.")
+            await state.clear()
+            return True
+        idx = idx_raw
+        items = invoice.items
+        if not (1 <= idx <= len(items)):
+            await message.answer("Индекс вне диапазона.")
+            await state.clear()
+            return True
+        key = edit_config.get("key")
+        item = items[idx - 1]
+        if key == "name":
+            item.description = val
+        elif key == "code":
+            item.sku = val
+        elif key == "qty":
+            try:
+                item.quantity = Decimal(str(val.replace(",", ".")))
+            except (ValueError, TypeError, Exception):
+                await message.answer("Не число. Повторите.")
+                return True
+        elif key == "price":
+            try:
+                item.unit_price = Decimal(str(val.replace(",", ".")))
+            except (ValueError, TypeError, Exception):
+                await message.answer("Не число. Повторите.")
+                return True
+        elif key == "total":
+            try:
+                item.line_total = Decimal(str(val.replace(",", ".")))
+            except (ValueError, TypeError, Exception):
+                await message.answer("Не число. Повторите.")
+                return True
+        await message.answer(
+            'Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
+        )
+
+    await draft_service.set_current_draft(uid, draft)
+    await state.clear()
+    logger.info(f"[TG] update done req={req} h=on_force_reply")
+    return True
+
+
+def setup(router: Router, include_reply_handler: bool = True) -> None:
     """Register draft-related command handlers."""
 
     @router.message(F.text == "/show")
@@ -59,127 +192,14 @@ def setup(router: Router) -> None:
         await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
         logger.info(f"[TG] update done req={req} h=cmd_show")
 
-    @router.message(F.reply_to_message)
-    async def on_force_reply(
-        message: Message,
-        state: FSMContext,
-        container: AppContainer,
-    ) -> None:
-        req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
-        set_request_id(req)
-        logger.info(f"[TG] update start req={req} h=on_force_reply")
-        draft_service = get_draft_service(container)
-        uid = message.from_user.id if message.from_user else 0
-
-        current_state = await state.get_state()
-
-        if current_state == EditInvoiceState.waiting_for_comment:
-            draft = await draft_service.get_current_draft(uid)
-            if draft is None:
-                await message.answer("Нет черновика. Загрузите документ.")
-                await state.clear()
-                return
-            text = (message.text or "").strip()
-            if not text:
-                await message.answer("Пустой комментарий игнорирован.")
-            else:
-                draft.comments.append(text)
-                await draft_service.set_current_draft(uid, draft)
-                await message.answer("Комментарий добавлен.")
-            await state.clear()
-            logger.info(f"[TG] update done req={req} h=on_force_reply_comment")
-            return
-
-        if current_state == EditInvoiceState.waiting_for_field_value:
-            state_data = await state.get_data()
-            edit_config = state_data.get("edit_config") or {}
-            kind = edit_config.get("kind")
-
-            draft = await draft_service.get_current_draft(uid)
-            if draft is None:
-                await message.answer("Нет черновика. Загрузите документ.")
-                await state.clear()
-                return
-
-            invoice = draft.invoice
-            if message.text is not None:
-                val = message.text.strip()
-
-            if kind == "header":
-                k = edit_config.get("key")
-                header = invoice.header
-                if k == "supplier":
-                    header.supplier_name = val
-                elif k == "client":
-                    header.customer_name = val
-                elif k == "date":
-                    parsed_date = _parse_date_str(val)
-                    header.invoice_date = parsed_date
-                elif k == "doc_number":
-                    header.invoice_number = val
-                elif k == "total_sum":
-                    try:
-                        header.total_amount = Decimal(str(val.replace(",", ".")))
-                        ok = True
-                    except (ValueError, TypeError, Exception):
-                        ok = False
-                    await message.answer(
-                        'Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-                        if ok
-                        else "Итого обновлено как текст (не число)."
-                    )
-                    await draft_service.set_current_draft(uid, draft)
-                    await state.clear()
-                    return
-                await message.answer(
-                    'Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-                )
-            elif kind == "item":
-                idx_raw = edit_config.get("idx")
-                if not isinstance(idx_raw, int):
-                    await message.answer("Индекс не указан.")
-                    await state.clear()
-                    return
-                idx = idx_raw
-                items = invoice.items
-                if not (1 <= idx <= len(items)):
-                    await message.answer("Индекс вне диапазона.")
-                    await state.clear()
-                    return
-                key = edit_config.get("key")
-                item = items[idx - 1]
-                if key == "name":
-                    item.description = val
-                elif key == "code":
-                    item.sku = val
-                elif key == "qty":
-                    try:
-                        item.quantity = Decimal(str(val.replace(",", ".")))
-                    except (ValueError, TypeError, Exception):
-                        await message.answer("Не число. Повторите.")
-                        return
-                elif key == "price":
-                    try:
-                        item.unit_price = Decimal(str(val.replace(",", ".")))
-                    except (ValueError, TypeError, Exception):
-                        await message.answer("Не число. Повторите.")
-                        return
-                elif key == "total":
-                    try:
-                        item.line_total = Decimal(str(val.replace(",", ".")))
-                    except (ValueError, TypeError, Exception):
-                        await message.answer("Не число. Повторите.")
-                        return
-                await message.answer(
-                    'Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-                )
-
-            await draft_service.set_current_draft(uid, draft)
-            await state.clear()
-            logger.info(f"[TG] update done req={req} h=on_force_reply")
-            return
-
-        logger.info(f"[TG] update done req={req} h=on_force_reply (no matching state)")
+    if include_reply_handler:
+        @router.message(F.reply_to_message)
+        async def on_force_reply(
+            message: Message,
+            state: FSMContext,
+            container: AppContainer,
+        ) -> None:
+            await handle_force_reply(message, state, container)
 
     @router.message(F.text.regexp(r"^/comment(\s|$)"))
     async def cmd_comment(message: Message, container: AppContainer) -> None:
@@ -199,7 +219,10 @@ def setup(router: Router) -> None:
                 return
         draft.comments.append(text)
         await draft_service.set_current_draft(uid, draft)
-        await message.answer("Комментарий добавлен. /save чтобы сохранить в БД.")
+        await message.answer(
+            "Комментарий добавлен. /save чтобы сохранить в БД.",
+            reply_markup=actions_kb(),
+        )
         logger.info(f"[TG] update done req={req} h=cmd_comment")
 
     @router.message(F.text == "/save")

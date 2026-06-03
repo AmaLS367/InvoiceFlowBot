@@ -10,7 +10,7 @@ from aiogram import Router
 from backend.core.container import AppContainer
 from backend.domain.drafts import InvoiceDraft
 from backend.domain.invoices import Invoice, InvoiceHeader, InvoiceItem
-from backend.handlers.commands_drafts import _parse_date_str, setup
+from backend.handlers.commands_drafts import _parse_date_str, handle_force_reply, setup
 from backend.handlers.fsm import EditInvoiceState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services_drafts import FakeDraftService
@@ -253,6 +253,29 @@ async def test_on_force_reply_comment(
     saved_draft = await draft_container.draft_service.get_current_draft(user_id)
     assert saved_draft is not None
     assert "Test comment" in saved_draft.comments
+
+
+@pytest.mark.asyncio
+async def test_handle_force_reply_comment_string_state(
+    draft_container: AppContainer,
+) -> None:
+    invoice = _create_test_invoice()
+    draft = _create_test_draft(invoice)
+    user_id = 123
+    await draft_container.draft_service.set_current_draft(user_id, draft)
+
+    message = FakeMessage(text="Test comment", user_id=user_id)
+    state = FakeFSMContext()
+    state._state = EditInvoiceState.waiting_for_comment.state
+
+    consumed = await handle_force_reply(message, state, draft_container)
+
+    assert consumed is True
+    assert message.answers[0]["text"] == "Комментарий добавлен. /save чтобы сохранить в БД."
+    assert message.answers[0]["kwargs"]["reply_markup"] is not None
+    saved_draft = await draft_container.draft_service.get_current_draft(user_id)
+    assert saved_draft is not None
+    assert saved_draft.comments == ["Test comment"]
 
 
 @pytest.mark.asyncio

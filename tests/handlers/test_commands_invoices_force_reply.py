@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import cast
 from unittest.mock import patch
 
 import pytest
 from aiogram import Router
+from aiogram.types import Message
 
 from backend.core.container import AppContainer
-from backend.handlers.commands_invoices import _parse_date_str, setup
+from backend.handlers.commands import setup_reply_dispatcher
+from backend.handlers.commands_drafts import setup as setup_drafts
+from backend.handlers.commands_invoices import _parse_date_str, handle_force_reply_invoices, setup
 from backend.handlers.fsm import InvoicesPeriodState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services import FakeInvoiceService
@@ -104,6 +108,47 @@ async def test_on_force_reply_invoices_from_date(
                     await message.answer("По дату (YYYY-MM-DD):", reply_markup=None)
 
     assert len(message.answers) >= 1
+
+
+@pytest.mark.asyncio
+async def test_handle_force_reply_invoices_from_date_string_state(
+    invoices_container: AppContainer,
+) -> None:
+    reply_to = FakeMessage(text="Previous message", user_id=123)
+    message = FakeMessage(text="2025-01-01", user_id=123, reply_to_message=reply_to)
+    state = FakeFSMContext()
+    state._state = InvoicesPeriodState.waiting_for_from_date.state
+
+    consumed = await handle_force_reply_invoices(message, state, invoices_container)
+
+    assert consumed is True
+    assert message.answers[0]["text"] == "По дату (YYYY-MM-DD):"
+    assert await state.get_state() == InvoicesPeriodState.waiting_for_to_date
+    assert (await state.get_data())["period"]["from"] == "2025-01-01"
+
+
+@pytest.mark.asyncio
+async def test_shared_reply_dispatcher_routes_invoice_period_after_draft_handler(
+    invoices_container: AppContainer,
+) -> None:
+    router = Router()
+    setup_drafts(router, include_reply_handler=False)
+    setup(router, include_reply_handler=False)
+    setup_reply_dispatcher(router)
+
+    reply_to = FakeMessage(text="Previous message", user_id=123)
+    message = FakeMessage(text="2025-01-01", user_id=123, reply_to_message=reply_to)
+    state = FakeFSMContext()
+    await state.set_state(InvoicesPeriodState.waiting_for_from_date)
+
+    await router.message.trigger(
+        cast(Message, message),
+        container=invoices_container,
+        state=state,
+    )
+
+    assert message.answers[0]["text"] == "По дату (YYYY-MM-DD):"
+    assert await state.get_state() == InvoicesPeriodState.waiting_for_to_date
 
 
 @pytest.mark.asyncio
