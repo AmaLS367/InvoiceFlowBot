@@ -19,7 +19,7 @@
 
 ## 🎯 Typical flow:
 
-1. Start a chat with the bot and run `/start` to display the menu.
+1. Run `/start` and choose **English** or **Русский**. The bot remembers your choice.
 2. Upload an invoice as a PDF or image. The bot acknowledges receipt and forwards the file to OCR.
 3. Local OCR completes and the bot shares a draft via `/show`.
 4. Adjust header fields or line items using commands or inline buttons.
@@ -30,6 +30,7 @@
 
 - `/start` — initialize the session and show the keyboard.
 - `/help` — short reminder of available actions.
+- `/language` — change the interface language from the Telegram command menu. The **🌐 Language** button opens the same selector.
 - `/show` — display the current draft.
 - `/save` — persist the draft and clear the state.
 - `/edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45` — batch-edit header fields.

@@ -9,6 +9,7 @@ class CallbackAction(str, Enum):
     HELP = "act_help"
     UPLOAD = "act_upload"
     ITEMS = "act_items"
+    LANGUAGE = "act_language"
 
 
 class CallbackHeader(str, Enum):
@@ -24,6 +25,7 @@ HEADER_PREFIX = "hed:"
 ITEMS_PAGE_PREFIX = "items_page"
 ITEM_PICK_PREFIX = "item_pick"
 ITEM_FIELD_PREFIX = "itm_field"
+LANGUAGE_PREFIX = "language:"
 
 
 def make_items_page_callback(page: int) -> str:

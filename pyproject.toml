@@ -66,6 +66,9 @@ packages = [
 
 py-modules = ["backend.config", "bot"]
 
+[tool.setuptools.package-data]
+"backend.handlers" = ["locales/*.json"]
+
 [tool.pytest.ini_options]
 markers = [
     "storage_db: integration tests for storage with real SQLite and Alembic migrations",

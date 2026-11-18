@@ -30,7 +30,7 @@ def setup(router: Router) -> None:
         await state.update_data({"period": {}})
         if call.message is not None:
             await call.message.answer(
-                texts.PERIOD_FROM_PROMPT, reply_markup=ForceReply(selective=True)
+                texts.t("PERIOD_FROM_PROMPT"), reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")
@@ -42,7 +42,7 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update start req={req} h=cb_act_upload")
 
         if call.message is not None:
-            await call.message.answer(texts.UPLOAD_PROMPT)
+            await call.message.answer(texts.t("UPLOAD_PROMPT"))
             await call.answer()
 
         logger.info(f"[TG] update done req={req} h=cb_act_upload")
@@ -54,7 +54,7 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update start req={req} h=cb_act_help")
         if call.message is not None:
             await call.message.answer(
-                texts.HELP_TEXT,
+                texts.t("HELP_TEXT"),
                 reply_markup=main_kb(),
             )
         await call.answer()

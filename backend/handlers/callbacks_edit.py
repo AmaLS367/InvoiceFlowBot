@@ -47,7 +47,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
+                await call.message.answer(texts.t("NO_DRAFT_SEND_DOCUMENT"))
                 await call.answer()
             return
 
@@ -56,7 +56,7 @@ def setup(router: Router) -> None:
 
         if call.message is not None:
             await call.message.answer(
-                f"{head_text}\n{texts.EDIT_SELECT_HEADER_FIELD}", reply_markup=header_kb()
+                f"{head_text}\n{texts.t('EDIT_SELECT_HEADER_FIELD')}", reply_markup=header_kb()
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_edit")
@@ -78,9 +78,10 @@ def setup(router: Router) -> None:
             await call.answer()
             return
 
-        if call.data is not None:
-            field = call.data.split(":", 1)[1]
-            nice = texts.HEADER_FIELD_LABELS[field]
+        if call.data is None:
+            await call.answer()
+            return
+        field = call.data.split(":", 1)[1]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -92,7 +93,7 @@ def setup(router: Router) -> None:
         )
         if call.message is not None:
             await call.message.answer(
-                texts.edit_enter_header_value(nice), reply_markup=ForceReply(selective=True)
+                texts.edit_enter_header_value(field), reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_hed_field")
@@ -115,13 +116,13 @@ def setup(router: Router) -> None:
 
         if n == 0:
             if call.message is not None:
-                await call.message.answer(texts.ITEMS_NOT_RECOGNIZED)
+                await call.message.answer(texts.t("ITEMS_NOT_RECOGNIZED"))
                 await call.answer()
             return
 
         if call.message is not None:
             await call.message.answer(
-                texts.edit_select_item(n),
+                texts.t("EDIT_SELECT_ITEM", total_count=n),
                 reply_markup=items_index_kb(n, 1),
             )
             await call.answer()
@@ -204,7 +205,6 @@ def setup(router: Router) -> None:
         parts = call.data.split(":")
         idx = int(parts[1])
         key = parts[2]  # name/qty/price/total
-        nice = texts.ITEM_FIELD_LABELS[key]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -217,7 +217,7 @@ def setup(router: Router) -> None:
         )
         if call.message is not None:
             await call.message.answer(
-                texts.edit_enter_item_value(nice, idx),
+                texts.edit_enter_item_value(key, idx),
                 reply_markup=ForceReply(selective=True),
             )
             await call.answer()
@@ -238,7 +238,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
+                await call.message.answer(texts.t("NO_DRAFT_SEND_DOCUMENT"))
             await call.answer()
             return
 
@@ -251,7 +251,9 @@ def setup(router: Router) -> None:
             }
         )
         if call.message is not None:
-            await call.message.answer(texts.COMMENT_PROMPT, reply_markup=ForceReply(selective=True))
+            await call.message.answer(
+                texts.t("COMMENT_PROMPT"), reply_markup=ForceReply(selective=True)
+            )
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_comment")
 
@@ -267,7 +269,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
+                await call.message.answer(texts.t("NO_DRAFT_SEND_DOCUMENT"))
             await call.answer()
             return
 

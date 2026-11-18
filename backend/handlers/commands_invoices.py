@@ -71,7 +71,7 @@ def _format_invoices_response(
         line = (
             f"  {invoice_date_str}  {invoice.header.invoice_number or texts.PLACEHOLDER}  "
             f"{invoice.header.supplier_name or texts.PLACEHOLDER}  = {format_money(invoice_total)}  "
-            f"{texts.invoices_items_count(items_count_val)}"
+            f"{texts.t('INVOICES_ITEMS_COUNT', count=items_count_val)}"
         )
         comments = [c.message.strip() for c in invoice.comments if c.message and c.message.strip()]
         if comments:
@@ -82,9 +82,9 @@ def _format_invoices_response(
         head
         + "\n"
         + "\n".join(lines[:150])
-        + f"\n{texts.PLACEHOLDER}\n{texts.INVOICES_TOTAL_LABEL}: {format_money(total)}"
+        + f"\n{texts.PLACEHOLDER}\n{texts.t('INVOICES_TOTAL_LABEL')}: {format_money(total)}"
     )
-    return text if len(text) < 3900 else (head + f"\n{texts.INVOICES_TOO_MANY_LINES}")
+    return text if len(text) < 3900 else (head + f"\n{texts.t('INVOICES_TOO_MANY_LINES')}")
 
 
 async def cmd_invoices(message: Message, container: AppContainer) -> None:
@@ -94,11 +94,11 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
     invoice_service = get_invoice_service(container)
     if message.text is None:
-        await message.answer(texts.INVOICES_USAGE)
+        await message.answer(texts.t("INVOICES_USAGE"))
         return
     parts = message.text.split()
     if len(parts) < 3:
-        await message.answer(texts.INVOICES_USAGE)
+        await message.answer(texts.t("INVOICES_USAGE"))
         return
     f_str, t_str = parts[1], parts[2]
     supplier = None
@@ -112,7 +112,7 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
         from_date=from_date, to_date=to_date, supplier=supplier
     )
     if not invoices:
-        await message.answer(texts.INVOICES_NONE_FOUND)
+        await message.answer(texts.t("INVOICES_NONE_FOUND"))
         return
 
     await message.answer(
@@ -150,7 +150,7 @@ async def handle_force_reply_invoices(
         period["from"] = iso
         await state.update_data({"period": period})
         await state.set_state(InvoicesPeriodState.waiting_for_to_date)
-        await message.answer(texts.PERIOD_TO_PROMPT, reply_markup=ForceReply(selective=True))
+        await message.answer(texts.t("PERIOD_TO_PROMPT"), reply_markup=ForceReply(selective=True))
         return True
 
     if _state_matches(current_state, InvoicesPeriodState.waiting_for_to_date):
@@ -162,7 +162,7 @@ async def handle_force_reply_invoices(
         await state.update_data({"period": period})
         await state.set_state(InvoicesPeriodState.waiting_for_supplier)
         await message.answer(
-            texts.PERIOD_SUPPLIER_PROMPT,
+            texts.t("PERIOD_SUPPLIER_PROMPT"),
             reply_markup=ForceReply(selective=True),
         )
         return True
@@ -177,7 +177,7 @@ async def handle_force_reply_invoices(
         await state.clear()
 
         if not f_str or not t_str:
-            await message.answer(texts.PERIOD_DATES_MISSING)
+            await message.answer(texts.t("PERIOD_DATES_MISSING"))
             return True
 
         from_date = _parse_date_str(f_str)
@@ -188,7 +188,7 @@ async def handle_force_reply_invoices(
             from_date=from_date, to_date=to_date, supplier=supplier
         )
         if not invoices:
-            await message.answer(texts.INVOICES_NONE_FOUND)
+            await message.answer(texts.t("INVOICES_NONE_FOUND"))
             return True
 
         await message.answer(
@@ -229,7 +229,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         await state.update_data({"period": {}})
         if call.message is not None:
             await call.message.answer(
-                texts.PERIOD_FROM_PROMPT, reply_markup=ForceReply(selective=True)
+                texts.t("PERIOD_FROM_PROMPT"), reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")

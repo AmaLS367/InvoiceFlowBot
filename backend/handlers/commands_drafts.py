@@ -66,17 +66,17 @@ async def handle_force_reply(
     if _state_matches(current_state, EditInvoiceState.waiting_for_comment):
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
+            await message.answer(texts.t("NO_DRAFT_UPLOAD_DOCUMENT"))
             await state.clear()
             return True
         text = (message.text or "").strip()
         if not text:
-            await message.answer(texts.COMMENT_EMPTY_IGNORED)
+            await message.answer(texts.t("COMMENT_EMPTY_IGNORED"))
         else:
             draft.comments.append(text)
             await draft_service.set_current_draft(uid, draft)
             await message.answer(
-                texts.COMMENT_ADDED_SAVE_HINT,
+                texts.t("COMMENT_ADDED_SAVE_HINT"),
                 reply_markup=actions_kb(),
             )
         await state.clear()
@@ -93,7 +93,7 @@ async def handle_force_reply(
 
     draft = await draft_service.get_current_draft(uid)
     if draft is None:
-        await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
+        await message.answer(texts.t("NO_DRAFT_UPLOAD_DOCUMENT"))
         await state.clear()
         return True
 
@@ -118,21 +118,23 @@ async def handle_force_reply(
                 ok = True
             except (ValueError, TypeError, Exception):
                 ok = False
-            await message.answer(texts.TOTAL_UPDATED if ok else texts.TOTAL_UPDATED_AS_TEXT)
+            await message.answer(
+                texts.t("TOTAL_UPDATED") if ok else texts.t("TOTAL_UPDATED_AS_TEXT")
+            )
             await draft_service.set_current_draft(uid, draft)
             await state.clear()
             return True
-        await message.answer(texts.FIELD_UPDATED)
+        await message.answer(texts.t("FIELD_UPDATED"))
     elif kind == "item":
         idx_raw = edit_config.get("idx")
         if not isinstance(idx_raw, int):
-            await message.answer(texts.INDEX_MISSING)
+            await message.answer(texts.t("INDEX_MISSING"))
             await state.clear()
             return True
         idx = idx_raw
         items = invoice.items
         if not (1 <= idx <= len(items)):
-            await message.answer(texts.INDEX_OUT_OF_RANGE)
+            await message.answer(texts.t("INDEX_OUT_OF_RANGE"))
             await state.clear()
             return True
         key = edit_config.get("key")
@@ -145,21 +147,21 @@ async def handle_force_reply(
             try:
                 item.quantity = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer(texts.NOT_A_NUMBER_RETRY)
+                await message.answer(texts.t("NOT_A_NUMBER_RETRY"))
                 return True
         elif key == "price":
             try:
                 item.unit_price = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer(texts.NOT_A_NUMBER_RETRY)
+                await message.answer(texts.t("NOT_A_NUMBER_RETRY"))
                 return True
         elif key == "total":
             try:
                 item.line_total = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer(texts.NOT_A_NUMBER_RETRY)
+                await message.answer(texts.t("NOT_A_NUMBER_RETRY"))
                 return True
-        await message.answer(texts.ITEM_UPDATED)
+        await message.answer(texts.t("ITEM_UPDATED"))
 
     await draft_service.set_current_draft(uid, draft)
     await state.clear()
@@ -179,7 +181,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
+            await message.answer(texts.t("NO_DRAFT_SEND_DOCUMENT"))
             return
 
         invoice = draft.invoice
@@ -206,19 +208,19 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
+            await message.answer(texts.t("NO_DRAFT_UPLOAD_DOCUMENT"))
             return
         if message.text is None or " " not in message.text:
-            await message.answer(texts.COMMENT_USAGE)
+            await message.answer(texts.t("COMMENT_USAGE"))
             return
         text = message.text.split(" ", 1)[1].strip()
         if not text:
-            await message.answer(texts.COMMENT_USAGE)
+            await message.answer(texts.t("COMMENT_USAGE"))
             return
         draft.comments.append(text)
         await draft_service.set_current_draft(uid, draft)
         await message.answer(
-            texts.COMMENT_ADDED_SAVE_HINT,
+            texts.t("COMMENT_ADDED_SAVE_HINT"),
             reply_markup=actions_kb(),
         )
         logger.info(f"[TG] update done req={req} h=cmd_comment")
@@ -233,7 +235,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_SHORT)
+            await message.answer(texts.t("NO_DRAFT_SHORT"))
             return
 
         invoice = draft.invoice
@@ -279,14 +281,14 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
+            await message.answer(texts.t("NO_DRAFT_UPLOAD_DOCUMENT"))
             return
         if message.text is None:
-            await message.answer(texts.EDIT_USAGE)
+            await message.answer(texts.t("EDIT_USAGE"))
             return
         args = message.text.split(" ", 1)
         if len(args) < 2:
-            await message.answer(texts.EDIT_USAGE)
+            await message.answer(texts.t("EDIT_USAGE"))
             return
 
         invoice = draft.invoice
@@ -310,7 +312,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
                         pass
 
         await draft_service.set_current_draft(uid, draft)
-        await message.answer(texts.HEADER_UPDATED)
+        await message.answer(texts.t("HEADER_UPDATED"))
         logger.info(f"[TG] update done req={req} h=cmd_edit_legacy")
 
     @router.message(F.text.regexp(r"^/edititem(\s|$)"))
@@ -323,28 +325,28 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
 
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
+            await message.answer(texts.t("NO_DRAFT_UPLOAD_DOCUMENT"))
             return
 
         if message.text is None:
-            await message.answer(texts.EDITITEM_USAGE)
+            await message.answer(texts.t("EDITITEM_USAGE"))
             return
         args = message.text.split(" ", 2)
 
         if len(args) < 3:
-            await message.answer(texts.EDITITEM_USAGE)
+            await message.answer(texts.t("EDITITEM_USAGE"))
             return
 
         try:
             idx = int(args[1])
         except (ValueError, TypeError):
-            await message.answer(texts.INDEX_INVALID)
+            await message.answer(texts.t("INDEX_INVALID"))
             return
 
         invoice = draft.invoice
         items = invoice.items
         if idx < 1 or idx > len(items):
-            await message.answer(texts.INDEX_OUT_OF_RANGE)
+            await message.answer(texts.t("INDEX_OUT_OF_RANGE"))
             return
 
         item = items[idx - 1]
@@ -373,5 +375,5 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
                     except (ValueError, TypeError):
                         pass
         await draft_service.set_current_draft(uid, draft)
-        await message.answer(texts.LINE_UPDATED)
+        await message.answer(texts.t("LINE_UPDATED"))
         logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")

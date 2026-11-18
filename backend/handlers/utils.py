@@ -7,6 +7,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from backend.domain.invoices import Invoice, InvoiceComment, InvoiceItem
 from backend.handlers import texts
 from backend.handlers.callback_registry import (
+    LANGUAGE_PREFIX,
     CallbackAction,
     CallbackHeader,
     make_item_field_callback,
@@ -32,17 +33,17 @@ def format_invoice_header(invoice: Invoice) -> str:
     )
 
     return (
-        f"{texts.HEADER_DOCUMENT}: {header.invoice_number or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_DATE}: {date_str}\n"
-        f"{texts.HEADER_SUPPLIER}: {header.supplier_name or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_CLIENT}: {header.customer_name or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_TOTAL}: {total_str}"
+        f"{texts.t('HEADER_DOCUMENT')}: {header.invoice_number or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_DATE')}: {date_str}\n"
+        f"{texts.t('HEADER_SUPPLIER')}: {header.supplier_name or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_CLIENT')}: {header.customer_name or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_TOTAL')}: {total_str}"
     )
 
 
 def format_invoice_items(items: List[InvoiceItem]) -> str:
     if not items:
-        return texts.ITEMS_NOT_RECOGNIZED
+        return texts.t("ITEMS_NOT_RECOGNIZED")
 
     blocks = []
     for i, item in enumerate(items, 1):
@@ -53,8 +54,8 @@ def format_invoice_items(items: List[InvoiceItem]) -> str:
         total = format_money(item.line_total)
         title = f"{i}. {name}" if not code else f"{i}. [{code}] {name}"
         blocks.append(
-            f"{title}\n   {texts.ITEM_QTY}: {qty}  |  {texts.ITEM_PRICE}: {price}  |  "
-            f"{texts.ITEM_TOTAL}: {total}"
+            f"{title}\n   {texts.t('ITEM_QTY')}: {qty}  |  {texts.t('ITEM_PRICE')}: {price}  |  "
+            f"{texts.t('ITEM_TOTAL')}: {total}"
         )
     return "\n\n".join(blocks)
 
@@ -64,13 +65,13 @@ def format_invoice_summary(invoice: Invoice) -> str:
     lines = []
 
     if header.subtotal is not None:
-        lines.append(f"{texts.SUMMARY_SUBTOTAL}: {format_money(header.subtotal)}")
+        lines.append(f"{texts.t('SUMMARY_SUBTOTAL')}: {format_money(header.subtotal)}")
     if header.tax_amount is not None:
-        lines.append(f"{texts.SUMMARY_TAX}: {format_money(header.tax_amount)}")
+        lines.append(f"{texts.t('SUMMARY_TAX')}: {format_money(header.tax_amount)}")
     if header.total_amount is not None:
-        lines.append(f"{texts.SUMMARY_TOTAL}: {format_money(header.total_amount)}")
+        lines.append(f"{texts.t('SUMMARY_TOTAL')}: {format_money(header.total_amount)}")
     if header.currency:
-        lines.append(f"{texts.SUMMARY_CURRENCY}: {header.currency}")
+        lines.append(f"{texts.t('SUMMARY_CURRENCY')}: {header.currency}")
 
     return "\n".join(lines) if lines else ""
 
@@ -91,7 +92,7 @@ def format_invoice_comments(
                 messages.append(message)
     if not messages:
         return ""
-    return "\n".join([texts.COMMENTS_SECTION_TITLE, *messages])
+    return "\n".join([texts.t("COMMENTS_SECTION_TITLE"), *messages])
 
 
 def format_ocr_review(invoice: Invoice, max_items: int = 20) -> str:
@@ -100,18 +101,15 @@ def format_ocr_review(invoice: Invoice, max_items: int = 20) -> str:
     for reason in invoice.review:
         code, _, count = reason.partition(":")
         if code == "rows_skipped":
-            lines.append(f"• {texts.OCR_REVIEW_ROWS_SKIPPED.format(count=count)}")
+            lines.append(f"• {texts.t('OCR_REVIEW_ROWS_SKIPPED', count=count)}")
     flagged = [(index, item) for index, item in enumerate(invoice.items, 1) if item.review]
     for index, item in flagged[:max_items]:
         title = f"{index}. [{item.sku}]" if item.sku else f"{index}. {item.description}"
-        reasons = "; ".join(
-            texts.OCR_REVIEW_ITEM_REASONS.get(code, texts.OCR_REVIEW_UNKNOWN_REASON)
-            for code in item.review
-        )
+        reasons = "; ".join(texts.ocr_review_reason(code) for code in item.review)
         lines.append(f"• {title}: {reasons}")
     if len(flagged) > max_items:
-        lines.append(texts.OCR_REVIEW_MORE_ITEMS.format(count=len(flagged) - max_items))
-    return "\n".join([texts.OCR_REVIEW_TITLE, *lines]) if lines else ""
+        lines.append(texts.t("OCR_REVIEW_MORE_ITEMS", count=len(flagged) - max_items))
+    return "\n".join([texts.t("OCR_REVIEW_TITLE"), *lines]) if lines else ""
 
 
 def format_invoice_full(
@@ -139,18 +137,18 @@ def format_invoice_full(
 
 def fmt_header(p: dict) -> str:
     return (
-        f"{texts.HEADER_DOCUMENT}: {p.get('doc_number') or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_DATE}: {p.get('date') or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_SUPPLIER}: {p.get('supplier') or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_CLIENT}: {p.get('client') or texts.PLACEHOLDER}\n"
-        f"{texts.HEADER_TOTAL}: "
+        f"{texts.t('HEADER_DOCUMENT')}: {p.get('doc_number') or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_DATE')}: {p.get('date') or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_SUPPLIER')}: {p.get('supplier') or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_CLIENT')}: {p.get('client') or texts.PLACEHOLDER}\n"
+        f"{texts.t('HEADER_TOTAL')}: "
         f"{format_money(p['total_sum']) if p.get('total_sum') is not None else texts.PLACEHOLDER}"
     )
 
 
 def fmt_items(items: list[dict]) -> str:
     if not items:
-        return texts.ITEMS_NOT_RECOGNIZED
+        return texts.t("ITEMS_NOT_RECOGNIZED")
 
     blocks = []
     for i, it in enumerate(items, 1):
@@ -161,8 +159,8 @@ def fmt_items(items: list[dict]) -> str:
         total = format_money(it.get("total", 0))
         title = f"{i}. {name}" if not code else f"{i}. [{code}] {name}"
         blocks.append(
-            f"{title}\n   {texts.ITEM_QTY}: {qty}  |  {texts.ITEM_PRICE}: {price}  |  "
-            f"{texts.ITEM_TOTAL}: {total}"
+            f"{title}\n   {texts.t('ITEM_QTY')}: {qty}  |  {texts.t('ITEM_PRICE')}: {price}  |  "
+            f"{texts.t('ITEM_TOTAL')}: {total}"
         )
     return "\n\n".join(blocks)
 
@@ -213,40 +211,55 @@ def csv_bytes(items: list[dict]) -> bytes:
     return data
 
 
-def main_kb() -> InlineKeyboardMarkup:
+def language_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(text=name, callback_data=f"{LANGUAGE_PREFIX}{locale}")
+        for locale, name in texts.LANGUAGES.items()
+    ]
+    return InlineKeyboardMarkup(
+        inline_keyboard=[buttons[i : i + 2] for i in range(0, len(buttons), 2)]
+    )
+
+
+def main_kb(*, choose_language: bool = False) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            *(language_kb().inline_keyboard if choose_language else []),
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_UPLOAD,
+                    text=texts.t("BUTTON_UPLOAD"),
                     callback_data=CallbackAction.UPLOAD.value,
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_EDIT,
+                    text=texts.t("BUTTON_EDIT"),
                     callback_data=CallbackAction.EDIT.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_COMMENT,
+                    text=texts.t("BUTTON_COMMENT"),
                     callback_data=CallbackAction.COMMENT.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_SAVE,
+                    text=texts.t("BUTTON_SAVE"),
                     callback_data=CallbackAction.SAVE.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_PERIOD,
+                    text=texts.t("BUTTON_PERIOD"),
                     callback_data=CallbackAction.PERIOD.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_HELP,
+                    text=texts.t("BUTTON_HELP"),
                     callback_data=CallbackAction.HELP.value,
-                )
+                ),
+                InlineKeyboardButton(
+                    text=texts.t("BUTTON_LANGUAGE"),
+                    callback_data=CallbackAction.LANGUAGE.value,
+                ),
             ],
         ]
     )
@@ -257,21 +270,21 @@ def actions_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_EDIT,
+                    text=texts.t("BUTTON_EDIT"),
                     callback_data=CallbackAction.EDIT.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_COMMENT,
+                    text=texts.t("BUTTON_COMMENT"),
                     callback_data=CallbackAction.COMMENT.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_SAVE,
+                    text=texts.t("BUTTON_SAVE"),
                     callback_data=CallbackAction.SAVE.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_PERIOD,
+                    text=texts.t("BUTTON_PERIOD"),
                     callback_data=CallbackAction.PERIOD.value,
                 ),
             ],
@@ -284,33 +297,33 @@ def header_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_SUPPLIER,
+                    text=texts.t("BUTTON_SUPPLIER"),
                     callback_data=CallbackHeader.SUPPLIER.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_CLIENT,
+                    text=texts.t("BUTTON_CLIENT"),
                     callback_data=CallbackHeader.CLIENT.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_DATE,
+                    text=texts.t("BUTTON_DATE"),
                     callback_data=CallbackHeader.DATE.value,
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_NUMBER,
+                    text=texts.t("BUTTON_NUMBER"),
                     callback_data=CallbackHeader.DOC_NUMBER.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_TOTAL,
+                    text=texts.t("BUTTON_TOTAL"),
                     callback_data=CallbackHeader.TOTAL_SUM.value,
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_ITEMS,
+                    text=texts.t("BUTTON_ITEMS"),
                     callback_data=CallbackAction.ITEMS.value,
                 )
             ],
@@ -332,23 +345,15 @@ def items_index_kb(n: int, page: int = 1, per_page: int = 20) -> InlineKeyboardM
         rows.append(row)
     nav = []
     if page > 1:
-        nav.append(
-            InlineKeyboardButton(
-                text=texts.BUTTON_PREV_PAGE, callback_data=make_items_page_callback(page - 1)
-            )
-        )
+        nav.append(InlineKeyboardButton(text="◀️", callback_data=make_items_page_callback(page - 1)))
     if end < n:
-        nav.append(
-            InlineKeyboardButton(
-                text=texts.BUTTON_NEXT_PAGE, callback_data=make_items_page_callback(page + 1)
-            )
-        )
+        nav.append(InlineKeyboardButton(text="▶️", callback_data=make_items_page_callback(page + 1)))
     if nav:
         rows.append(nav)
     rows.append(
         [
             InlineKeyboardButton(
-                text=texts.BUTTON_BACK_TO_HEADER, callback_data=CallbackAction.EDIT.value
+                text=texts.t("BUTTON_BACK_TO_HEADER"), callback_data=CallbackAction.EDIT.value
             )
         ]
     )
@@ -360,27 +365,27 @@ def item_fields_kb(idx: int) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_ITEM_NAME,
+                    text=texts.t("BUTTON_ITEM_NAME"),
                     callback_data=make_item_field_callback(idx, "name"),
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_ITEM_QTY,
+                    text=texts.t("BUTTON_ITEM_QTY"),
                     callback_data=make_item_field_callback(idx, "qty"),
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_ITEM_PRICE,
+                    text=texts.t("BUTTON_ITEM_PRICE"),
                     callback_data=make_item_field_callback(idx, "price"),
                 ),
                 InlineKeyboardButton(
-                    text=texts.BUTTON_ITEM_TOTAL,
+                    text=texts.t("BUTTON_ITEM_TOTAL"),
                     callback_data=make_item_field_callback(idx, "total"),
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text=texts.BUTTON_BACK_TO_LIST,
+                    text=texts.t("BUTTON_BACK_TO_LIST"),
                     callback_data=CallbackAction.ITEMS.value,
                 )
             ],

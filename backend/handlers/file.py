@@ -51,7 +51,7 @@ async def _process_file_and_create_draft(
             file_path = new_path
         except Exception as e:
             logger.exception(f"[TG] Failed to convert {ext} file to JPEG: {e}")
-            await message.answer(texts.FILE_PROCESSING_FAILED_WITH_FORMATS)
+            await message.answer(texts.t("FILE_PROCESSING_FAILED_WITH_FORMATS"))
             return
 
     if not file_path.lower().endswith(".pdf"):
@@ -68,7 +68,7 @@ async def _process_file_and_create_draft(
             file_path = new_path
         except Exception as e:
             logger.exception(f"[TG] Failed to normalize image file: {e}")
-            await message.answer(texts.FILE_PROCESSING_FAILED)
+            await message.answer(texts.t("FILE_PROCESSING_FAILED"))
             return
 
     uid = message.from_user.id if message.from_user else 0
@@ -78,7 +78,7 @@ async def _process_file_and_create_draft(
         file_path,
         Path(file_path).suffix.lower(),
     )
-    await message.answer(texts.OCR_IN_PROGRESS)
+    await message.answer(texts.t("OCR_IN_PROGRESS"))
 
     try:
         invoice = await invoice_service.process_invoice_file(
@@ -99,11 +99,11 @@ async def _process_file_and_create_draft(
         )
     except EmptyOcrResultError as e:
         logger.warning(f"[TG] OCR empty result for file {file_path}: {e}")
-        await message.answer(texts.OCR_EMPTY_RESULT)
+        await message.answer(texts.t("OCR_EMPTY_RESULT"))
         return
     except Exception as e:
         logger.exception(f"[TG] OCR failed for file {file_path}: {e}")
-        await message.answer(texts.OCR_UNAVAILABLE)
+        await message.answer(texts.t("OCR_UNAVAILABLE"))
         return
 
     # Build an invoice draft so the user can review and edit the parsed data before saving.
@@ -117,7 +117,7 @@ async def _process_file_and_create_draft(
         await draft_service.set_current_draft(user_id=uid, draft=draft)
     except Exception as e:
         logger.exception(f"[TG] Failed to create draft for file {file_path}: {e}")
-        await message.answer(texts.DRAFT_SAVE_FAILED)
+        await message.answer(texts.t("DRAFT_SAVE_FAILED"))
         return
 
     full_text = format_invoice_full(invoice)
@@ -129,7 +129,7 @@ async def _process_file_and_create_draft(
         items_text = format_invoice_items(invoice.items)
         await message.answer(head_text, reply_markup=actions_kb())
         if len(invoice.items) > MAX_INLINE_ITEMS or len(items_text) > MAX_ITEMS_TEXT_LENGTH:
-            await message.answer(texts.TABLE_TOO_LONG_SEND_CSV)
+            await message.answer(texts.t("TABLE_TOO_LONG_SEND_CSV"))
             await message.answer_document(
                 BufferedInputFile(csv_bytes_from_items(invoice.items), filename="invoice_items.csv")
             )
@@ -149,11 +149,11 @@ async def handle_invoice_document(message: Message, container: AppContainer) -> 
     draft_service = get_draft_service(container)
 
     if not message.document:
-        await message.answer(texts.FILE_FETCH_FAILED)
+        await message.answer(texts.t("FILE_FETCH_FAILED"))
         return
 
     if message.bot is None:
-        await message.answer(texts.BOT_UNAVAILABLE)
+        await message.answer(texts.t("BOT_UNAVAILABLE"))
         return
 
     logger.info(
@@ -166,7 +166,7 @@ async def handle_invoice_document(message: Message, container: AppContainer) -> 
 
     path = await save_file(message.document, message.bot)
     if path is None:
-        await message.answer(texts.FILE_SAVE_FAILED)
+        await message.answer(texts.t("FILE_SAVE_FAILED"))
         return
 
     await _process_file_and_create_draft(message, path, invoice_service, draft_service)
@@ -184,7 +184,7 @@ async def handle_invoice_photo(message: Message, container: AppContainer) -> Non
     from aiogram.types import PhotoSize
 
     if not message.photo:
-        await message.answer(texts.PHOTO_FETCH_FAILED)
+        await message.answer(texts.t("PHOTO_FETCH_FAILED"))
         return
 
     # Get the largest photo
@@ -199,12 +199,12 @@ async def handle_invoice_photo(message: Message, container: AppContainer) -> Non
     )
 
     if message.bot is None:
-        await message.answer(texts.BOT_UNAVAILABLE)
+        await message.answer(texts.t("BOT_UNAVAILABLE"))
         return
 
     path = await save_file(photo, message.bot)
     if path is None:
-        await message.answer(texts.FILE_SAVE_FAILED)
+        await message.answer(texts.t("FILE_SAVE_FAILED"))
         return
 
     await _process_file_and_create_draft(message, path, invoice_service, draft_service)

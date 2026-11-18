@@ -8,6 +8,10 @@
 
 </div>
 
+## Interface translations
+
+To add a language, copy [the English catalog](../../backend/handlers/locales/en.json) to a file named for the new two-letter ISO 639-1 code, such as `fr.json`. Translate the values and preserve the keys and format placeholders. Then register the code and its native name in `LANGUAGES` in [`texts.py`](../../backend/handlers/texts.py). The picker and Telegram command menu use that registry.
+
 ## 🗄️ Database migrations
 
 The project uses Alembic to manage the SQLite schema.
