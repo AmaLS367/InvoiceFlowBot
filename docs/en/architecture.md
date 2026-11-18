@@ -7,8 +7,8 @@
 </p>
 
 [![Architecture](https://img.shields.io/badge/Pattern-Clean%20Architecture-blue?style=for-the-badge)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![Layers](https://img.shields.io/badge/Layers-6-green?style=for-the-badge)](#layers)
-[![Mermaid](https://img.shields.io/badge/Diagrams-Mermaid-orange?style=for-the-badge)](#overall-component-diagram)
+[![Layers](https://img.shields.io/badge/Layers-6-green?style=for-the-badge)](#-layers)
+[![Mermaid](https://img.shields.io/badge/Diagrams-Mermaid-orange?style=for-the-badge)](#high-level-component-diagram)
 
 </div>
 
@@ -64,20 +64,27 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     participant User as Telegram user
-    participant TG as Telegram Bot API
-    participant H as backend.handlers.file
-    participant S as InvoiceService
-    participant O as OcrProvider
-    participant ST as AsyncInvoiceStorage
+    participant H as Telegram handlers
+    participant I as InvoiceService
+    participant O as Configured OCR provider
+    participant D as DraftService
+    participant DB as SQLite
 
-    User->>TG: send PDF or image
-    TG->>H: update with file
-    H->>S: process_invoice_file(pdf_path, fast, max_pages)
-    S->>O: extract_invoice(file_path)
-    O-->>S: ExtractionResult
-    S->>S: map to Invoice domain model
-    S->>ST: save_invoice_domain_async(invoice)
-    ST-->>S: invoice id
-    S-->>H: Invoice with id
-    H-->>User: message with invoice header and items
+    User->>H: Upload PDF or image
+    H->>I: process_invoice_file()
+    I->>O: extract_invoice() in a worker thread
+    O-->>I: ExtractionResult
+    I-->>H: Invoice
+    H->>D: set_current_draft()
+    D->>DB: Write invoice_drafts for this user
+    H-->>User: Display draft and review notes
+    User->>H: Edit or add comments
+    H->>D: Update current draft
+    User->>H: Confirm with /save or Save button
+    H->>I: save_invoice()
+    I->>DB: Write confirmed invoice, items, and comments
+    H->>D: clear_current_draft()
+    H-->>User: Confirm saved invoice ID
 ```
+
+SQLite keeps one active draft per Telegram user. Aiogram FSM keeps the conversation state for operations such as editing a field or entering period dates.

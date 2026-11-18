@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![venv](https://img.shields.io/badge/Environment-Virtual-green?style=for-the-badge)](https://docs.python.org/3/library/venv.html)
-[![Setup](https://img.shields.io/badge/Guide-Step%20by%20Step-orange?style=for-the-badge)](#steps)
+[![Setup](https://img.shields.io/badge/Guide-Step%20by%20Step-orange?style=for-the-badge)](#-steps)
 
 </div>
 
@@ -48,7 +48,7 @@ notepad .env
 Required values:
 - `BOT_TOKEN` — token from @BotFather.
 
-Local OCR is the default. Set `OCR_LANGUAGES` to the installed Tesseract language codes, joined with `+`, if you use a different set of languages. Docling downloads its layout and table models the first time it processes a file. Set `HF_HUB_OFFLINE=1` to use the cached models offline.
+Local OCR is the default. Set `OCR_LANGUAGES` to the installed Tesseract language codes, joined with `+`, if you use a different set of languages. Docling downloads its layout and table models the first time it processes a file. Once the models are cached, export `HF_HUB_OFFLINE=1` in the process environment to use them offline.
 
 To use the cloud provider, set `OCR_PROVIDER=mindee` and supply `MINDEE_API_KEY` and `MINDEE_MODEL_ID`.
 
@@ -60,7 +60,7 @@ python bot.py
 ## ✅ Notes
 
 > [!TIP]
-> A successful launch prints log lines about Aiogram startup and handler registration.
+> Send `/start` in Telegram to verify the launch. Check `logs/ocr_engine.log` for startup events. Set `LOG_CONSOLE=1` for application logs on stderr.
 
 > [!WARNING]
 > If the bot does not connect to Telegram:

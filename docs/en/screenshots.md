@@ -17,9 +17,9 @@ This gallery illustrates the full cycle: starting the chat, processing an invoic
 
 ## Start screen and menu
 
-Users run `/start`, see the inline keyboard, and pick the next action.
+The `/start` response includes the seven-language picker and the main actions. The screenshot below shows the main menu from an earlier version of the bot.
 
-![Start screen](../assets/screenshots/01_start.png)
+![Main menu in an earlier release](../assets/screenshots/01_start.png)
 
 ## Recognizing PDFs or photos
 

@@ -29,7 +29,7 @@
 
 <p align="center">
   <sub>
-    <a href="docs/assets/screenshots/InvoiceFlowBot_Contra_1600x1200_web.mp4">Watch full HD video with sound (MP4)</a>
+    <a href="docs/assets/screenshots/InvoiceFlowBot_Contra_1600x1200_web.mp4">Watch the demo with sound (MP4, 1600×1200)</a>
     ·
     <a href="docs/en/screenshots.md">Browse screenshots</a>
   </sub>
@@ -37,7 +37,7 @@
 
 ---
 
-InvoiceFlowBot accepts PDF invoices and photos in Telegram, extracts structured headers and line items locally with Docling and Tesseract (or Mindee as an optional backend), lets users review and edit drafts inline, and saves verified invoices to SQLite for period-based reporting and CSV export.
+InvoiceFlowBot accepts PDF invoices and photos in Telegram, extracts structured headers and line items locally with Docling and Tesseract (or Mindee as an optional backend), lets users review and edit drafts inline, and saves verified invoices to SQLite for period-based reporting. The bot can send long OCR item tables as CSV files.
 
 ## ✨ Features
 
@@ -46,22 +46,23 @@ graph LR
     A[Upload PDF / Photo] --> B[Local OCR]
     B --> C[Review & Edit Draft]
     C --> D[Save to SQLite]
-    D --> E[Period Reports & CSV]
+    B --> F[CSV for Long Item Tables]
+    D --> E[Period Reports]
 ```
 
 | Feature | Description |
 |---------|-------------|
 | **Local OCR by Default** | Runs Docling + Tesseract on your own server with no per-document API fees (optional Mindee provider included). |
-| **Multiple Input Formats** | Supports PDF, JPEG, PNG, HEIC, HEIF, and WebP. |
+| **Multiple Input Formats** | Supports PDF, JPEG, PNG, and WebP. Convert HEIC/HEIF images to JPEG or PNG before uploading. |
 | **Multilingual Interface (7 Languages)** | Auto-detects the user's Telegram language, persists choices in SQLite, and localizes Telegram command menus. |
 | **Interactive Draft Review** | Edit supplier, customer, date, invoice number, totals, and individual line items via inline buttons or commands. |
-| **Automatic Sanity Checks** | Highlights line-item sum mismatches and auto-computed or decimal-corrected values before saving. |
+| **Automatic Sanity Checks** | Flags uncertain OCR values in the draft and records a comment if the item totals differ from the invoice total at save time. |
 | **SQLite + Alembic Migrations** | Stores invoices, line items, comments, drafts, and user language preferences with versioned schema migrations. |
-| **Period Queries & CSV Export** | Filter saved invoices by date range and supplier; long item tables are exported as UTF-8 CSV files. |
+| **Period Queries & CSV Export** | Filter saved invoices by date range and supplier. Long OCR item tables can arrive as UTF-8 CSV files before saving. |
 
 ## 🌐 Interface Languages
 
-The bot interface, inline keyboards, and per-user Telegram command menu support **7 languages** out of the box:
+The bot interface, inline keyboards, and Telegram command menu support **7 languages** out of the box:
 
 | Code | Language | Catalog |
 |------|----------|---------|
@@ -73,7 +74,7 @@ The bot interface, inline keyboards, and per-user Telegram command menu support 
 | `it` | Italiano | [`it.json`](backend/handlers/locales/it.json) |
 | `pt` | Português | [`pt.json`](backend/handlers/locales/pt.json) |
 
-Users can switch languages anytime via `/language` or the **🌐 Language** button. Adding another language only requires a new ISO 639-1 JSON file in `backend/handlers/locales/` and registering it in `LANGUAGES` in [`backend/handlers/texts.py`](backend/handlers/texts.py) — see the [development guide](docs/en/development.md).
+Users can switch languages via `/language` or **🌐 Language**. In personal chats, the bot also updates that chat’s command menu. Adding another language only requires a new ISO 639-1 JSON file in `backend/handlers/locales/` and registering it in `LANGUAGES` in [`backend/handlers/texts.py`](backend/handlers/texts.py) — see the [development guide](docs/en/development.md).
 
 ## 🚀 Quick Start with Docker
 
@@ -84,17 +85,22 @@ Users can switch languages anytime via `/language` or the **🌐 Language** butt
 # 1. Clone the repository and prepare .env
 git clone https://github.com/AmaLS367/InvoiceFlowBot.git
 cd InvoiceFlowBot
-cp .env.example .env
+if [ ! -e .env ]; then cp .env.example .env; fi
 
-# 2. Set BOT_TOKEN in .env, then build and start
-docker compose up --build -d
+# 2. Set BOT_TOKEN in .env and prepare the database bind mount
+if [ ! -e ./data.sqlite ]; then touch ./data.sqlite; fi
 
-# 3. Follow logs
-docker compose logs -f
+# 3. Start only when the database path is a regular file
+test -f ./data.sqlite && mkdir -p ./logs && docker compose up --build -d
 
-# 4. Stop
+# 4. Follow logs
+docker compose logs -f bot
+
+# 5. Stop
 docker compose down
 ```
+
+The database file and `logs/` must be writable by the container user. If `data.sqlite` is a directory, see the [Docker guide](docs/en/setup-docker.md).
 
 ## 💻 Local Installation
 
@@ -129,7 +135,7 @@ Requires **Python 3.11+**, **Git**, and **Tesseract** (with language data matchi
    OCR_LANGUAGES=eng+rus
    ```
 
-   With `OCR_PROVIDER=local`, documents are processed locally without external OCR credentials; the first run downloads Docling models. To use Mindee instead, set `OCR_PROVIDER=mindee`, `MINDEE_API_KEY`, and `MINDEE_MODEL_ID`. See the [local setup guide](docs/en/setup-local.md).
+   With `OCR_PROVIDER=local`, documents are processed locally without external OCR credentials. The first OCR request downloads the Docling models. To use Mindee instead, set `OCR_PROVIDER=mindee`, `MINDEE_API_KEY`, and `MINDEE_MODEL_ID`. See the [local setup guide](docs/en/setup-local.md).
 
 4. Apply migrations and run the bot:
 
@@ -151,8 +157,8 @@ Start with `/start` to pick a language and open the interactive menu.
 | `/language` | Switch interface language and command menu | `/language` |
 | `/show` | Display the current invoice draft | `/show` |
 | `/save` | Save the current draft to SQLite | `/save` |
-| `/edit` | Batch-edit header fields | `/edit supplier=ACME client=Corp date=2025-01-15` |
-| `/edititem` | Edit a specific line item (1-based index) | `/edititem 1 name=Widget qty=5 price=10.50` |
+| `/edit` | Batch-edit header fields | `/edit supplier=ACME; client=Corp; date=2025-01-15` |
+| `/edititem` | Edit a specific line item (1-based index) | `/edititem 1 name=Widget; qty=5; price=10.50` |
 | `/comment` | Append a comment to the active draft | `/comment Approved by manager` |
 | `/invoices` | Query saved invoices by date and supplier | `/invoices 2025-01-01 2025-01-31 supplier=ACME` |
 
@@ -181,7 +187,8 @@ Inline buttons mirror the main workflow: upload invoice, edit header or line ite
 | `LOG_ROTATE_MB` | Max log file size in MB | `10` |
 | `LOG_BACKUPS` | Number of rotated log backups | `5` |
 | `LOG_CONSOLE` | Enable console logging (`0` or `1`) | `0` |
-| `LOG_DIR` | Directory for log files | `logs` |
+| `LOG_DIR` | Directory for log files | `logs/` in the project root |
+| `INVOICE_DB_PATH` | SQLite file path relative to `backend/` or absolute | `../data.sqlite` |
 
 </details>
 
@@ -229,7 +236,8 @@ InvoiceFlowBot/
 │   │   ├── texts.py                # Locale registry & text formatting helpers
 │   │   └── locales/                # JSON translation catalogs (de, en, es, fr, it, pt, ru)
 │   ├── ocr/
-│   │   ├── extract.py              # Extraction entry point
+│   │   ├── async_client.py         # OCR entry point used for Telegram uploads
+│   │   ├── extract.py              # Synchronous OCR helpers
 │   │   ├── engine/                 # OCR router, types, and utilities
 │   │   └── providers/              # Local (Docling + Tesseract) and Mindee providers
 │   ├── services/                   # Invoice & draft application services
@@ -244,7 +252,7 @@ InvoiceFlowBot/
 pip install -e .[dev]
 python -m ruff check .
 python -m mypy backend/
-python -m pytest
+BOT_TOKEN=test-token python -m pytest
 ```
 
 Helper wrappers for setup, migrations, linting, formatting, and tests are also available in `scripts/python/`, `scripts/linux/`, and `scripts/windows/` (see [Scripts Guide](docs/en/scripts.md)).

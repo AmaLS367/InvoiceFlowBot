@@ -10,7 +10,7 @@
 
 ## Interface translations
 
-To add a language, copy [the English catalog](../../backend/handlers/locales/en.json) to a file named for the new two-letter ISO 639-1 code, such as `fr.json`. Translate the values and preserve the keys and format placeholders. Then register the code and its native name in `LANGUAGES` in [`texts.py`](../../backend/handlers/texts.py). The picker and Telegram command menu use that registry.
+To add a language, copy [the English catalog](../../backend/handlers/locales/en.json) to a file named for the new two-letter ISO 639-1 code, such as `nl.json`. Translate the values and preserve the keys and format placeholders. Then register the code and its native name in `LANGUAGES` in [`texts.py`](../../backend/handlers/texts.py). The picker and Telegram command menu use that registry.
 
 ## 🗄️ Database migrations
 
@@ -19,7 +19,7 @@ The project uses Alembic to manage the SQLite schema.
 ### How the schema is applied
 
 At runtime the database schema is created or upgraded by calling `backend.storage.db.init_db()`.
-This function is a thin wrapper around:
+It uses the Alembic Python API to upgrade to `head`. The equivalent CLI command is:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
@@ -29,7 +29,7 @@ Every entrypoint that needs a database should call `init_db()` once before using
 
 ### Running migrations locally
 
-To make sure your local database is up to date, run:
+From the project root, set `BOT_TOKEN` in `.env` or in the environment, then run:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
@@ -48,7 +48,7 @@ The recommended workflow is:
 2. Create a new migration file:
 
    ```powershell
-   python -m alembic revision -m "describe_change"
+   python -m alembic -c backend/alembic.ini revision -m "describe_change"
    ```
 
 3. Edit the generated revision file in `backend/alembic/versions/` and write the `upgrade` and `downgrade` functions using raw SQL for SQLite.
@@ -69,41 +69,26 @@ Tests that rely on the database use the same migrations:
 
 * `backend.storage.db.init_db()` is called to apply all migrations to that temporary database.
 
-This keeps the test schema and the runtime schema consistent.
+Storage integration tests use the Alembic revisions against temporary SQLite databases.
 
 ### Docker and migrations
 
-When running the bot inside Docker, migrations must be applied before starting the application process.
-
-A typical pattern is to run:
+The Docker entrypoint applies the migrations before starting the bot:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
 python bot.py
 ```
 
-from an entrypoint script.
+## CI pipeline
 
-### CI pipeline
+On pushes to `main` or `master` and pull requests targeting either branch, [CI](../../.github/workflows/ci.yml) uses Python 3.11, installs `.[dev]`, applies migrations with a test token, and runs pre-commit and mypy. It then runs two test groups:
 
-The GitHub Actions workflow runs the following steps:
+```bash
+pytest --import-mode=importlib -m "not storage_db"
+pytest --import-mode=importlib -m "storage_db" --no-cov
+```
 
-1. Installs development dependencies and the package itself in editable mode:
+[Coverage](../../.github/workflows/coverage.yml) enforces a minimum of 80%. [Docker Build](../../.github/workflows/docker.yml) and [Compose](../../.github/workflows/docker-compose.yml) check image and container setup. The Docker healthcheck verifies Python imports. [Docs](../../.github/workflows/docs.yml) checks links when documentation changes. [Security](../../.github/workflows/security.yml) runs Bandit, pip-audit, and Trivy on the same branches and weekly.
 
-   ```powershell
-   python -m pip install -e .[dev]
-   ```
-
-2. Applies Alembic migrations:
-
-   ```powershell
-   python -m alembic -c backend/alembic.ini upgrade head
-   ```
-
-3. Runs static checks and tests:
-
-   ```powershell
-   python -m ruff check .
-   python -m mypy backend/
-   python -m pytest
-   ```
+[Release](../../.github/workflows/release.yml) publishes the Docker image to GHCR for `v*` tags using `GITHUB_TOKEN`. It creates a GitHub Release only for tags matching `vX.0.0`.

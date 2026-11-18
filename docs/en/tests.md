@@ -4,7 +4,6 @@
 
 [![pytest](https://img.shields.io/badge/Framework-pytest-blue?style=for-the-badge&logo=pytest)](https://pytest.org/)
 [![Coverage](https://img.shields.io/badge/Coverage-80%25+-green?style=for-the-badge)](https://coverage.readthedocs.io/)
-[![Tests](https://img.shields.io/badge/Tests-160+-orange?style=for-the-badge)](#how-to-run)
 
 </div>
 
@@ -23,14 +22,15 @@ cd InvoiceFlowBot
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
+$env:BOT_TOKEN = 'test-token'
 pytest
 ```
 
-Pytest auto-discovers suites under `tests/`.
+Pytest auto-discovers suites under `tests/`. On Bash, run `BOT_TOKEN=test-token python -m pytest`. You can reuse the test token for individual suites and the test wrapper.
 
 ## Coverage areas
 
-The project has **80% code coverage** with **160+ tests**, covering all major modules:
+The coverage workflow enforces a minimum of **80%**. The suite covers these areas:
 
 ### Core test files
 
@@ -49,6 +49,7 @@ The project has **80% code coverage** with **160+ tests**, covering all major mo
 - `tests/handlers/test_commands_basic.py` — tests for basic bot commands
 - `tests/handlers/test_commands_drafts.py` — tests for draft management
 - `tests/handlers/test_commands_invoices_force_reply.py` — tests for invoice queries
+- `tests/handlers/test_languages.py` — localized menus, persisted preferences, and catalog consistency
 - `tests/handlers/test_file_upload_*.py` — tests for file uploads
 
 ### OCR tests
@@ -56,6 +57,7 @@ The project has **80% code coverage** with **160+ tests**, covering all major mo
 - `tests/ocr/test_extract.py` — tests for data extraction from documents
 - `tests/ocr/test_async_client.py` — tests for async OCR client
 - `tests/ocr/test_router.py` — tests for OCR router
+- `tests/ocr/test_local_provider.py` — local extraction, table parsing and review markers
 
 ### Storage tests
 
@@ -91,6 +93,7 @@ python -m ruff check .
 python -m mypy backend/
 
 # Run tests
+$env:BOT_TOKEN = 'test-token'
 python -m pytest
 ```
 
@@ -100,7 +103,7 @@ You can also run a specific test file:
 python -m pytest tests/test_invoice_service.py
 ```
 
-The CI pipeline automatically runs `ruff`, `mypy`, and `pytest` on every push and pull request.
+CI runs pre-commit, mypy, and pytest on pushes to `main` or `master` and pull requests targeting either branch. See the [development guide](development.md#ci-pipeline).
 
 ## Development policy
 

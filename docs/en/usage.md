@@ -15,40 +15,35 @@
 ## 📋 About Usage
 
 > [!TIP]
-> Start with `/start` command to see the interactive menu!
+> Run `/start` to get started.
 
-## 🎯 Typical flow:
+## Typical flow
 
-1. Run `/start` and choose **English** or **Русский**. The bot remembers your choice.
-2. Upload an invoice as a PDF or image. The bot acknowledges receipt and forwards the file to OCR.
-3. Local OCR completes and the bot shares a draft via `/show`.
-4. Adjust header fields or line items using commands or inline buttons.
-5. Confirm the draft with `/save`, which writes it to SQLite.
-6. Request historical data with `/invoices <from> <to> [supplier=...]`.
+1. Run `/start` to open the menu and choose from Russian, English, German, Spanish, French, Italian, and Portuguese. The bot uses your saved preference, then your Telegram language if supported, then Russian.
+2. Upload an invoice as a PDF, JPEG, PNG, WebP, or a Telegram photo. Convert HEIC/HEIF to JPEG or PNG first.
+3. The bot displays the draft automatically after OCR and can attach a CSV for a long item table. Use `/show` to see the draft again.
+4. Review any flagged values and edit the header or existing items. Add a comment if needed.
+5. Save the invoice with `/save` or the Save button. The bot records a comment if the sum of the items differs from the invoice total.
+6. Request saved invoices using `/invoices` or the period button.
 
 ## Commands
 
-- `/start` — initialize the session and show the keyboard.
-- `/help` — short reminder of available actions.
-- `/language` — change the interface language from the Telegram command menu. The **🌐 Language** button opens the same selector.
-- `/show` — display the current draft.
-- `/save` — persist the draft and clear the state.
-- `/edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45` — batch-edit header fields.
-- `/edititem <index> name=... qty=... price=... total=...` — tweak a specific line item.
-- `/comment <text>` — append a comment to the active invoice.
-- `/invoices YYYY-MM-DD YYYY-MM-DD [supplier=text]` — list stored invoices for a given period with optional supplier filtering.
+- `/start` — open the language picker and the main menu.
+- `/help` — see the available actions.
+- `/language` — open the language picker, also available as **🌐 Language**. A selection updates the command menu in a private chat.
+- `/show` — display the active draft.
+- `/save` — save the invoice to SQLite and remove the draft.
+- `/edit supplier=ACME; client=Corp; date=2025-01-15; doc=123; total=123.45` — edit several header fields. Separate assignments with semicolons.
+- `/edititem 1 name=Widget; qty=5; price=10.50; total=52.50` — edit a line item. The first item is numbered 1. You can also set `code`.
+- `/comment <text>` — add a comment to the active draft.
+- `/invoices YYYY-MM-DD YYYY-MM-DD [supplier=text]` — query saved invoices by date and optionally by supplier.
 
 ## Inline buttons
 
-`backend.handlers.utils` supplies inline keyboards for:
-- Uploading another invoice.
-- Editing header attributes directly.
-- Adding comments or line items.
-- Saving the draft.
-- Launching period queries without typing the command.
-
-Buttons mirror command capabilities and make the bot friendlier for non-technical users.
+The menu can prompt for an upload, edit header fields or existing items, add comments, save a draft, open help or language settings, and query by period. Use the period button to enter a supplier name containing spaces.
 
 ## Draft lifecycle
 
-Per-user state keeps a draft until it is saved. You can upload multiple files, overwrite previous drafts, or add comments before persisting. After `/save` the state resets and the next `/show` refers to the following document.
+SQLite stores one active draft per Telegram user. A new successful upload replaces that draft. After saving, upload another invoice to start a new draft.
+
+The language preference and draft are per user. The period query searches the saved invoices for the entire bot instance, filtered by date and supplier.

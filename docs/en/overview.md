@@ -13,11 +13,11 @@
 InvoiceFlowBot runs as a Telegram bot that receives documents from users and processes them through an OCR pipeline:
 
 - Users upload invoices as PDFs or images directly in the chat.
-- `backend.handlers.file` validates the payload and stores a temporary copy.
+- `backend.handlers.file` downloads the Telegram attachment into `temp/` and normalizes images before OCR.
 - `backend.services.invoice_service` runs OCR via `backend.ocr.async_client` and converts results to domain entities (`backend.domain.invoices`).
 - `OcrProvider` defines the extraction interface. The router selects `LocalOcrProvider` (Docling and Tesseract) by default, with `MindeeOcrProvider` available through configuration.
-- Draft data lives in user state (`backend.handlers.fsm`) until the operator confirms it.
-- Confirmed invoices are persisted to SQLite via `backend.storage.db`, and the Telegram UI (`backend.handlers.commands`, `backend.handlers.callbacks`, `backend.handlers.utils`) lets users edit or query records.
+- SQLite stores the active draft for each user in `invoice_drafts`. The FSM keeps the state of the current dialogue.
+- Confirmed invoices are persisted to SQLite via `backend.storage.db_async`, and the Telegram UI (`backend.handlers.commands`, `backend.handlers.callbacks`, `backend.handlers.utils`) lets users edit or query records.
 
 ## Data flow
 
@@ -25,9 +25,9 @@ InvoiceFlowBot runs as a Telegram bot that receives documents from users and pro
 2. `backend.handlers.file` receives the file and calls `backend.services.invoice_service.process_invoice_file()`.
 3. The service runs the configured OCR provider in a worker thread.
 4. `backend.services.invoice_service` converts the OCR result (`ExtractionResult`) into a domain `Invoice` entity.
-5. The draft `Invoice` stays in memory (`backend.handlers.fsm`), where the user can edit values through commands (`backend.handlers.commands`) or callback buttons (`backend.handlers.callbacks`).
-6. `/save` or the save callback calls `backend.services.invoice_service.save_invoice()`, which persists the domain entity via `backend.storage.db` into `data.sqlite`.
-7. `/invoices` and helper functions query `backend.services.invoice_service.list_invoices()`, which fetches domain entities from `backend.storage.db` filtered by period and supplier.
+5. The handler saves the draft through `DraftService` into `invoice_drafts` and shows it in Telegram. Commands and buttons update the saved draft.
+6. `/save` or the save callback calls `backend.services.invoice_service.save_invoice()`, which persists the domain entity via `backend.storage.db_async` into SQLite and then clears the draft.
+7. `/invoices` and helper functions query `backend.services.invoice_service.list_invoices()`, which fetches domain entities through `backend.storage.db_async` filtered by period and supplier.
 
 ## Key directories
 
@@ -40,7 +40,7 @@ InvoiceFlowBot runs as a Telegram bot that receives documents from users and pro
   - `commands.py` — text command handlers (/show, /edit, /invoices, etc.)
   - `callbacks.py` — callback query handlers for inline buttons (edit, save, comment, etc.)
   - `utils.py` — formatting utilities and keyboard builders
-  - `fsm.py` — global state management for user sessions
+  - `fsm.py` — states for editing and entering period filters
 - `backend.ocr/` — OCR layer with provider abstraction:
   - `providers/` — provider abstraction layer:
     - `base.py` — `OcrProvider` interface defining the contract for OCR providers
@@ -49,5 +49,5 @@ InvoiceFlowBot runs as a Telegram bot that receives documents from users and pro
   - `engine/router.py` — selects the configured OCR provider and exposes synchronous extraction
   - `mindee_client.py` — direct Mindee API integration (used by `MindeeOcrProvider`)
   - Shared utilities and logging helpers
-- `backend.storage/db.py` — database initialization, inserts, lookups, and comment management.
+- `backend.storage/` — migrations entry point in `db.py`, asynchronous invoice operations in `db_async.py`, drafts in `drafts_async.py`, and language preferences in `user_languages.py`.
 - `tests/` — pytest suites covering domain entities, OCR parsing, service layer, and storage behaviours.

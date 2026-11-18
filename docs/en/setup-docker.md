@@ -10,46 +10,59 @@
 
 ## 📋 About Docker
 
-Docker provides a self-contained runtime for InvoiceFlowBot: Python, dependencies, and the bot code run inside the container, while the host only keeps the database and logs.
+The container provides Python, Tesseract and the application dependencies. Compose keeps the database, logs and OCR model cache across container replacements.
 
 > [!TIP]
 > Docker is the fastest way to get started! All dependencies included.
 
 ## ⚙️ Preparation
 
-1. Copy environment settings:
-```powershell
-Copy-Item .env.example .env
-notepad .env
-```
+Run these commands from the project root. The database file and `logs/` must be writable by the container user (`botuser`). On Linux, if you need to adjust ownership after preparing the host paths below, run `docker compose build bot` followed by `docker compose run --rm --no-deps --entrypoint id bot` to find the UID and GID that need write access.
 
-2. Ensure `data.sqlite` exists as a file, not a directory. On Windows Docker can accidentally create a folder when the path is missing. If that happens, remove it and create an empty file:
-```powershell
-Remove-Item .\data.sqlite -Recurse -Force
-New-Item .\data.sqlite -ItemType File | Out-Null
-```
+If a previous launch created a directory named `data.sqlite`, run `docker compose down`, check its contents, and rename the directory before continuing. Keep any existing SQLite file.
+
+<a name="start-the-stack"></a>
 
 ## 🚀 Start the stack
 
+PowerShell:
+
 ```powershell
-docker-compose up --build -d
+if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
+notepad .env
+# Set BOT_TOKEN in .env before continuing.
+if (-not (Test-Path -LiteralPath ./data.sqlite)) {
+    New-Item -Path ./data.sqlite -ItemType File | Out-Null
+}
+if (-not (Test-Path -LiteralPath ./data.sqlite -PathType Leaf)) {
+    throw 'data.sqlite must be a file'
+}
+New-Item -Path ./logs -ItemType Directory -Force | Out-Null
+docker compose up --build -d
 ```
 
-> [!NOTE]
-> - `--build` rebuilds the image after updates
-> - `-d` runs the service in background mode
+Bash:
+
+```bash
+if [ ! -e .env ]; then cp .env.example .env; fi
+# Set BOT_TOKEN in .env before continuing.
+if [ ! -e ./data.sqlite ]; then touch ./data.sqlite; fi
+test -f ./data.sqlite && mkdir -p ./logs && docker compose up --build -d
+```
+
+The entrypoint applies Alembic migrations before starting Telegram polling. Follow startup with `docker compose logs -f bot`.
 
 ## 🔄 Stop and upgrade
 
 Stop the bot:
 ```powershell
-docker-compose down
+docker compose down
 ```
 
 Pull the latest code and rebuild:
 ```powershell
 git pull
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ## Volumes
@@ -58,4 +71,6 @@ docker-compose up --build -d
 - `./data.sqlite:/app/data.sqlite` — SQLite database persisted on the host.
 - `./logs:/app/logs` — OCR and error logs accessible outside the container.
 
-Keep backups of both paths before upgrades to avoid data loss.
+- `ocr-models:/app/data/huggingface` — named volume for the Hugging Face cache configured by `HF_HOME`.
+
+Telegram attachments are downloaded to `/app/temp/`, inside the container. To change the database location, update both `INVOICE_DB_PATH` and the Compose mount. See the [database backup procedure](database.md#backup-and-restore) before upgrading.

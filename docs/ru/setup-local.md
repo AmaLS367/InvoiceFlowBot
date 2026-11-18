@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![venv](https://img.shields.io/badge/Environment-Virtual-green?style=for-the-badge)](https://docs.python.org/3/library/venv.html)
-[![Setup](https://img.shields.io/badge/Guide-Step%20by%20Step-orange?style=for-the-badge)](#шаги-запуска)
+[![Setup](https://img.shields.io/badge/Guide-Step%20by%20Step-orange?style=for-the-badge)](#-шаги-запуска)
 
 </div>
 
@@ -48,7 +48,7 @@ notepad .env
 Обязательные параметры:
 - `BOT_TOKEN` — токен бота из @BotFather.
 
-Локальное распознавание включено по умолчанию. Чтобы изменить набор языков, укажите в `OCR_LANGUAGES` коды установленных пакетов Tesseract через `+`. При первой обработке Docling скачает модели разметки и таблиц. Чтобы использовать скачанные модели без доступа к интернету, задайте `HF_HUB_OFFLINE=1`.
+Локальное распознавание включено по умолчанию. Чтобы изменить набор языков, укажите в `OCR_LANGUAGES` коды установленных пакетов Tesseract через `+`. При первой обработке Docling скачает модели разметки и таблиц. Чтобы использовать скачанные модели без доступа к интернету, задайте `HF_HUB_OFFLINE=1` в окружении процесса.
 
 Для облачного распознавания задайте `OCR_PROVIDER=mindee`, `MINDEE_API_KEY` и `MINDEE_MODEL_ID`.
 
@@ -60,7 +60,7 @@ python bot.py
 ## ✅ Примечания
 
 > [!TIP]
-> Успешный запуск отображается сообщениями в консоли о старте бота и регистрациях хендлеров.
+> Чтобы проверить запуск, отправьте `/start` в Telegram. События запуска доступны в `logs/ocr_engine.log`. Для вывода логов приложения в stderr задайте `LOG_CONSOLE=1`.
 
 > [!WARNING]
 > Если бот не подключается к Telegram:

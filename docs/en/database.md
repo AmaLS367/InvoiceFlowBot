@@ -4,85 +4,39 @@
 
 [![SQLite](https://img.shields.io/badge/Database-SQLite-blue?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Alembic](https://img.shields.io/badge/Migrations-Alembic-green?style=for-the-badge)](https://alembic.sqlalchemy.org/)
-[![WAL](https://img.shields.io/badge/Mode-WAL-orange?style=for-the-badge)](#schema)
 
 </div>
 
-## 📋 About Database
 
-InvoiceFlowBot relies on SQLite, a lightweight file-based database. By default data is stored in `data.sqlite` at the project root (or inside the container). Override the path with `INVOICE_DB_PATH` if needed.
+## About SQLite
 
-> [!NOTE]
-> SQLite requires no separate database server - everything in one file!
+`INVOICE_DB_PATH` defaults to `../data.sqlite`. The bot resolves relative paths from `backend/`, so the default file is `data.sqlite` in the project root locally and `/app/data.sqlite` in Docker. A fresh database uses SQLite's default rollback journal mode (`delete`).
 
-## 📊 Schema
+## Schema
 
-`backend.storage.db:init_db()` runs on startup and ensures these tables exist:
+- `invoices` stores confirmed invoices, including supplier, customer, number, date, total and source path.
+- `invoice_items` stores individual items linked to invoices.
+- `comments` stores user comments and automatic sum checks linked to invoices.
+- `invoice_drafts` stores one active draft per Telegram user.
+- `user_languages` stores the selected interface language for each Telegram user.
 
-- `invoices` — invoice headers: Telegram user, supplier, client, document number, date fields, total amount, raw text, and source path.
-- `invoice_items` — line items: row index, code, name, quantity, price, total per line.
-- `comments` — user comments linked to invoices.
+## Migrations
 
-The database enables WAL mode for safer concurrent writes.
+The bot applies Alembic migrations on startup. To apply them manually, set `BOT_TOKEN` in `.env` or the process environment and run from the project root:
 
-## 🔄 Migrations
-
-Schema changes are managed by [Alembic](https://alembic.sqlalchemy.org/). Migrations create and update tables (including `invoice_drafts` for draft invoices).
-
-### When to run migrations
-
-- **First-time setup** — before first run, so all tables exist.
-- **After pulling changes** — if new migrations were added to the repo.
-- **After cloning** — so the local database matches the current schema.
-
-The bot also runs migrations on startup via `backend.storage.db.init_db()`, but running them manually once from the project root is recommended so the same database file is used (see below).
-
-### How to run migrations
-
-**Always run from the project root** (the `InvoiceFlowBot` directory) so the app config and `.env` are loaded and migrations apply to the same database the bot uses (by default `backend/data.sqlite`).
-
-```powershell
-# From project root (Windows)
+```bash
 python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Or use the script:
+You can also use `python scripts/python/migrate.py` or `bash scripts/linux/migrate.sh`. To roll back one revision, stop the bot, back up the database, and use `python scripts/python/migrate.py downgrade -1`. On the next start, the bot applies any pending upgrades. Alembic uses the application's database path. For new revisions, see the [development guide](development.md#creating-a-new-migration).
+
+## Backup and restore
+
+Stop the bot before copying the SQLite file. In Docker, run `docker compose down` and copy the database from the host. The following PowerShell example backs up the default local or Compose database:
 
 ```powershell
-python scripts/python/migrate.py
+New-Item -ItemType Directory -Force ./backup | Out-Null
+Copy-Item ./data.sqlite "./backup/data-$(Get-Date -Format yyyyMMddHHmmss).sqlite"
 ```
 
-Linux/macOS:
-
-```bash
-./scripts/linux/migrate.sh
-```
-
-Other commands (from project root):
-
-```powershell
-# Roll back one migration
-python scripts/python/migrate.py downgrade -1
-
-# Create a new migration (developers)
-python -m alembic -c backend/alembic.ini revision -m "describe_change"
-```
-
-> [!TIP]
-> If you see `no such table: invoice_drafts` or `unable to open database file`, run migrations from the project root as above. The path to the database is taken from the app config (`INVOICE_DB_PATH` / `backend/data.sqlite`), not from `alembic.ini`.
-
-## ⚠️ Best practices
-
-> [!WARNING]
-> Make regular backups of `data.sqlite`!
-
-- ❌ Keep `data.sqlite` out of version control
-- 💾 Backup command:
-```powershell
-Copy-Item .\data.sqlite .\backup\data-$(Get-Date -Format yyyyMMddHHmmss).sqlite
-```
-- 🐳 In Docker, verify volume mapping is correct
-
-## Restore and migrate
-
-To move InvoiceFlowBot to another host, stop the bot, copy `data.sqlite`, place it on the new server, and start the bot again. `init_db()` will create any missing tables automatically.
+If you configured a custom path, copy that database instead. To restore or move it, keep the bot stopped, retain a copy of any destination database, and place the backup at the configured path. On startup the bot applies any pending migrations.

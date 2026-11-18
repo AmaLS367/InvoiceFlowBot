@@ -45,7 +45,7 @@ invoiceflowbot = "bot:main"
 
 [project.urls]
 repository = "https://github.com/AmaLS367/InvoiceFlowBot"
-documentation = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/docs/README.md"
+documentation = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/docs/en/index.md"
 issues = "https://github.com/AmaLS367/InvoiceFlowBot/issues"
 changelog = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/CHANGELOG.md"
 contributing = "https://github.com/AmaLS367/InvoiceFlowBot/blob/main/CONTRIBUTING.md"

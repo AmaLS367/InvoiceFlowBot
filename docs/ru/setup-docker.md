@@ -10,46 +10,59 @@
 
 ## 📋 О Docker
 
-Docker позволяет развернуть InvoiceFlowBot без локальной установки Python и зависимостей. Контейнер содержит все нужные пакеты, а на хост монтируются только база и логи.
+Docker позволяет развернуть InvoiceFlowBot без локальной установки Python и зависимостей. Compose сохраняет базу, логи и кэш моделей OCR при пересоздании контейнера.
 
 > [!TIP]
 > Docker - самый быстрый способ запуска! Все зависимости уже включены в образ.
 
 ## ⚙️ Подготовка
 
-1. Скопируйте настройки:
-```powershell
-Copy-Item .env.example .env
-notepad .env
-```
+Выполняйте команды из корня проекта. Файл базы и каталог `logs/` должны быть доступны пользователю контейнера (`botuser`) на запись. В Linux, если после подготовки путей по инструкции ниже нужно настроить владельца, выполните `docker compose build bot`, затем `docker compose run --rm --no-deps --entrypoint id bot`, чтобы узнать UID и GID для настройки прав.
 
-2. Убедитесь, что файл `data.sqlite` существует и именно файл, а не директория. На Windows при отсутствии файла Docker может создать папку с таким именем. Если это произошло, удалите папку и пересоздайте пустой файл:
-```powershell
-Remove-Item .\data.sqlite -Recurse -Force
-New-Item .\data.sqlite -ItemType File | Out-Null
-```
+Если предыдущий запуск создал каталог `data.sqlite`, выполните `docker compose down`, проверьте содержимое каталога и переименуйте его перед продолжением. Существующий файл SQLite сохраните.
+
+<a name="запуск-контейнера"></a>
 
 ## 🚀 Запуск контейнера
 
+PowerShell:
+
 ```powershell
-docker-compose up --build -d
+if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
+notepad .env
+# Укажите BOT_TOKEN в .env перед продолжением.
+if (-not (Test-Path -LiteralPath ./data.sqlite)) {
+    New-Item -Path ./data.sqlite -ItemType File | Out-Null
+}
+if (-not (Test-Path -LiteralPath ./data.sqlite -PathType Leaf)) {
+    throw 'data.sqlite must be a file'
+}
+New-Item -Path ./logs -ItemType Directory -Force | Out-Null
+docker compose up --build -d
 ```
 
-> [!NOTE]
-> - `--build` пересобирает образ при обновлениях
-> - `-d` запускает стек в фоновом режиме
+Bash:
+
+```bash
+if [ ! -e .env ]; then cp .env.example .env; fi
+# Укажите BOT_TOKEN в .env перед продолжением.
+if [ ! -e ./data.sqlite ]; then touch ./data.sqlite; fi
+test -f ./data.sqlite && mkdir -p ./logs && docker compose up --build -d
+```
+
+При запуске контейнер применяет миграции Alembic, затем бот подключается к Telegram через polling. Вывод запуска доступен по команде `docker compose logs -f bot`.
 
 ## 🔄 Остановка и обновление
 
 Остановить сервис:
 ```powershell
-docker-compose down
+docker compose down
 ```
 
 Получить свежую версию и пересобрать:
 ```powershell
 git pull
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ## Томы и данные
@@ -58,4 +71,6 @@ docker-compose up --build -d
 - `./data.sqlite:/app/data.sqlite` — база счетов. Держите ее в бэкапах.
 - `./logs:/app/logs` — логи OCR и ошибок доступны на хосте.
 
-Логи и база сохраняются между рестартами контейнера, поэтому перед обновлениями достаточно сделать резервную копию этих путей.
+- `ocr-models:/app/data/huggingface` — именованный том кэша Hugging Face, путь задан через `HF_HOME`.
+
+Вложения Telegram скачиваются в `/app/temp/` внутри контейнера. При смене пути к базе обновите `INVOICE_DB_PATH` и монтирование в Compose. Перед обновлением сделайте [резервную копию базы](database.md#резервная-копия-и-восстановление).

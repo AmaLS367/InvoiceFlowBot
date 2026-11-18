@@ -4,7 +4,7 @@
 
 [![System](https://img.shields.io/badge/System-Architecture-blue?style=for-the-badge)](architecture.md)
 [![Components](https://img.shields.io/badge/Components-Modular-green?style=for-the-badge)](architecture.md)
-[![Flow](https://img.shields.io/badge/Data-Flow-orange?style=for-the-badge)](#движение-данных)
+[![Flow](https://img.shields.io/badge/Data-Flow-orange?style=for-the-badge)](#-движение-данных)
 
 </div>
 
@@ -13,10 +13,10 @@
 InvoiceFlowBot работает как Telegram бот, принимающий документы от пользователя и обрабатывающий их через слой OCR:
 
 - Пользователь отправляет боту PDF или фото счета, загружая файл прямо в чат.
-- `backend.handlers.file` принимает вложение, валидирует формат и сохраняет временный файл.
+- `backend.handlers.file` принимает вложение, скачивает его в `temp/` и подготавливает изображения для OCR.
 - `backend.services.invoice_service` запускает OCR через `backend.ocr.async_client` и конвертирует результаты в доменные сущности (`backend.domain.invoices`).
 - Интерфейс `OcrProvider` задаёт контракт распознавания. По умолчанию роутер выбирает `LocalOcrProvider` (Docling и Tesseract). Mindee можно включить в настройках.
-- Полученный черновик сохраняется в памяти состояния (`backend.handlers.fsm`), а подтвержденные данные записываются в SQLite (`backend.storage.db`).
+- Черновик хранится в таблице SQLite `invoice_drafts` по пользователю. Подтверждённые данные записывает `backend.storage.db_async`. FSM хранит состояние диалога.
 - Телеграм интерфейс (`backend.handlers.commands`, `backend.handlers.callbacks`, `backend.handlers.utils`) позволяет поправить поля, добавить комментарии и запросить историю.
 
 ## 🔄 Движение данных
@@ -39,12 +39,16 @@ sequenceDiagram
     O-->>S: ExtractionResult
     S->>S: Конвертация в Invoice
     S-->>H: Invoice (черновик)
+    H->>D: Сохранение черновика в invoice_drafts
     H->>U: Показ черновика
     U->>H: Редактирование
+    H->>D: Обновление черновика
+    U->>H: Подтверждение через /save или кнопку
     H->>S: save_invoice()
     S->>D: Сохранение
     D-->>S: Success
-    S-->>U: Подтверждение
+    H->>D: Удаление черновика
+    H-->>U: Подтверждение с ID счёта
 ```
 
 </div>
@@ -70,11 +74,11 @@ sequenceDiagram
 </tr>
 <tr>
 <td width="5%" align="center">5️⃣</td>
-<td>Черновик сохраняется в памяти (<code>backend.handlers.fsm</code>), пользователь редактирует</td>
+<td>Черновик сохраняется в SQLite, пользователь редактирует его через команды или кнопки</td>
 </tr>
 <tr>
 <td width="5%" align="center">6️⃣</td>
-<td>Команда <code>/save</code> → <code>save_invoice()</code> → <code>backend.storage.db</code> → <code>data.sqlite</code></td>
+<td>Команда <code>/save</code> → <code>save_invoice()</code> → <code>backend.storage.db_async</code> → SQLite</td>
 </tr>
 <tr>
 <td width="5%" align="center">7️⃣</td>
@@ -118,7 +122,7 @@ graph TD
 | ⚡ **backend.services/** | Бизнес-логика | invoice_service.py |
 | 🤖 **backend.handlers/** | Telegram обработка | file, commands, callbacks |
 | 🔍 **backend.ocr/** | OCR провайдеры | engine, providers, mindee |
-| 💾 **backend.storage/** | База данных | db.py, mappers |
+| 💾 **backend.storage/** | База данных | db.py, db_async.py, drafts_async.py, user_languages.py |
 | 🧪 **tests/** | Тестирование | Unit & integration |
 
 <details>
@@ -128,7 +132,7 @@ graph TD
 - `commands.py` — текстовые команды (/show, /edit, /invoices)
 - `callbacks.py` — callback-запросы для inline-кнопок
 - `utils.py` — утилиты форматирования и клавиатуры
-- `state.py` — управление состоянием сессий
+- `fsm.py` — состояния диалога для редактирования и ввода фильтров периода
 
 </details>
 

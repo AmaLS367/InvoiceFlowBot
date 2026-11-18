@@ -7,7 +7,7 @@
 </p>
 
 [![Architecture](https://img.shields.io/badge/Pattern-Clean%20Architecture-blue?style=for-the-badge)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![Layers](https://img.shields.io/badge/Layers-6-green?style=for-the-badge)](#слои-проекта)
+[![Layers](https://img.shields.io/badge/Layers-6-green?style=for-the-badge)](#-слои-проекта)
 [![Mermaid](https://img.shields.io/badge/Diagrams-Mermaid-orange?style=for-the-badge)](#общая-схема-компонентов)
 
 </div>
@@ -66,21 +66,28 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    participant User as Пользователь
-    participant TG as Telegram Bot API
-    participant H as backend.handlers.file
-    participant S as InvoiceService
-    participant O as OcrProvider
-    participant ST as AsyncInvoiceStorage
+    participant User as Пользователь Telegram
+    participant H as Обработчики Telegram
+    participant I as InvoiceService
+    participant O as Провайдер OCR
+    participant D as DraftService
+    participant DB as SQLite
 
-    User->>TG: отправка PDF или изображения
-    TG->>H: апдейт с файлом
-    H->>S: process_invoice_file(pdf_path, fast, max_pages)
-    S->>O: extract_invoice(file_path)
-    O-->>S: ExtractionResult
-    S->>S: маппинг в доменную модель Invoice
-    S->>ST: save_invoice_domain_async(invoice)
-    ST-->>S: id счета
-    S-->>H: Invoice с id
-    H-->>User: сообщение с шапкой и позициями
+    User->>H: Загружает PDF или изображение
+    H->>I: process_invoice_file()
+    I->>O: extract_invoice() в рабочем потоке
+    O-->>I: ExtractionResult
+    I-->>H: Invoice
+    H->>D: set_current_draft()
+    D->>DB: Записывает invoice_drafts для пользователя
+    H-->>User: Показывает черновик и замечания OCR
+    User->>H: Правит поля или добавляет комментарии
+    H->>D: Обновляет текущий черновик
+    User->>H: Подтверждает через /save или кнопку
+    H->>I: save_invoice()
+    I->>DB: Записывает счёт, позиции и комментарии
+    H->>D: clear_current_draft()
+    H-->>User: Подтверждает сохранение и сообщает ID
 ```
+
+SQLite хранит один активный черновик на пользователя Telegram. FSM aiogram хранит состояние диалога, например ожидание значения поля или даты для запроса.

@@ -68,7 +68,7 @@ Installs the package in editable mode with development dependencies and creates 
 
 ```bash
 # Linux/macOS
-./scripts/linux/setup.sh
+bash scripts/linux/setup.sh
 
 # Windows PowerShell
 .\scripts\windows\setup.ps1
@@ -79,7 +79,7 @@ python scripts/python/setup.py
 
 ### migrate.py
 
-Runs Alembic database migrations. Supports all Alembic commands.
+Runs Alembic migrations. Set `BOT_TOKEN` in `.env` or the process environment. Use the direct Alembic command for arguments that contain spaces, such as revision messages.
 
 **Usage:**
 
@@ -89,7 +89,7 @@ python scripts/python/migrate.py
 
 # Custom Alembic command
 python scripts/python/migrate.py downgrade -1
-python scripts/python/migrate.py revision -m "add new table"
+python -m alembic -c backend/alembic.ini revision -m "add new table"
 ```
 
 ### run.py
@@ -104,7 +104,7 @@ python scripts/python/run.py
 
 ### test.py
 
-Runs pytest with coverage. Supports pytest arguments.
+Runs pytest with coverage and accepts additional pytest arguments. Set `BOT_TOKEN=test-token` in the process environment before running tests.
 
 **Usage:**
 
@@ -141,7 +141,7 @@ python scripts/python/format.py
 
 ### context_gen.py
 
-Generates a full project context file (`full_project_context.txt`) containing all project files for AI context.
+Writes `full_project_context(0.4.0).txt` in the project root using selected source, configuration, and Markdown files. It skips configured paths such as `.venv`, `data/`, and `logs/`.
 
 **Usage:**
 
@@ -211,7 +211,7 @@ All scripts support passing arguments:
 
 ```bash
 # Linux/macOS
-./scripts/linux/setup.sh
+bash scripts/linux/setup.sh
 
 # Windows
 .\scripts\windows\setup.ps1
@@ -239,7 +239,7 @@ All scripts support passing arguments:
 ## 📝 Notes
 
 - All scripts automatically detect the project root directory
-- Scripts work from any location within the project
+- Pass the path to a script from another directory. Module invocations such as `python -m scripts.python.setup` should be run from the project root.
 - Python scripts can be run directly or as modules
 - Shell/PowerShell scripts are thin wrappers that pass arguments through
 - All scripts use relative paths and are portable

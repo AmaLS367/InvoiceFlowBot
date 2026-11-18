@@ -8,52 +8,42 @@
 
 [![Solutions](https://img.shields.io/badge/Solutions-6+-blue?style=for-the-badge)](#-about-this-guide)
 [![Quick Fix](https://img.shields.io/badge/Fix-Fast-green?style=for-the-badge)](#-sqlite3operationalerror-unable-to-open-database-file)
-[![Logs](https://img.shields.io/badge/Check-Logs-orange?style=for-the-badge)](#-logs-are-empty)
+[![Logs](https://img.shields.io/badge/Check-Logs-orange?style=for-the-badge)](#logs-are-empty)
 
 </div>
 
 ## 📋 About This Guide
 
-> [!TIP]
-> Most problems can be solved by checking environment variables and logs in `logs/`
+Check the failing command's output first. In Docker, use `docker compose logs bot`. Application warnings and exceptions go to `logs/errors.log` by default.
 
 ## ❌ sqlite3.OperationalError: unable to open database file
-- **Problem:** the container cannot open `data.sqlite`.
-- **Cause:** Docker mounted a directory instead of a file because `data.sqlite` was missing.
-- **Fix:** stop the container, delete the directory, create an empty file with `New-Item .\data.sqlite -ItemType File | Out-Null`, then run `docker-compose up --build -d`.
+
+Check that `./data.sqlite` on the host is a regular file that the container can write. If Docker created a directory at that path, stop the service with `docker compose down`, check the directory's contents and rename it. Then follow the [Docker setup](setup-docker.md#start-the-stack) to create the missing file. Preserve any existing database file.
 
 ## Bot does not respond in Telegram
-- **Problem:** commands stay unanswered or Telegram reports token errors.
-- **Cause:** wrong `BOT_TOKEN`, network restrictions, or Telegram is blocked.
-- **Fix:** verify the token inside `.env`, ensure the host can reach `api.telegram.org`, and restart the bot. Inspect `logs/errors.log` for stack traces.
+
+Check `BOT_TOKEN` and the host's connection to `api.telegram.org`. Restart the local process after an environment change. For Compose, run `docker compose up -d --force-recreate bot` after editing `.env`.
 
 ## Local OCR errors
 
-Check that `tesseract --list-langs` lists the codes configured in `OCR_LANGUAGES`. The default is `eng+rus`. Docling needs access to Hugging Face to download its models on the first OCR run.
+Check that `tesseract --list-langs` includes the languages configured in `OCR_LANGUAGES` (default `eng+rus`). The first OCR request needs access to Hugging Face unless the Docling models are already cached.
 
 ## Mindee API errors
-- **Problem:** OCR fails with Mindee-related messages.
-- **Cause:** invalid `MINDEE_API_KEY`, incorrect `MINDEE_MODEL_ID`, or transient network issues.
-- **Fix:** update credentials in `.env`, confirm that the Mindee account is active, and retry once connectivity is restored.
+
+If `OCR_PROVIDER=mindee`, verify `MINDEE_API_KEY`, `MINDEE_MODEL_ID`, and network access to Mindee. Check `logs/errors.log` for provider warnings and any logged exception details.
 
 ## File processing errors
-- **Problem:** bot reports "Не удалось обработать файл" (Failed to process file) or similar error messages.
-- **Cause:** corrupted PDF, unsupported image format, or file conversion failure (e.g., HEIC/HEIF to JPEG).
-- **Behavior:** the bot sends a user-friendly error message in Telegram and logs detailed error information (including file path and exception traceback) to `logs/errors.log` for debugging.
-- **Fix:** ensure the file is a valid PDF or supported image format (JPEG, PNG). For HEIC/HEIF files, the bot attempts automatic conversion; if it fails, try converting manually before uploading.
+
+Try a valid PDF, JPEG, PNG, or WebP. Convert HEIC/HEIF to JPEG or PNG before uploading. If image normalization fails, look for the exception in `logs/errors.log`.
 
 ## OCR service errors
-- **Problem:** bot responds with "Сервис распознавания сейчас недоступен" (OCR service temporarily unavailable).
-- **Cause:** network timeout, Mindee API 4xx/5xx response, or service outage.
-- **Behavior:** the bot sends a user-friendly message to the user and logs the full error details (including request path, response status, and exception) to `logs/errors.log` for investigation.
-- **Fix:** check network connectivity, verify Mindee API status, and retry after a short delay. Review `logs/errors.log` for specific error codes or messages.
+
+The bot can report that recognition is unavailable for either provider. Check `OCR_PROVIDER` and follow the relevant checks above. Review `logs/errors.log` for the failure that the provider or upload handler recorded.
 
 ## Docker container exits immediately
-- **Problem:** `docker ps` shows the service stopping right after launch.
-- **Cause:** missing mandatory environment variables or missing write access to logs/database.
-- **Fix:** review `docker logs <container>`, check `BOT_TOKEN` and make sure `logs/` plus `data.sqlite` are writable.
+
+Run `docker compose logs bot`, check `BOT_TOKEN`, and verify that the container user can write to the database and log paths. During startup, Alembic and configuration errors can appear in the container output.
 
 ## Logs are empty
-- **Problem:** no log files appear, even under load.
-- **Cause:** `LOG_DIR` points to a non-existent path or log level is too strict.
-- **Fix:** create the directory or remove `LOG_DIR` to fall back to `logs/`. Set `LOG_LEVEL=INFO` to verify the pipeline.
+
+Check the configured log level and the active log directory. The app creates the directory if it has permission. With a relative `LOG_DIR`, check the path from the working directory. To mirror application messages to stderr, set `LOG_CONSOLE=1` and restart or recreate the process.

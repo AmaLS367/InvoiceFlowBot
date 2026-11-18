@@ -4,7 +4,6 @@
 
 [![pytest](https://img.shields.io/badge/Framework-pytest-blue?style=for-the-badge&logo=pytest)](https://pytest.org/)
 [![Coverage](https://img.shields.io/badge/Coverage-80%25+-green?style=for-the-badge)](https://coverage.readthedocs.io/)
-[![Tests](https://img.shields.io/badge/Tests-160+-orange?style=for-the-badge)](#запуск)
 
 </div>
 
@@ -23,14 +22,15 @@ cd InvoiceFlowBot
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
+$env:BOT_TOKEN = 'test-token'
 pytest
 ```
 
-Команда `pytest` автоматически обнаружит тесты в каталоге `tests/`.
+Команда `pytest` автоматически обнаружит тесты в каталоге `tests/`. В Bash выполните `BOT_TOKEN=test-token python -m pytest`. Тот же тестовый токен подходит для запуска отдельного файла или обёртки.
 
 ## Покрытие
 
-Проект имеет **80% покрытие кода** с **160+ тестами**, охватывающими все основные модули:
+Проверка покрытия в CI требует минимум **80%**. В тестах представлены следующие области:
 
 ### Основные тестовые файлы
 
@@ -49,6 +49,7 @@ pytest
 - `tests/handlers/test_commands_basic.py` — тесты базовых команд бота
 - `tests/handlers/test_commands_drafts.py` — тесты работы с черновиками
 - `tests/handlers/test_commands_invoices_force_reply.py` — тесты запросов по счетам
+- `tests/handlers/test_languages.py` — локализация меню, сохранение выбора и согласованность переводов
 - `tests/handlers/test_file_upload_*.py` — тесты загрузки файлов
 
 ### Тесты OCR
@@ -56,6 +57,7 @@ pytest
 - `tests/ocr/test_extract.py` — тесты извлечения данных из документов
 - `tests/ocr/test_async_client.py` — тесты асинхронного OCR-клиента
 - `tests/ocr/test_router.py` — тесты роутера OCR
+- `tests/ocr/test_local_provider.py` — локальное распознавание, разбор таблиц и отметки для проверки
 
 ### Тесты хранилища
 
@@ -91,6 +93,7 @@ python -m ruff check .
 python -m mypy backend/
 
 # Запуск тестов
+$env:BOT_TOKEN = 'test-token'
 python -m pytest
 ```
 
@@ -100,7 +103,7 @@ python -m pytest
 python -m pytest tests/test_invoice_service.py
 ```
 
-CI-пайплайн автоматически запускает `ruff`, `mypy` и `pytest` при каждом push и pull request.
+CI запускает pre-commit, mypy и pytest при push в `main` или `master` и PR в эти ветки. См. [руководство разработчика](development.md#ci).
 
 ## Политика разработки
 

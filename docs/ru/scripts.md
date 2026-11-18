@@ -68,7 +68,7 @@ python -m scripts.python.run
 
 ```bash
 # Linux/macOS
-./scripts/linux/setup.sh
+bash scripts/linux/setup.sh
 
 # Windows PowerShell
 .\scripts\windows\setup.ps1
@@ -79,7 +79,7 @@ python scripts/python/setup.py
 
 ### migrate.py
 
-Запускает миграции базы данных Alembic. Поддерживает все команды Alembic.
+Запускает миграции Alembic. Задайте `BOT_TOKEN` в `.env` или окружении процесса. Для аргументов с пробелами, например сообщения новой ревизии, вызывайте Alembic напрямую.
 
 **Использование:**
 
@@ -89,7 +89,7 @@ python scripts/python/migrate.py
 
 # Пользовательская команда Alembic
 python scripts/python/migrate.py downgrade -1
-python scripts/python/migrate.py revision -m "add new table"
+python -m alembic -c backend/alembic.ini revision -m "add new table"
 ```
 
 ### run.py
@@ -104,7 +104,7 @@ python scripts/python/run.py
 
 ### test.py
 
-Запускает pytest с покрытием. Поддерживает аргументы pytest.
+Запускает pytest с покрытием и принимает дополнительные аргументы pytest. Перед тестами задайте `BOT_TOKEN=test-token` в окружении процесса.
 
 **Использование:**
 
@@ -141,7 +141,7 @@ python scripts/python/format.py
 
 ### context_gen.py
 
-Генерирует файл полного контекста проекта (`full_project_context.txt`), содержащий все файлы проекта для AI контекста.
+Создаёт в корне проекта `full_project_context(0.4.0).txt` из файлов исходного кода, конфигурации и Markdown выбранных форматов. Пропускает заданные каталоги, включая `.venv`, `data/` и `logs/`.
 
 **Использование:**
 
@@ -211,7 +211,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ```bash
 # Linux/macOS
-./scripts/linux/setup.sh
+bash scripts/linux/setup.sh
 
 # Windows
 .\scripts\windows\setup.ps1
@@ -239,7 +239,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ## 📝 Примечания
 
 - Все скрипты автоматически определяют корневую директорию проекта
-- Скрипты работают из любого места в проекте
+- Из другого каталога передавайте путь к скрипту. Вызовы модулей, например `python -m scripts.python.setup`, запускайте из корня проекта.
 - Python скрипты могут быть запущены напрямую или как модули
 - Shell/PowerShell скрипты являются тонкими обертками, которые передают аргументы дальше
 - Все скрипты используют относительные пути и являются портативными

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Seven Telegram interface languages with a language picker, localized command menus, and per-user preferences stored in SQLite.
+
+### Changed
+
+- Local OCR with Docling and Tesseract is the default. Mindee remains available through configuration.
+- Local OCR handles more complex line-item tables and flags uncertain, computed, or corrected values for review.
+
 ## [0.4.0] - 2026-01-24
 
 ### Highlights
@@ -25,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * `backend/ocr/` - OCR engine with providers and async client
   * `backend/handlers/` - Telegram handlers (commands, callbacks, FSM, DI middleware)
   * `backend/alembic/` - Database migrations
-  * `backend/healthcheck.py` - Health check endpoint
+  * `backend/healthcheck.py` - Docker healthcheck script for Python imports
 * **Development scripts** (`scripts/`):
   * Python scripts for setup, testing, linting, formatting, migration, and running
   * Platform-specific wrappers (Linux shell, Windows PowerShell)
@@ -45,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `docker.yml` - Docker image build and test
     * `docker-compose.yml` - Docker Compose integration tests
     * `docs.yml` - Documentation link checking
-    * `release.yml` - Docker image publishing (releases only for major versions)
+    * `release.yml` - Docker image publishing from version tags and GitHub Releases for `vX.0.0` tags
     * `security.yml` - Security scanning (bandit, pip-audit, Trivy)
 
 ### Fixed

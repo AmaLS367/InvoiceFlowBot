@@ -84,6 +84,7 @@ python -m ruff check .
 python -m mypy backend/
 
 # 🧪 Run tests
+$env:BOT_TOKEN = 'test-token'
 python -m pytest
 ```
 
@@ -144,7 +145,7 @@ pre-commit run --all-files
 ```
 
 > [!NOTE]
-> CI will automatically run `pre-commit` on every push and pull request.
+> CI will automatically run `pre-commit` on pushes to and pull requests targeting `main` or `master`.
 
 ## 📜 Coding Guidelines
 
@@ -216,10 +217,11 @@ High-level system diagrams and component interactions
 </td>
 <td width="50%">
 
-**📋 ADR (Architecture Decision Records)**
-- `docs/adr/`
+**System overview**
+- [English](docs/en/overview.md)
+- [Русский](docs/ru/overview.md)
 
-Documented decisions for key technology choices
+Upload, draft, and reporting flow
 
 </td>
 </tr>

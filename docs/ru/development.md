@@ -4,7 +4,7 @@
 
 [![Alembic](https://img.shields.io/badge/Migrations-Alembic-blue?style=for-the-badge)](https://alembic.sqlalchemy.org/)
 [![CI/CD](https://img.shields.io/badge/Pipeline-GitHub%20Actions-green?style=for-the-badge&logo=github)](https://github.com/features/actions)
-[![Dev Tools](https://img.shields.io/badge/Tools-Complete-orange?style=for-the-badge)](#миграции-базы-данных)
+[![Dev Tools](https://img.shields.io/badge/Tools-Complete-orange?style=for-the-badge)](#database-migrations)
 
 </div>
 
@@ -15,7 +15,9 @@
 
 ## Переводы интерфейса
 
-Чтобы добавить язык, скопируйте [английский каталог](../../backend/handlers/locales/en.json) в файл с двухбуквенным кодом ISO 639-1, например `fr.json`. Переведите значения и сохраните ключи и параметры подстановки. Добавьте код и название языка в `LANGUAGES` в [`texts.py`](../../backend/handlers/texts.py). Список языков и меню команд Telegram используют этот реестр.
+Чтобы добавить язык, скопируйте [английский каталог](../../backend/handlers/locales/en.json) в файл с двухбуквенным кодом ISO 639-1, например `nl.json`. Переведите значения и сохраните ключи и параметры подстановки. Добавьте код и название языка в `LANGUAGES` в [`texts.py`](../../backend/handlers/texts.py). Список языков и меню команд Telegram используют этот реестр.
+
+<a name="database-migrations"></a>
 
 ## 🗄️ Миграции базы данных
 
@@ -24,7 +26,7 @@
 ### Как поднимается схема
 
 Во время запуска схема БД создается или обновляется через вызов `backend.storage.db.init_db()`.
-Эта функция внутри выполняет команду:
+Функция обновляет схему до `head` через Python API Alembic. Эквивалентная команда:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
@@ -34,7 +36,7 @@ python -m alembic -c backend/alembic.ini upgrade head
 
 ### Запуск миграций локально
 
-Чтобы локальная база была в актуальном состоянии, достаточно выполнить:
+В корне проекта задайте `BOT_TOKEN` в `.env` или окружении, затем выполните:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
@@ -53,7 +55,7 @@ python -m alembic -c backend/alembic.ini upgrade head
 2. Сгенерировать заготовку миграции:
 
    ```powershell
-   python -m alembic revision -m "описание_изменения"
+   python -m alembic -c backend/alembic.ini revision -m "описание_изменения"
    ```
 
 3. Открыть файл из `backend/alembic/versions/` и вручную описать SQL в функциях `upgrade` и `downgrade` под SQLite.
@@ -74,41 +76,26 @@ python -m alembic -c backend/alembic.ini upgrade head
 
 * Вызов `backend.storage.db.init_db()` применит все миграции к этой временной базе.
 
-Так тестовая схема всегда совпадает с боевой.
+Интеграционные тесты хранилища используют те же ревизии Alembic на временных базах SQLite.
 
 ### Docker и миграции
 
-При запуске бота в Docker миграции должны быть применены до старта процесса приложения.
-
-Типичный паттерн — запускать:
+Точка входа Docker применяет миграции перед запуском бота:
 
 ```powershell
 python -m alembic -c backend/alembic.ini upgrade head
 python bot.py
 ```
 
-из entrypoint-скрипта.
+## CI
 
-### CI пайплайн
+При push в `main` или `master` и PR в эти ветки [CI](../../.github/workflows/ci.yml) использует Python 3.11, устанавливает `.[dev]`, применяет миграции с тестовым токеном и запускает pre-commit и mypy. Затем запускает две группы тестов:
 
-В GitHub Actions выполняются шаги:
+```bash
+pytest --import-mode=importlib -m "not storage_db"
+pytest --import-mode=importlib -m "storage_db" --no-cov
+```
 
-1. Установка dev-зависимостей и пакета в editable-режиме:
+[Coverage](../../.github/workflows/coverage.yml) требует минимум 80% покрытия. [Docker Build](../../.github/workflows/docker.yml) и [Compose](../../.github/workflows/docker-compose.yml) проверяют образ и конфигурацию контейнера. Docker healthcheck проверяет импорты Python. [Docs](../../.github/workflows/docs.yml) проверяет ссылки при изменениях документации. [Security](../../.github/workflows/security.yml) запускает Bandit, pip-audit и Trivy для тех же веток и еженедельно.
 
-   ```powershell
-   python -m pip install -e .[dev]
-   ```
-
-2. Применение миграций Alembic:
-
-   ```powershell
-   python -m alembic -c backend/alembic.ini upgrade head
-   ```
-
-3. Запуск статических проверок и тестов:
-
-   ```powershell
-   python -m ruff check .
-   python -m mypy backend/
-   python -m pytest
-   ```
+[Release](../../.github/workflows/release.yml) публикует Docker-образ в GHCR по тегам `v*` с помощью `GITHUB_TOKEN`. Релиз на GitHub создаётся для тегов вида `vX.0.0`.
