@@ -26,7 +26,8 @@ COPY backend/alembic.ini ./backend/
 COPY backend/config.py ./backend/
 COPY bot.py ./
 
-RUN python -m pip install --no-cache-dir --upgrade -e .
+RUN python -m pip install --no-cache-dir --upgrade . \
+    && python -m pip uninstall -y pip setuptools wheel
 
 # Runtime stage: minimal runtime image
 FROM python:3.11-slim AS runtime
@@ -34,12 +35,13 @@ FROM python:3.11-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Apply OS security updates and remove base site-packages/ensurepip to avoid stale dist-info metadata
+# Apply OS security updates and remove base packaging tools/metadata from runtime image
 RUN set -eux; \
     apt-get update; \
     apt-get upgrade -y; \
     rm -rf /var/lib/apt/lists/*; \
-    rm -rf /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/ensurepip
+    rm -rf /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/ensurepip \
+           /usr/local/bin/pip* /usr/local/bin/wheel*
 
 # Create non-root user
 RUN useradd -m botuser
