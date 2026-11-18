@@ -13,7 +13,7 @@ RUN set -eux; \
 COPY pyproject.toml ./
 COPY README.md ./
 
-RUN python -m pip install --upgrade pip
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" "wheel>=0.46.2"
 
 COPY backend/core/ ./backend/core/
 COPY backend/domain/ ./backend/domain/
@@ -26,7 +26,7 @@ COPY backend/alembic.ini ./backend/
 COPY backend/config.py ./backend/
 COPY bot.py ./
 
-RUN python -m pip install --no-cache-dir -e .
+RUN python -m pip install --no-cache-dir --upgrade -e .
 
 # Runtime stage: minimal runtime image
 FROM python:3.11-slim AS runtime
@@ -34,13 +34,20 @@ FROM python:3.11-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+# Apply OS security updates and remove base site-packages/ensurepip to avoid stale dist-info metadata
+RUN set -eux; \
+    apt-get update; \
+    apt-get upgrade -y; \
+    rm -rf /var/lib/apt/lists/*; \
+    rm -rf /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/ensurepip
+
 # Create non-root user
 RUN useradd -m botuser
 
 WORKDIR /app
 
 # Copy installed Python packages from builder
-COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . /app
