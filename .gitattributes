@@ -1,0 +1,25 @@
+# Normalize all text files to LF across platforms
+* text=auto eol=lf
+
+# Shell scripts and Dockerfiles must always use LF
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+# Windows batch scripts require CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files (prevent line-ending conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.sqlite binary
+*.sqlite3 binary
+*.db binary
+*.zip binary
+*.tar.gz binary
+*.gz binary
