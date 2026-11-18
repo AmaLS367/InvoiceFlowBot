@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional
 
 import aiosqlite
 
@@ -82,53 +82,30 @@ class AsyncInvoiceStorage:
 
     async def fetch_invoices(
         self,
+        user_id: int,
         from_date: Optional[date],
         to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
-        """Fetch invoices matching the date range and optional supplier filter."""
+        """Fetch a user's invoices matching the date range and optional supplier filter."""
         connection = await self._get_connection()
         try:
-            from_iso = from_date.isoformat() if from_date else None
-            to_iso = to_date.isoformat() if to_date else None
+            query = (
+                "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path "
+                "FROM invoices WHERE user_id = ?"
+            )
+            parameters: list[int | str] = [user_id]
+            order_by = " ORDER BY created_at ASC, id ASC"
+            if from_date is not None and to_date is not None:
+                query += " AND date_iso BETWEEN ? AND ?"
+                parameters.extend((from_date.isoformat(), to_date.isoformat()))
+                order_by = " ORDER BY COALESCE(date_iso, date) ASC, id ASC"
 
-            if from_iso and to_iso:
-                if supplier:
-                    query = (
-                        "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path "
-                        "FROM invoices "
-                        "WHERE COALESCE(date_iso, date) IS NOT NULL "
-                        "AND date_iso BETWEEN ? AND ? AND supplier LIKE ? "
-                        "ORDER BY COALESCE(date_iso, date) ASC, id ASC"
-                    )
-                    parameters: Tuple[Any, ...] = (from_iso, to_iso, f"%{supplier}%")
-                else:
-                    query = (
-                        "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path "
-                        "FROM invoices "
-                        "WHERE COALESCE(date_iso, date) IS NOT NULL "
-                        "AND date_iso BETWEEN ? AND ? "
-                        "ORDER BY COALESCE(date_iso, date) ASC, id ASC"
-                    )
-                    parameters = (from_iso, to_iso)
-            else:
-                if supplier:
-                    query = (
-                        "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path "
-                        "FROM invoices "
-                        "WHERE supplier LIKE ? "
-                        "ORDER BY created_at ASC, id ASC"
-                    )
-                    parameters = (f"%{supplier}%",)
-                else:
-                    query = (
-                        "SELECT id, date, date_iso, doc_number, supplier, client, total_sum, source_path "
-                        "FROM invoices "
-                        "ORDER BY created_at ASC, id ASC"
-                    )
-                    parameters = ()
+            if supplier:
+                query += " AND supplier LIKE ?"
+                parameters.append(f"%{supplier}%")
 
-            header_cursor = await connection.execute(query, parameters)
+            header_cursor = await connection.execute(query + order_by, parameters)
             header_rows = await header_cursor.fetchall()
 
             invoices: List[Invoice] = []
@@ -180,13 +157,14 @@ async def save_invoice_domain_async(invoice: Invoice, user_id: int = 0) -> int:
 
 
 async def fetch_invoices_domain_async(
+    user_id: int,
     from_date: Optional[date],
     to_date: Optional[date],
     supplier: Optional[str] = None,
 ) -> List[Invoice]:
-    """Backward compatible wrapper around AsyncInvoiceStorage.fetch_invoices."""
+    """Fetch a user's invoices using the default async storage."""
     storage = _get_default_storage()
-    return await storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)
+    return await storage.fetch_invoices(user_id, from_date, to_date, supplier)
 
 
 __all__ = [

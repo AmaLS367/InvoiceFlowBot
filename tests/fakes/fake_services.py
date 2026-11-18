@@ -13,11 +13,15 @@ class FakeInvoiceService:
 
     async def list_invoices(
         self,
-        from_date: Optional[date] = None,
-        to_date: Optional[date] = None,
+        user_id: int,
+        from_date: Optional[date],
+        to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
-        call_str = f"list_invoices:from_date={from_date},to_date={to_date},supplier={supplier}"
+        call_str = (
+            f"list_invoices:user_id={user_id},from_date={from_date},to_date={to_date},"
+            f"supplier={supplier}"
+        )
         self.calls.append(call_str)
         return self.return_invoices
 

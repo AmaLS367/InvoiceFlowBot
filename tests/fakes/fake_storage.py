@@ -10,7 +10,7 @@ from backend.domain.invoices import Invoice
 class FakeStorage:
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
-        self._saved_invoices: dict[int, Invoice] = {}
+        self._saved_invoices: dict[int, list[Invoice]] = {}
         self._saved_drafts: dict[int, InvoiceDraft] = {}
         self._next_invoice_id = 1
 
@@ -19,18 +19,21 @@ class FakeStorage:
         self.calls.append(("save_invoice_domain_async", (invoice, user_id), {}))
         invoice_id = self._next_invoice_id
         self._next_invoice_id += 1
-        self._saved_invoices[invoice_id] = invoice
+        self._saved_invoices.setdefault(user_id, []).append(invoice)
         return invoice_id
 
     async def fetch_invoices_domain_async(
         self,
+        user_id: int,
         from_date: Optional[date],
         to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
         """Fake fetch invoices function."""
-        self.calls.append(("fetch_invoices_domain_async", (from_date, to_date, supplier), {}))
-        return list(self._saved_invoices.values())
+        self.calls.append(
+            ("fetch_invoices_domain_async", (user_id, from_date, to_date, supplier), {})
+        )
+        return list(self._saved_invoices.get(user_id, []))
 
     async def load_draft_invoice(self, user_id: int) -> Optional[InvoiceDraft]:
         """Fake load draft function."""
@@ -61,11 +64,12 @@ def make_fake_fetch_invoices_func(fake_storage: FakeStorage) -> Any:
     """Create a callable that delegates to fake_storage.fetch_invoices_domain_async."""
 
     async def fake_fetch_invoices(
+        user_id: int,
         from_date: Optional[date],
         to_date: Optional[date],
         supplier: Optional[str] = None,
     ) -> List[Invoice]:
-        return await fake_storage.fetch_invoices_domain_async(from_date, to_date, supplier)
+        return await fake_storage.fetch_invoices_domain_async(user_id, from_date, to_date, supplier)
 
     return fake_fetch_invoices
 

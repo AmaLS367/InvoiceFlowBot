@@ -55,6 +55,7 @@ async def test_async_storage_works_with_migrated_schema(
     to_date = date(2025, 1, 2)
 
     fetched_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier=None,

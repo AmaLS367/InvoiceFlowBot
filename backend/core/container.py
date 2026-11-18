@@ -30,7 +30,7 @@ class AppContainer:
         ocr_extractor: Optional[Callable[[str, bool, int], Awaitable[ExtractionResult]]] = None,
         save_invoice_func: Optional[Callable[[Invoice, int], Awaitable[int]]] = None,
         fetch_invoices_func: Optional[
-            Callable[[Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]]
+            Callable[[int, Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]]
         ] = None,
         load_draft_func: Optional[Callable[[int], Awaitable[Optional[InvoiceDraft]]]] = None,
         save_draft_func: Optional[Callable[[int, InvoiceDraft], Awaitable[None]]] = None,
@@ -47,7 +47,7 @@ class AppContainer:
             save_invoice_func or save_invoice_domain_async
         )
         self._fetch_invoices_func: Callable[
-            [Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
+            [int, Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
         ] = fetch_invoices_func or fetch_invoices_domain_async
         self._load_draft_func: Callable[[int], Awaitable[Optional[InvoiceDraft]]] = (
             load_draft_func or load_draft_invoice

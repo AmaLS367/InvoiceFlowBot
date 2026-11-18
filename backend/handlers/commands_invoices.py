@@ -92,7 +92,9 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
     req = f"tg-{int(time.time())}-{uuid.uuid4().hex[:8]}"
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
-    invoice_service = get_invoice_service(container)
+    user = message.from_user
+    if user is None or message.sender_chat is not None:
+        return
     if message.text is None:
         await message.answer(texts.t("INVOICES_USAGE"))
         return
@@ -108,8 +110,9 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
     from_date = _parse_date_str(f_str)
     to_date = _parse_date_str(t_str)
 
+    invoice_service = get_invoice_service(container)
     invoices = await invoice_service.list_invoices(
-        from_date=from_date, to_date=to_date, supplier=supplier
+        user_id=user.id, from_date=from_date, to_date=to_date, supplier=supplier
     )
     if not invoices:
         await message.answer(texts.t("INVOICES_NONE_FOUND"))
@@ -136,6 +139,9 @@ async def handle_force_reply_invoices(
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=on_force_reply_invoices")
 
+    user = message.from_user
+    if user is None or message.sender_chat is not None:
+        return False
     if message.text is None:
         logger.info(f"[TG] update done req={req} h=on_force_reply_invoices (no text)")
         return False
@@ -185,7 +191,7 @@ async def handle_force_reply_invoices(
 
         invoice_service = get_invoice_service(container)
         invoices = await invoice_service.list_invoices(
-            from_date=from_date, to_date=to_date, supplier=supplier
+            user_id=user.id, from_date=from_date, to_date=to_date, supplier=supplier
         )
         if not invoices:
             await message.answer(texts.t("INVOICES_NONE_FOUND"))

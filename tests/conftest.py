@@ -162,11 +162,14 @@ def integration_flow_container(
         return await async_storage_with_migrations.save_invoice(invoice, user_id)
 
     async def fetch_invoices_wrapper(
+        user_id: int,
         from_date: Optional[date],
         to_date: Optional[date],
         supplier: Optional[str],
     ) -> List[Invoice]:
-        return await async_storage_with_migrations.fetch_invoices(from_date, to_date, supplier)
+        return await async_storage_with_migrations.fetch_invoices(
+            user_id, from_date, to_date, supplier
+        )
 
     container = AppContainer(
         config=app_config_with_test_db,

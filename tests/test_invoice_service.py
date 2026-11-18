@@ -76,6 +76,7 @@ async def test_process_invoice_file_builds_invoice_from_ocr() -> None:
         return 0
 
     async def fake_fetch_invoices_func(
+        user_id: int,
         from_date: date | None,
         to_date: date | None,
         supplier: str | None = None,
@@ -131,6 +132,7 @@ async def test_process_invoice_file_raises_on_empty_ocr_result() -> None:
         return 0
 
     async def fake_fetch_invoices_func(
+        user_id: int,
         from_date: date | None,
         to_date: date | None,
         supplier: str | None = None,
@@ -282,6 +284,7 @@ async def test_save_invoice_delegates_to_storage() -> None:
         return 42
 
     async def fake_fetch_invoices_func(
+        user_id: int,
         from_date: date | None,
         to_date: date | None,
         supplier: str | None = None,
@@ -370,10 +373,12 @@ async def test_list_invoices_delegates_to_storage() -> None:
     )
 
     async def fake_fetch_invoices_domain_async(
+        user_id: int,
         from_date: date | None,
         to_date: date | None,
         supplier: str | None = None,
     ) -> List[Invoice]:
+        captured["user_id"] = user_id
         captured["from_date"] = from_date
         captured["to_date"] = to_date
         captured["supplier"] = supplier
@@ -391,12 +396,14 @@ async def test_list_invoices_delegates_to_storage() -> None:
     supplier = "Supplier A"
 
     invoices = await service.list_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier=supplier,
     )
 
     assert invoices == [invoice]
+    assert captured["user_id"] == 123
     assert captured["from_date"] == from_date
     assert captured["to_date"] == to_date
     assert captured["supplier"] == supplier

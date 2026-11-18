@@ -101,7 +101,7 @@ class InvoiceService:
         ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]],
         save_invoice_func: Callable[[Invoice, int], Awaitable[int]],
         fetch_invoices_func: Callable[
-            [Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
+            [int, Optional[date], Optional[date], Optional[str]], Awaitable[List[Invoice]]
         ],
         logger: logging.Logger,
     ) -> None:
@@ -154,6 +154,7 @@ class InvoiceService:
 
     async def list_invoices(
         self,
+        user_id: int,
         from_date: Optional[date],
         to_date: Optional[date],
         supplier: Optional[str] = None,
@@ -163,6 +164,7 @@ class InvoiceService:
         )
 
         invoices = await self._fetch_invoices_func(
+            user_id,
             from_date,
             to_date,
             supplier,

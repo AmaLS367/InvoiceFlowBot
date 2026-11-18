@@ -125,7 +125,7 @@ async def test_fetch_invoices_loads_saved_comments(tmp_path: Path) -> None:
     storage = AsyncInvoiceStorage(database_path=str(db_path))
     await storage.save_invoice(invoice, user_id=42)
 
-    fetched = await storage.fetch_invoices(date(2025, 6, 1), date(2025, 6, 30))
+    fetched = await storage.fetch_invoices(42, date(2025, 6, 1), date(2025, 6, 30))
     assert len(fetched) == 1
     assert [c.message for c in fetched[0].comments] == [
         "Manual comment",

@@ -57,6 +57,7 @@ async def test_save_invoice_domain_async_persists_data(tmp_path, monkeypatch) ->
     to_date = date(2024, 1, 2)
 
     sync_invoices = storage_db.fetch_invoices_domain(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier=None,
@@ -87,23 +88,26 @@ async def test_fetch_invoices_domain_async_matches_sync(tmp_path, monkeypatch) -
 
     storage_db.save_invoice_domain(invoice1, user_id=1)
     storage_db.save_invoice_domain(invoice2, user_id=1)
+    storage_db.save_invoice_domain(_make_simple_invoice(), user_id=2)
 
     from_date = base_date
     to_date = base_date + timedelta(days=2)
 
     sync_invoices = storage_db.fetch_invoices_domain(
+        user_id=1,
         from_date=from_date,
         to_date=to_date,
         supplier=None,
     )
 
     async_invoices = await db_async.fetch_invoices_domain_async(
+        user_id=1,
         from_date=from_date,
         to_date=to_date,
         supplier=None,
     )
 
-    assert len(sync_invoices) == len(async_invoices)
+    assert len(sync_invoices) == len(async_invoices) == 2
 
     for sync_invoice, async_invoice in zip(sync_invoices, async_invoices):
         assert async_invoice.header.supplier_name == sync_invoice.header.supplier_name

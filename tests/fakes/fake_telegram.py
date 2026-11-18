@@ -41,15 +41,17 @@ class FakeMessage:
     def __init__(
         self,
         text: str = "",
-        user_id: int = 1,
+        user_id: Optional[int] = 1,
         chat_id: int = 1,
         document: Optional[FakeDocument] = None,
         photos: Optional[List[FakePhotoSize]] = None,
         bot: Any = None,
         reply_to_message: Optional["FakeMessage"] = None,
+        sender_chat: Optional[object] = None,
     ) -> None:
         self.text = text
-        self.from_user = FakeUser(user_id=user_id)
+        self.from_user = FakeUser(user_id=user_id) if user_id is not None else None
+        self.sender_chat = sender_chat
         self.chat = type("Chat", (), {"id": chat_id})()
         self.document = document
         self.photo = photos or []

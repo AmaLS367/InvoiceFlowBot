@@ -344,15 +344,15 @@ def save_invoice_domain(invoice: Invoice, user_id: int = 0) -> int:
 
 
 def fetch_invoices_domain(
+    user_id: int,
     from_date: Optional[date],
     to_date: Optional[date],
     supplier: Optional[str] = None,
 ) -> List[Invoice]:
     """
-    Fetch invoices from the database and return them as domain Invoice entities.
+    Fetch a user's invoices from the database as domain Invoice entities.
 
-    This is a thin wrapper over AsyncInvoiceStorage.fetch_invoices for backward compatibility.
-    All SQL logic is in the async layer.
+    This is a synchronous wrapper around AsyncInvoiceStorage.fetch_invoices.
     """
     from typing import cast
 
@@ -361,5 +361,5 @@ def fetch_invoices_domain(
     storage = AsyncInvoiceStorage(database_path=DB_PATH)
     return cast(
         List[Invoice],
-        _run_async(storage.fetch_invoices(from_date=from_date, to_date=to_date, supplier=supplier)),
+        _run_async(storage.fetch_invoices(user_id, from_date, to_date, supplier)),
     )

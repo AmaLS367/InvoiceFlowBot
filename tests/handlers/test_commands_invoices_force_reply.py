@@ -12,7 +12,12 @@ from aiogram.types import Message
 from backend.core.container import AppContainer
 from backend.handlers.commands import setup_reply_dispatcher
 from backend.handlers.commands_drafts import setup as setup_drafts
-from backend.handlers.commands_invoices import _parse_date_str, handle_force_reply_invoices, setup
+from backend.handlers.commands_invoices import (
+    _parse_date_str,
+    cmd_invoices,
+    handle_force_reply_invoices,
+    setup,
+)
 from backend.handlers.fsm import InvoicesPeriodState
 from tests.fakes.fake_fsm import FakeFSMContext
 from tests.fakes.fake_services import FakeInvoiceService
@@ -36,6 +41,29 @@ def test_parse_date_str_empty():
     """Test _parse_date_str with empty string."""
     result = _parse_date_str("")
     assert result is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("user_id", "sender_chat"), [(None, None), (123, object())])
+async def test_invoice_handlers_ignore_messages_without_individual_sender(
+    handlers_container: AppContainer,
+    fake_invoice_service: FakeInvoiceService,
+    user_id: int | None,
+    sender_chat: object | None,
+) -> None:
+    command = FakeMessage(
+        text="/invoices 2025-01-01 2025-01-31", user_id=user_id, sender_chat=sender_chat
+    )
+    reply = FakeMessage(text="-", user_id=user_id, sender_chat=sender_chat)
+    state = FakeFSMContext()
+    await state.set_state(InvoicesPeriodState.waiting_for_supplier)
+    await state.update_data({"period": {"from": "2025-01-01", "to": "2025-01-31"}})
+
+    await cmd_invoices(command, handlers_container)
+    consumed = await handle_force_reply_invoices(reply, state, handlers_container)
+
+    assert consumed is False
+    assert fake_invoice_service.calls == []
 
 
 @pytest.fixture()
@@ -192,7 +220,7 @@ async def test_on_force_reply_invoices_to_date(
                         from_date = period.get("from_date")
                         invoice_service = get_invoice_service(invoices_container)
                         invoices = await invoice_service.list_invoices(
-                            from_date=from_date, to_date=to_date, supplier=None
+                            user_id=123, from_date=from_date, to_date=to_date, supplier=None
                         )
                         if not invoices:
                             await message.answer("Ничего не найдено.")

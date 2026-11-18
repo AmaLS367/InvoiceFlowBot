@@ -71,6 +71,7 @@ async def test_save_and_fetch_invoice_by_date_range(
     to_date = date(2025, 1, 31)
 
     fetched_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier=None,
@@ -102,14 +103,16 @@ async def test_save_and_fetch_invoice_by_date_range(
 
 
 @pytest.mark.asyncio
-async def test_list_invoices_returns_saved_invoices(
+@pytest.mark.parametrize("supplier", [None, "Supplier"])
+@pytest.mark.parametrize(
+    ("from_date", "to_date"), [(None, None), (date(2025, 2, 1), date(2025, 2, 3))]
+)
+async def test_list_invoices_returns_only_users_saved_invoices(
     async_storage_with_migrations: AsyncInvoiceStorage,
+    supplier: str | None,
+    from_date: date | None,
+    to_date: date | None,
 ) -> None:
-    """
-    Test that fetch_invoices returns all saved invoices when called without filters.
-
-    We use fetch_invoices with None dates to get all invoices.
-    """
     storage = async_storage_with_migrations
 
     invoices: List[Invoice] = []
@@ -141,15 +144,24 @@ async def test_list_invoices_returns_saved_invoices(
         invoices.append(invoice)
         await storage.save_invoice(invoice, user_id=123)
 
-    all_invoices = await storage.fetch_invoices(
-        from_date=None,
-        to_date=None,
-        supplier=None,
+    await storage.save_invoice(
+        Invoice(
+            header=InvoiceHeader(
+                supplier_name="Supplier 0", invoice_number="OTHER", invoice_date=date(2025, 2, 1)
+            ),
+        ),
+        user_id=456,
+    )
+    user_invoices = await storage.fetch_invoices(
+        user_id=123,
+        from_date=from_date,
+        to_date=to_date,
+        supplier=supplier,
     )
 
-    assert len(all_invoices) >= 3
+    assert len(user_invoices) == 3
 
-    loaded = {inv.header.invoice_number: inv for inv in all_invoices}
+    loaded = {inv.header.invoice_number: inv for inv in user_invoices}
 
     for invoice in invoices:
         assert invoice.header.invoice_number in loaded
@@ -206,6 +218,7 @@ async def test_fetch_invoices_by_supplier_filters_results(
     to_date = date(2025, 3, 31)
 
     supplier_a_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier="Supplier A",
@@ -291,6 +304,7 @@ async def test_save_invoice_creates_new_record_each_time(
     to_date = date(2025, 4, 30)
 
     fetched_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier="Supplier X",
@@ -341,6 +355,7 @@ async def test_save_invoice_without_items(
     to_date = date(2025, 5, 31)
 
     fetched_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier="No Items Supplier",
@@ -393,6 +408,7 @@ async def test_fetch_invoices_with_date_range(
     to_date = date(2025, 6, 4)
 
     fetched_invoices = await storage.fetch_invoices(
+        user_id=123,
         from_date=from_date,
         to_date=to_date,
         supplier="Date Test Supplier",
