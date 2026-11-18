@@ -142,9 +142,16 @@ class AsyncInvoiceStorage:
                 )
                 item_rows = await items_cursor.fetchall()
 
+                comments_cursor = await connection.execute(
+                    "SELECT text, user_id FROM comments WHERE invoice_id=? ORDER BY id ASC",
+                    (invoice_id,),
+                )
+                comment_rows = await comments_cursor.fetchall()
+
                 header_dict = dict(header_row)
                 item_dicts = [dict(item_row) for item_row in item_rows]
-                invoice = db_row_to_invoice(header_dict, item_dicts)
+                comment_dicts = [dict(comment_row) for comment_row in comment_rows]
+                invoice = db_row_to_invoice(header_dict, item_dicts, comment_dicts)
                 invoices.append(invoice)
 
             return invoices

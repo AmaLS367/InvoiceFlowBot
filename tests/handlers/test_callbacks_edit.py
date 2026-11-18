@@ -794,3 +794,42 @@ async def test_cb_act_save_with_sum_mismatch(
     saved_draft = await draft_container.draft_service.get_current_draft(user_id)
     if saved_draft:
         assert len(saved_draft.invoice.comments) > 0
+
+
+@pytest.mark.asyncio
+async def test_cb_act_save_persists_draft_comments(
+    draft_container: AppContainer,
+    callback_router: Router,
+) -> None:
+    """Test saving via inline button includes draft.comments in saved invoice."""
+    user_id = 12345
+    invoice = _create_test_invoice()
+    draft = _create_test_draft(invoice)
+    draft.comments.append("Check delivery note")
+    await draft_container.draft_service.set_current_draft(user_id, draft)
+
+    message = FakeMessage(user_id=user_id)
+    call = FakeCallbackQuery(
+        data=CallbackAction.SAVE.value,
+        user_id=user_id,
+        message=message,
+    )
+    state = FakeFSMContext()
+
+    with (
+        patch("backend.handlers.callbacks_edit.get_draft_service") as mock_get_draft,
+        patch("backend.handlers.callbacks_edit.get_invoice_service") as mock_get_invoice,
+    ):
+        mock_get_draft.return_value = draft_container.draft_service
+        mock_get_invoice.return_value = draft_container.invoice_service
+
+        await callback_router.callback_query.trigger(
+            call,  # type: ignore[arg-type]
+            container=draft_container,
+            state=state,
+        )
+
+    assert call.answered
+    assert any("save_invoice" in c for c in draft_container.invoice_service.calls)  # type: ignore[attr-defined]
+    assert await draft_container.draft_service.get_current_draft(user_id) is None
+    assert any(c.message == "Check delivery note" for c in invoice.comments)

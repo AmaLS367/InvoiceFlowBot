@@ -152,3 +152,32 @@ async def test_cmd_invoices_with_results(
     assert "Счета с" in answer_text
     assert "Test Supplier" in answer_text
     assert "100" in answer_text
+
+
+@pytest.mark.asyncio
+async def test_cmd_invoices_displays_comments(
+    handlers_container: AppContainer,
+    fake_invoice_service: FakeInvoiceService,
+) -> None:
+    """Test /invoices displays saved comments below each invoice."""
+    from datetime import date
+    from decimal import Decimal
+
+    from backend.domain.invoices import Invoice, InvoiceComment, InvoiceHeader
+
+    invoice = Invoice(
+        header=InvoiceHeader(
+            supplier_name="Commented Supplier",
+            invoice_number="INV-C1",
+            invoice_date=date(2025, 1, 15),
+            total_amount=Decimal("50.00"),
+        ),
+        comments=[InvoiceComment(message="Paid in cash")],
+    )
+    fake_invoice_service.return_invoices = [invoice]
+    message = FakeMessage(text="/invoices 2025-01-01 2025-01-31")
+
+    await cmd_invoices(message, handlers_container)
+
+    assert len(message.answers) == 1
+    assert "💬 Paid in cash" in message.answers[0]["text"]

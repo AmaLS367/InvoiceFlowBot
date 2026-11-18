@@ -12,6 +12,7 @@ from aiogram.types import CallbackQuery, ForceReply, Message
 
 from backend.core.container import AppContainer
 from backend.domain.invoices import Invoice
+from backend.handlers import texts
 from backend.handlers.callback_registry import CallbackAction
 from backend.handlers.deps import get_invoice_service
 from backend.handlers.fsm import InvoicesPeriodState
@@ -41,7 +42,9 @@ def _parse_date_str(date_str: str) -> date | None:
 def _state_matches(current_state: object, expected_state: object) -> bool:
     expected_value = getattr(expected_state, "state", None)
     return current_state == expected_state or (
-        isinstance(current_state, str) and expected_value is not None and current_state == expected_value
+        isinstance(current_state, str)
+        and expected_value is not None
+        and current_state == expected_value
     )
 
 
@@ -56,23 +59,32 @@ def _format_invoices_response(
     total = 0.0
     for invoice in invoices:
         invoice_date_str = (
-            invoice.header.invoice_date.isoformat() if invoice.header.invoice_date else "—"
+            invoice.header.invoice_date.isoformat()
+            if invoice.header.invoice_date
+            else texts.PLACEHOLDER
         )
         invoice_total = (
             float(invoice.header.total_amount) if invoice.header.total_amount is not None else 0.0
         )
         total += invoice_total
         items_count_val = len(invoice.items)
-        lines.append(
-            f"  {invoice_date_str}  {invoice.header.invoice_number or '—'}  "
-            f"{invoice.header.supplier_name or '—'}  = {format_money(invoice_total)}  "
-            f"(items: {items_count_val})"
+        line = (
+            f"  {invoice_date_str}  {invoice.header.invoice_number or texts.PLACEHOLDER}  "
+            f"{invoice.header.supplier_name or texts.PLACEHOLDER}  = {format_money(invoice_total)}  "
+            f"{texts.invoices_items_count(items_count_val)}"
         )
-    head = f"Счета с {from_text} по {to_text}" + (
-        f" | Поставщик содержит: {supplier}" if supplier else ""
+        comments = [c.message.strip() for c in invoice.comments if c.message and c.message.strip()]
+        if comments:
+            line += "\n    💬 " + " | ".join(comments)
+        lines.append(line)
+    head = texts.invoices_period_header(from_text, to_text, supplier)
+    text = (
+        head
+        + "\n"
+        + "\n".join(lines[:150])
+        + f"\n{texts.PLACEHOLDER}\n{texts.INVOICES_TOTAL_LABEL}: {format_money(total)}"
     )
-    text = head + "\n" + "\n".join(lines[:150]) + f"\n—\nИтого суммарно: {format_money(total)}"
-    return text if len(text) < 3900 else (head + "\nСлишком много строк. Уточните фильтр.")
+    return text if len(text) < 3900 else (head + f"\n{texts.INVOICES_TOO_MANY_LINES}")
 
 
 async def cmd_invoices(message: Message, container: AppContainer) -> None:
@@ -82,11 +94,11 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
     logger.info(f"[TG] update start req={req} h=cmd_invoices")
     invoice_service = get_invoice_service(container)
     if message.text is None:
-        await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
+        await message.answer(texts.INVOICES_USAGE)
         return
     parts = message.text.split()
     if len(parts) < 3:
-        await message.answer("Формат: /invoices YYYY-MM-DD YYYY-MM-DD [supplier=текст]")
+        await message.answer(texts.INVOICES_USAGE)
         return
     f_str, t_str = parts[1], parts[2]
     supplier = None
@@ -100,7 +112,7 @@ async def cmd_invoices(message: Message, container: AppContainer) -> None:
         from_date=from_date, to_date=to_date, supplier=supplier
     )
     if not invoices:
-        await message.answer("Ничего не найдено.")
+        await message.answer(texts.INVOICES_NONE_FOUND)
         return
 
     await message.answer(
@@ -138,7 +150,7 @@ async def handle_force_reply_invoices(
         period["from"] = iso
         await state.update_data({"period": period})
         await state.set_state(InvoicesPeriodState.waiting_for_to_date)
-        await message.answer("По дату (YYYY-MM-DD):", reply_markup=ForceReply(selective=True))
+        await message.answer(texts.PERIOD_TO_PROMPT, reply_markup=ForceReply(selective=True))
         return True
 
     if _state_matches(current_state, InvoicesPeriodState.waiting_for_to_date):
@@ -150,7 +162,7 @@ async def handle_force_reply_invoices(
         await state.update_data({"period": period})
         await state.set_state(InvoicesPeriodState.waiting_for_supplier)
         await message.answer(
-            "Фильтр по поставщику (опционально). Введите текст или «-» чтобы пропустить:",
+            texts.PERIOD_SUPPLIER_PROMPT,
             reply_markup=ForceReply(selective=True),
         )
         return True
@@ -165,7 +177,7 @@ async def handle_force_reply_invoices(
         await state.clear()
 
         if not f_str or not t_str:
-            await message.answer("Не указаны даты. Повторите ввод периода.")
+            await message.answer(texts.PERIOD_DATES_MISSING)
             return True
 
         from_date = _parse_date_str(f_str)
@@ -176,7 +188,7 @@ async def handle_force_reply_invoices(
             from_date=from_date, to_date=to_date, supplier=supplier
         )
         if not invoices:
-            await message.answer("Ничего не найдено.")
+            await message.answer(texts.INVOICES_NONE_FOUND)
             return True
 
         await message.answer(
@@ -195,9 +207,10 @@ async def handle_force_reply_invoices(
 
 def setup(router: Router, include_reply_handler: bool = True) -> None:
     """Register invoice-related command handlers."""
-    router.message.register(cmd_invoices, F.text.regexp(r"^/invoices\s"))
+    router.message.register(cmd_invoices, F.text.regexp(r"^/invoices(\s|$)"))
 
     if include_reply_handler:
+
         @router.message(F.reply_to_message)
         async def on_force_reply_invoices(
             message: Message,
@@ -216,7 +229,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         await state.update_data({"period": {}})
         if call.message is not None:
             await call.message.answer(
-                "С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True)
+                texts.PERIOD_FROM_PROMPT, reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")

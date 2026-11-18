@@ -6,6 +6,7 @@ from aiogram.types import BotCommand
 
 from backend.config import BOT_TOKEN
 from backend.core.container import create_app_container
+from backend.handlers import texts
 from backend.handlers.callbacks import router as callbacks_router
 from backend.handlers.commands import router as cmd_router
 from backend.handlers.di_middleware import ContainerMiddleware
@@ -28,13 +29,11 @@ async def _run_bot() -> None:
 
     await bot.set_my_commands(
         [
-            BotCommand(command="start", description="Démarrer le bot"),
-            BotCommand(command="help", description="Aide"),
-            BotCommand(command="show", description="Afficher le brouillon en cours"),
-            BotCommand(command="save", description="Enregistrer le brouillon"),
-            BotCommand(command="invoices", description="Liste des documents enregistrés"),
-            BotCommand(command="rapport", description="Générer un rapport de rapprochement (.xlsx)"),
-            BotCommand(command="import_prix", description="Importer le référentiel de prix depuis Google Sheets"),
+            BotCommand(command="start", description=texts.CMD_DESC_START),
+            BotCommand(command="help", description=texts.CMD_DESC_HELP),
+            BotCommand(command="show", description=texts.CMD_DESC_SHOW),
+            BotCommand(command="save", description=texts.CMD_DESC_SAVE),
+            BotCommand(command="invoices", description=texts.CMD_DESC_INVOICES),
         ]
     )
 

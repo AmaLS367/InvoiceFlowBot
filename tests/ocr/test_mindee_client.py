@@ -50,7 +50,10 @@ def test_mindee_predict_uses_model_id_in_request_url() -> None:
         payload = mindee_predict("invoice.pdf")
 
     assert payload == {"ok": True}
-    assert mock_post.call_args.args[0] == "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
+    assert (
+        mock_post.call_args.args[0]
+        == "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
+    )
 
 
 def test_mindee_predict_skips_v1_fallback_for_uuid_model_id() -> None:
@@ -112,3 +115,18 @@ def test_mindee_struct_to_data_supports_v2_fields_payload() -> None:
     assert data["items"][0]["name"] == "Item A"
     assert data["items"][0]["total"] == 11.25
     assert data["total_sum"] == 13.25
+
+
+def test_mindee_predict_sdk_returns_none_when_method_missing() -> None:
+    fake_client = SimpleNamespace()
+
+    with (
+        patch("backend.ocr.mindee_client.MINDEE_API", "test-key"),
+        patch("backend.ocr.mindee_client.MODEL_ID_MINDEE", "mindee/invoices/v4"),
+        patch("backend.ocr.mindee_client.ClientV2", return_value=fake_client),
+        patch("backend.ocr.mindee_client.PathInput", return_value="input"),
+        patch("backend.ocr.mindee_client.InferenceParameters", return_value="params"),
+    ):
+        payload = mindee_predict_sdk("invoice.pdf")
+
+    assert payload is None

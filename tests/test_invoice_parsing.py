@@ -296,3 +296,42 @@ def test_items_index_kb_first_page():
     assert kb is not None
     # Should not have previous button on first page
     assert len(kb.inline_keyboard) > 0
+
+
+def test_format_invoice_full_includes_comments():
+    """Test format_invoice_full displays both invoice comments and draft comments."""
+    from backend.domain.invoices import Invoice, InvoiceComment, InvoiceHeader
+
+    invoice = Invoice(
+        header=InvoiceHeader(supplier_name="Acme", invoice_number="INV-9"),
+        comments=[InvoiceComment(message="Saved comment")],
+    )
+
+    rendered = utils.format_invoice_full(invoice, extra_comments=["Draft note", "Saved comment"])
+    assert "💬 Комментарии:" in rendered
+    assert "Saved comment" in rendered
+    assert "Draft note" in rendered
+    assert rendered.count("Saved comment") == 1
+
+
+def test_to_iso_flexible_formats():
+    """Test flexible date parsing in to_iso()."""
+    from datetime import date, timedelta
+
+    from backend.storage.db import to_iso
+
+    today = date.today()
+    assert to_iso("сегодня") == today.isoformat()
+    assert to_iso("вчера") == (today - timedelta(days=1)).isoformat()
+    assert to_iso("завтра") == (today + timedelta(days=1)).isoformat()
+    assert to_iso("today") == today.isoformat()
+    assert to_iso("aujourd'hui") == today.isoformat()
+
+    assert to_iso("20/03/2026") == "2026-03-20"
+    assert to_iso("20.03") == f"{today.year:04d}-03-20"
+    assert to_iso("20 мар 2026") == "2026-03-20"
+    assert to_iso("20 марта") == f"{today.year:04d}-03-20"
+    assert to_iso("20 juil 2026") == "2026-07-20"
+    assert to_iso("20 sep 26") == "2026-09-20"
+    assert to_iso("31/02/2026") is None
+    assert to_iso("not a date") is None

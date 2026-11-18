@@ -2,7 +2,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, cast
+from typing import Any, Dict, List, Optional, cast
 
 import requests
 from mindee import ClientV2, InferenceParameters
@@ -24,15 +24,6 @@ logger = get_logger("ocr.mindee")
 _UUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 )
-
-
-class _MindeeResultClient(Protocol):
-    def enqueue_and_get_result(
-        self,
-        response_cls: type[InferenceResponse],
-        input_source: PathInput,
-        params: InferenceParameters,
-    ) -> InferenceResponse: ...
 
 
 def _mindee_predict_url(model_id: str) -> str:
@@ -112,8 +103,11 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
             rag=False,
         )
         input_source = PathInput(path)
-        result_client = cast(_MindeeResultClient, client)
-        response = result_client.enqueue_and_get_result(InferenceResponse, input_source, params)
+        enqueue_and_get_result = getattr(client, "enqueue_and_get_result", None)
+        if not callable(enqueue_and_get_result):
+            logger.error("[Mindee ClientV2] SDK does not support enqueue_and_get_result")
+            return None
+        response = enqueue_and_get_result(InferenceResponse, input_source, params)
 
         # Debug dump must never turn a successful SDK response into a failed OCR request.
         _dump_sdk_debug(response)
@@ -125,7 +119,9 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
                 if isinstance(payload, dict):
                     return payload
             except Exception:
-                logger.exception("[Mindee ClientV2] failed to decode response.to_json() for file %s", path)
+                logger.exception(
+                    "[Mindee ClientV2] failed to decode response.to_json() for file %s", path
+                )
 
         fields: Dict[str, Any] = getattr(response.inference.result, "fields", {})
 
@@ -212,7 +208,13 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
 
         v2_fields = payload.get("inference", {}).get("result", {}).get("fields", {}) or {}
         if not v2_fields:
-            v2_fields = payload.get("_raw_http", {}).get("inference", {}).get("result", {}).get("fields", {}) or {}
+            v2_fields = (
+                payload.get("_raw_http", {})
+                .get("inference", {})
+                .get("result", {})
+                .get("fields", {})
+                or {}
+            )
 
         if isinstance(v2_fields, dict) and v2_fields:
             return {
@@ -265,7 +267,9 @@ def mindee_struct_to_data(raw: Dict[str, Any]) -> Dict[str, Any]:
             description = _field_value(item_fields.get("description"))
             quantity = _field_value(item_fields.get("quantity"))
             unit_price = _field_value(item_fields.get("unit_price"))
-            total_amount = _field_value(item_fields.get("total_amount") or item_fields.get("total_price"))
+            total_amount = _field_value(
+                item_fields.get("total_amount") or item_fields.get("total_price")
+            )
 
             items.append(
                 {

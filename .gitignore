@@ -43,6 +43,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 .cache/
+.tmp_pytest/
 
 # Type checking
 .mypy_cache/
@@ -129,3 +130,12 @@ celerybeat.pid
 
 # mkdocs documentation
 /site
+tests/.tmp_storage/
+
+# Agents
+GEMINI.md
+CLAUDE.md
+AGENTS.md
+.cursorrules
+.cursor/
+.codex_tmp/

@@ -11,6 +11,7 @@ from aiogram.types import CallbackQuery, ForceReply
 
 from backend.core.container import AppContainer
 from backend.domain.invoices import InvoiceComment
+from backend.handlers import texts
 from backend.handlers.callback_registry import (
     HEADER_PREFIX,
     ITEM_FIELD_PREFIX,
@@ -46,7 +47,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer("Нет черновика. Пришлите документ.")
+                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
                 await call.answer()
             return
 
@@ -55,7 +56,7 @@ def setup(router: Router) -> None:
 
         if call.message is not None:
             await call.message.answer(
-                head_text + "\nВыберите поле для редактирования:", reply_markup=header_kb()
+                f"{head_text}\n{texts.EDIT_SELECT_HEADER_FIELD}", reply_markup=header_kb()
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_edit")
@@ -79,13 +80,7 @@ def setup(router: Router) -> None:
 
         if call.data is not None:
             field = call.data.split(":", 1)[1]
-            nice = {
-                "supplier": "Поставщик",
-                "client": "Клиент",
-                "date": "Дата",
-                "doc_number": "Номер",
-                "total_sum": "Итого",
-            }[field]
+            nice = texts.HEADER_FIELD_LABELS[field]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -97,7 +92,7 @@ def setup(router: Router) -> None:
         )
         if call.message is not None:
             await call.message.answer(
-                f"Введите новое значение для «{nice}»:", reply_markup=ForceReply(selective=True)
+                texts.edit_enter_header_value(nice), reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_hed_field")
@@ -120,13 +115,13 @@ def setup(router: Router) -> None:
 
         if n == 0:
             if call.message is not None:
-                await call.message.answer("Позиции не распознаны.")
+                await call.message.answer(texts.ITEMS_NOT_RECOGNIZED)
                 await call.answer()
             return
 
         if call.message is not None:
             await call.message.answer(
-                f"Выберите позицию для редактирования (всего: {n}):",
+                texts.edit_select_item(n),
                 reply_markup=items_index_kb(n, 1),
             )
             await call.answer()
@@ -180,11 +175,13 @@ def setup(router: Router) -> None:
             await call.answer()
             return
         item = items[idx - 1]
-        text = (
-            f"#{idx}\n"
-            f"Название: {item.description or ''}\n"
-            f"Код: {item.sku or ''}\n"
-            f"Кол-во: {format_money(item.quantity)} | Цена: {format_money(item.unit_price)} | Сумма: {format_money(item.line_total)}"
+        text = texts.format_item_edit_card(
+            idx=idx,
+            name=item.description or "",
+            code=item.sku or "",
+            qty=format_money(item.quantity),
+            price=format_money(item.unit_price),
+            total=format_money(item.line_total),
         )
 
         if call.message is not None:
@@ -207,7 +204,7 @@ def setup(router: Router) -> None:
         parts = call.data.split(":")
         idx = int(parts[1])
         key = parts[2]  # name/qty/price/total
-        nice = {"name": "Название", "qty": "Кол-во", "price": "Цена", "total": "Сумма"}[key]
+        nice = texts.ITEM_FIELD_LABELS[key]
         await state.set_state(EditInvoiceState.waiting_for_field_value)
         await state.update_data(
             {
@@ -220,7 +217,7 @@ def setup(router: Router) -> None:
         )
         if call.message is not None:
             await call.message.answer(
-                f"Введите новое значение для «{nice}» у позиции #{idx}:",
+                texts.edit_enter_item_value(nice, idx),
                 reply_markup=ForceReply(selective=True),
             )
             await call.answer()
@@ -241,7 +238,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer("Нет черновика. Пришлите документ.")
+                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
             await call.answer()
             return
 
@@ -254,9 +251,7 @@ def setup(router: Router) -> None:
             }
         )
         if call.message is not None:
-            await call.message.answer(
-                "Комментарий к счёту:", reply_markup=ForceReply(selective=True)
-            )
+            await call.message.answer(texts.COMMENT_PROMPT, reply_markup=ForceReply(selective=True))
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_comment")
 
@@ -272,7 +267,7 @@ def setup(router: Router) -> None:
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
             if call.message is not None:
-                await call.message.answer("Нет черновика. Пришлите документ.")
+                await call.message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
             await call.answer()
             return
 
@@ -287,19 +282,27 @@ def setup(router: Router) -> None:
         diff = round(sum_items - header_sum, 2)
 
         if abs(diff) >= 0.01:
-            doc_number = invoice.header.invoice_number or "—"
-            supplier = invoice.header.supplier_name or "—"
-            auto_text = (
-                f"[auto] Несходство суммы: по позициям {sum_items:.2f}, "
-                f"в шапке {header_sum:.2f}, разница {diff:+.2f}. "
-                f"Документ: {doc_number}, Поставщик: {supplier}."
+            doc_number = invoice.header.invoice_number or texts.PLACEHOLDER
+            supplier = invoice.header.supplier_name or texts.PLACEHOLDER
+            auto_text = texts.auto_sum_mismatch_comment(
+                sum_items=sum_items,
+                header_sum=header_sum,
+                diff=diff,
+                doc_number=doc_number,
+                supplier=supplier,
             )
-            if auto_text not in comments:
+            existing_messages = [c.message for c in invoice.comments]
+            if auto_text not in existing_messages and auto_text not in comments:
                 invoice.comments.append(InvoiceComment(message=auto_text))
+
+        # Add text comments from draft
+        for comment_text in comments:
+            if isinstance(comment_text, str):
+                invoice.comments.append(InvoiceComment(message=comment_text))
 
         inv_id = await invoice_service.save_invoice(invoice, user_id=uid)
         await draft_service.clear_current_draft(uid)
         if call.message is not None:
-            await call.message.answer(f"Сохранено в БД. ID счета: {inv_id}")
+            await call.message.answer(texts.save_success(inv_id))
         await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_save")

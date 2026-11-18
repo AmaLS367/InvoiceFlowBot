@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 
 from backend.domain.invoices import (
     Invoice,
+    InvoiceComment,
     InvoiceHeader,
     InvoiceItem,
     InvoiceSourceInfo,
@@ -61,7 +62,11 @@ def db_row_to_invoice_item(row: Dict[str, Any]) -> InvoiceItem:
     )
 
 
-def db_row_to_invoice(header_row: Dict[str, Any], item_rows: List[Dict[str, Any]]) -> Invoice:
+def db_row_to_invoice(
+    header_row: Dict[str, Any],
+    item_rows: List[Dict[str, Any]],
+    comment_rows: List[Dict[str, Any]] | None = None,
+) -> Invoice:
     invoice_date = None
     if header_row.get("date_iso"):
         try:
@@ -83,6 +88,12 @@ def db_row_to_invoice(header_row: Dict[str, Any], item_rows: List[Dict[str, Any]
 
     items: List[InvoiceItem] = [db_row_to_invoice_item(item_row) for item_row in item_rows]
 
+    comments: List[InvoiceComment] = [
+        InvoiceComment(message=r["text"], author=str(r.get("user_id", "")))
+        for r in (comment_rows or [])
+        if r.get("text")
+    ]
+
     source = InvoiceSourceInfo(
         file_path=header_row.get("source_path"),
         file_sha256=None,
@@ -93,7 +104,7 @@ def db_row_to_invoice(header_row: Dict[str, Any], item_rows: List[Dict[str, Any]
     invoice = Invoice(
         header=header,
         items=items,
-        comments=[],
+        comments=comments,
         source=source,
     )
 

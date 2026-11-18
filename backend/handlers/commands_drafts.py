@@ -14,6 +14,7 @@ from aiogram.types import Message
 
 from backend.core.container import AppContainer
 from backend.domain.invoices import InvoiceComment
+from backend.handlers import texts
 from backend.handlers.deps import get_draft_service, get_invoice_service
 from backend.handlers.fsm import EditInvoiceState
 from backend.handlers.utils import actions_kb, format_invoice_full, format_invoice_header
@@ -42,7 +43,9 @@ def _parse_date_str(date_str: str) -> date | None:
 def _state_matches(current_state: object, expected_state: object) -> bool:
     expected_value = getattr(expected_state, "state", None)
     return current_state == expected_state or (
-        isinstance(current_state, str) and expected_value is not None and current_state == expected_value
+        isinstance(current_state, str)
+        and expected_value is not None
+        and current_state == expected_value
     )
 
 
@@ -63,17 +66,17 @@ async def handle_force_reply(
     if _state_matches(current_state, EditInvoiceState.waiting_for_comment):
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика. Загрузите документ.")
+            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
             await state.clear()
             return True
         text = (message.text or "").strip()
         if not text:
-            await message.answer("Пустой комментарий игнорирован.")
+            await message.answer(texts.COMMENT_EMPTY_IGNORED)
         else:
             draft.comments.append(text)
             await draft_service.set_current_draft(uid, draft)
             await message.answer(
-                "Комментарий добавлен. /save чтобы сохранить в БД.",
+                texts.COMMENT_ADDED_SAVE_HINT,
                 reply_markup=actions_kb(),
             )
         await state.clear()
@@ -90,7 +93,7 @@ async def handle_force_reply(
 
     draft = await draft_service.get_current_draft(uid)
     if draft is None:
-        await message.answer("Нет черновика. Загрузите документ.")
+        await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
         await state.clear()
         return True
 
@@ -115,27 +118,21 @@ async def handle_force_reply(
                 ok = True
             except (ValueError, TypeError, Exception):
                 ok = False
-            await message.answer(
-                'Итого обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-                if ok
-                else "Итого обновлено как текст (не число)."
-            )
+            await message.answer(texts.TOTAL_UPDATED if ok else texts.TOTAL_UPDATED_AS_TEXT)
             await draft_service.set_current_draft(uid, draft)
             await state.clear()
             return True
-        await message.answer(
-            'Поле обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-        )
+        await message.answer(texts.FIELD_UPDATED)
     elif kind == "item":
         idx_raw = edit_config.get("idx")
         if not isinstance(idx_raw, int):
-            await message.answer("Индекс не указан.")
+            await message.answer(texts.INDEX_MISSING)
             await state.clear()
             return True
         idx = idx_raw
         items = invoice.items
         if not (1 <= idx <= len(items)):
-            await message.answer("Индекс вне диапазона.")
+            await message.answer(texts.INDEX_OUT_OF_RANGE)
             await state.clear()
             return True
         key = edit_config.get("key")
@@ -148,23 +145,21 @@ async def handle_force_reply(
             try:
                 item.quantity = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
+                await message.answer(texts.NOT_A_NUMBER_RETRY)
                 return True
         elif key == "price":
             try:
                 item.unit_price = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
+                await message.answer(texts.NOT_A_NUMBER_RETRY)
                 return True
         elif key == "total":
             try:
                 item.line_total = Decimal(str(val.replace(",", ".")))
             except (ValueError, TypeError, Exception):
-                await message.answer("Не число. Повторите.")
+                await message.answer(texts.NOT_A_NUMBER_RETRY)
                 return True
-        await message.answer(
-            'Обновлено. Нажмите кнопку "Сохранить" или введите команду /save чтобы сохранить в БД.'
-        )
+        await message.answer(texts.ITEM_UPDATED)
 
     await draft_service.set_current_draft(uid, draft)
     await state.clear()
@@ -184,15 +179,16 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика. Пришлите документ.")
+            await message.answer(texts.NO_DRAFT_SEND_DOCUMENT)
             return
 
         invoice = draft.invoice
-        full_text = format_invoice_full(invoice)
+        full_text = format_invoice_full(invoice, extra_comments=draft.comments)
         await message.answer(full_text if len(full_text) < 3900 else format_invoice_header(invoice))
         logger.info(f"[TG] update done req={req} h=cmd_show")
 
     if include_reply_handler:
+
         @router.message(F.reply_to_message)
         async def on_force_reply(
             message: Message,
@@ -210,17 +206,19 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика. Загрузите документ.")
+            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
             return
-        if message.text is not None and " " in message.text:
-            text = message.text.split(" ", 1)[1].strip() if " " in message.text else ""
-            if not text:
-                await message.answer("Формат: /comment ваш текст")
-                return
+        if message.text is None or " " not in message.text:
+            await message.answer(texts.COMMENT_USAGE)
+            return
+        text = message.text.split(" ", 1)[1].strip()
+        if not text:
+            await message.answer(texts.COMMENT_USAGE)
+            return
         draft.comments.append(text)
         await draft_service.set_current_draft(uid, draft)
         await message.answer(
-            "Комментарий добавлен. /save чтобы сохранить в БД.",
+            texts.COMMENT_ADDED_SAVE_HINT,
             reply_markup=actions_kb(),
         )
         logger.info(f"[TG] update done req={req} h=cmd_comment")
@@ -235,7 +233,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика.")
+            await message.answer(texts.NO_DRAFT_SHORT)
             return
 
         invoice = draft.invoice
@@ -249,12 +247,14 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         diff = round(sum_items - header_sum, 2)
 
         if abs(diff) >= 0.01:
-            doc_number = invoice.header.invoice_number or "—"
-            supplier = invoice.header.supplier_name or "—"
-            auto_text = (
-                f"[auto] Несходство суммы: по позициям {sum_items:.2f}, "
-                f"в шапке {header_sum:.2f}, разница {diff:+.2f}. "
-                f"Документ: {doc_number}, Поставщик: {supplier}."
+            doc_number = invoice.header.invoice_number or texts.PLACEHOLDER
+            supplier = invoice.header.supplier_name or texts.PLACEHOLDER
+            auto_text = texts.auto_sum_mismatch_comment(
+                sum_items=sum_items,
+                header_sum=header_sum,
+                diff=diff,
+                doc_number=doc_number,
+                supplier=supplier,
             )
             existing_messages = [c.message for c in invoice.comments]
             if auto_text not in existing_messages:
@@ -267,7 +267,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
 
         inv_id = await invoice_service.save_invoice(invoice, user_id=uid)
         await draft_service.clear_current_draft(uid)
-        await message.answer(f"Сохранено в БД. ID счета: {inv_id}")
+        await message.answer(texts.save_success(inv_id))
         logger.info(f"[TG] update done req={req} h=cmd_save")
 
     @router.message(F.text.regexp(r"^/edit(\s|$)"))
@@ -279,18 +279,14 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
         uid = message.from_user.id if message.from_user else 0
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика. Загрузите документ.")
+            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
             return
         if message.text is None:
-            await message.answer(
-                "Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"
-            )
+            await message.answer(texts.EDIT_USAGE)
             return
         args = message.text.split(" ", 1)
         if len(args) < 2:
-            await message.answer(
-                "Формат: /edit supplier=... client=... date=YYYY-MM-DD doc=... total=123.45"
-            )
+            await message.answer(texts.EDIT_USAGE)
             return
 
         invoice = draft.invoice
@@ -314,7 +310,7 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
                         pass
 
         await draft_service.set_current_draft(uid, draft)
-        await message.answer("Ок. Поля обновлены. /show для проверки или /save для сохранения.")
+        await message.answer(texts.HEADER_UPDATED)
         logger.info(f"[TG] update done req={req} h=cmd_edit_legacy")
 
     @router.message(F.text.regexp(r"^/edititem(\s|$)"))
@@ -327,28 +323,28 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
 
         draft = await draft_service.get_current_draft(uid)
         if draft is None:
-            await message.answer("Нет черновика. Загрузите документ.")
+            await message.answer(texts.NO_DRAFT_UPLOAD_DOCUMENT)
             return
 
         if message.text is None:
-            await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+            await message.answer(texts.EDITITEM_USAGE)
             return
         args = message.text.split(" ", 2)
 
         if len(args) < 3:
-            await message.answer("Формат: /edititem <index> name=... qty=... price=... total=...")
+            await message.answer(texts.EDITITEM_USAGE)
             return
 
         try:
             idx = int(args[1])
         except (ValueError, TypeError):
-            await message.answer("Неверный индекс.")
+            await message.answer(texts.INDEX_INVALID)
             return
 
         invoice = draft.invoice
         items = invoice.items
         if idx < 1 or idx > len(items):
-            await message.answer("Индекс вне диапазона.")
+            await message.answer(texts.INDEX_OUT_OF_RANGE)
             return
 
         item = items[idx - 1]
@@ -377,5 +373,5 @@ def setup(router: Router, include_reply_handler: bool = True) -> None:
                     except (ValueError, TypeError):
                         pass
         await draft_service.set_current_draft(uid, draft)
-        await message.answer("Позиция обновлена. /show для проверки, /save для сохранения.")
+        await message.answer(texts.LINE_UPDATED)
         logger.info(f"[TG] update done req={req} h=cmd_edititem_legacy")

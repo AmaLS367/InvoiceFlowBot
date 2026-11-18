@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -56,7 +56,7 @@ def init_db() -> None:
 
 
 _MONTHS = {
-    # Russian
+    # Russian full
     "января": 1,
     "февраля": 2,
     "марта": 3,
@@ -69,7 +69,20 @@ _MONTHS = {
     "октября": 10,
     "ноября": 11,
     "декабря": 12,
-    # English
+    # Russian abbreviated
+    "янв": 1,
+    "фев": 2,
+    "мар": 3,
+    "апр": 4,
+    "май": 5,
+    "июн": 6,
+    "июл": 7,
+    "авг": 8,
+    "сен": 9,
+    "окт": 10,
+    "ноя": 11,
+    "дек": 12,
+    # English full
     "january": 1,
     "february": 2,
     "march": 3,
@@ -82,7 +95,20 @@ _MONTHS = {
     "october": 10,
     "november": 11,
     "december": 12,
-    # French
+    # English abbreviated
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "sept": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
+    # French full
     "janvier": 1,
     "février": 2,
     "fevrier": 2,
@@ -98,44 +124,100 @@ _MONTHS = {
     "novembre": 11,
     "décembre": 12,
     "decembre": 12,
+    # French abbreviated
+    "janv": 1,
+    "fév": 2,
+    "fev": 2,
+    "avr": 4,
+    "juil": 7,
+    "aoû": 8,
+    "aou": 8,
+    "déc": 12,
 }
+
+_WORD_DATE = {
+    "aujourd'hui": 0,
+    "aujourd hui": 0,
+    "auj": 0,
+    "сегодня": 0,
+    "today": 0,
+    "demain": 1,
+    "завтра": 1,
+    "tomorrow": 1,
+    "hier": -1,
+    "вчера": -1,
+    "yesterday": -1,
+}
+
+# Unicode letter range covering Latin + accented + Cyrillic chars used in month names
+_MON_RE = r"[A-Za-z\u00C0-\u024F\u0400-\u04FF]+"
+
+
+def _try_date(y: int, mo: int, da: int) -> Optional[str]:
+    try:
+        date(y, mo, da)
+        return f"{y:04d}-{mo:02d}-{da:02d}"
+    except ValueError:
+        return None
 
 
 def to_iso(d: Optional[str]) -> Optional[str]:
     """
-    Convert date string to ISO format (YYYY-MM-DD).
-    Supports various date formats including numeric and locale-specific formats.
+    Convert a date string to ISO format (YYYY-MM-DD).
+
+    Accepted formats (examples):
+      - 2026-03-20, 20/03/2026, 20.03.2026, 20-03-2026
+      - 20/03, 20.03  (current year assumed)
+      - 20 марта 2026, 20 мар, 20 March 2026, 20 mars 2026
+      - сегодня / завтра / вчера (and English/French equivalents)
     """
     if not d:
         return None
     s = d.strip()
     s = re.sub(r"[ \u00A0\u202f]+", " ", s)
-    # 1) 2025-06-12 or 12/06/2025, 12-06-25, 12.06.2025
+
+    # 0) Relative words
+    key = s.lower().replace("\u2019", "'")
+    if key in _WORD_DATE:
+        return (date.today() + timedelta(days=_WORD_DATE[key])).isoformat()
+
+    # 1) YYYY-MM-DD
     m = re.match(r"^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$", s)
     if m:
-        y, mo, da = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        return f"{y:04d}-{mo:02d}-{da:02d}"
+        return _try_date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+
+    # 2) DD/MM/YYYY or DD.MM.YYYY
     m = re.match(r"^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$", s)
     if m:
         da, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
         if y < 100:
             y += 2000 if y <= 68 else 1900
-        return f"{y:04d}-{mo:02d}-{da:02d}"
-    # 2) 12 June 2025 / 12 juin 2025
-    m = re.match(
-        r"^(\d{1,2})\s+([A-Za-z\u00E9\u00EA\u00FB\u00EE\u00F4\u00E8\u00E0\u00F9\u00EF\u00EB\u00E7]+)\s+(\d{2,4})$",
-        s,
-        flags=re.I,
-    )
+        return _try_date(y, mo, da)
+
+    # 3) DD/MM (no year -> current year)
+    m = re.match(r"^(\d{1,2})[./-](\d{1,2})$", s)
     if m:
-        da = int(m.group(1))
-        mon = m.group(2).lower()
-        y = int(m.group(3))
+        da, mo = int(m.group(1)), int(m.group(2))
+        return _try_date(date.today().year, mo, da)
+
+    # 4) DD Month YYYY (e.g. "20 марта 2026", "20 mar 2026")
+    m = re.match(rf"^(\d{{1,2}})\s+({_MON_RE})\s+(\d{{2,4}})$", s, flags=re.I)
+    if m:
+        da, mon_str, y = int(m.group(1)), m.group(2).lower(), int(m.group(3))
         if y < 100:
             y += 2000 if y <= 68 else 1900
-        month_num = _MONTHS.get(mon)
-        if month_num is not None:
-            return f"{y:04d}-{month_num:02d}-{da:02d}"
+        mo_opt = _MONTHS.get(mon_str)
+        if mo_opt is not None:
+            return _try_date(y, mo_opt, da)
+
+    # 5) DD Month (no year -> current year)
+    m = re.match(rf"^(\d{{1,2}})\s+({_MON_RE})$", s, flags=re.I)
+    if m:
+        da, mon_str = int(m.group(1)), m.group(2).lower()
+        mo_opt = _MONTHS.get(mon_str)
+        if mo_opt is not None:
+            return _try_date(date.today().year, mo_opt, da)
+
     return None
 
 

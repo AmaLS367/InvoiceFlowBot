@@ -7,6 +7,7 @@ import uuid
 from aiogram import F, Router
 from aiogram.types import Message
 
+from backend.handlers import texts
 from backend.handlers.utils import main_kb
 from backend.ocr.engine.util import get_logger, set_request_id
 
@@ -18,7 +19,7 @@ async def cmd_start(message: Message) -> None:
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_start")
     await message.answer(
-        "Привет! Это бот для обработки инвойсов. Загрузите счет и бот распознает его.",
+        texts.START_TEXT,
         reply_markup=main_kb(),
     )
     logger.info(f"[TG] update done req={req} h=cmd_start")
@@ -29,8 +30,7 @@ async def cmd_help(message: Message) -> None:
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_help")
     await message.answer(
-        "Быстрые действия кнопками ниже.\n"
-        "Команды для продвинутых: /show, /edit, /edititem, /comment, /save, /invoices.",
+        texts.HELP_TEXT,
         reply_markup=main_kb(),
     )
     logger.info(f"[TG] update done req={req} h=cmd_help")

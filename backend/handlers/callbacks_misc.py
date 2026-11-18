@@ -9,6 +9,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply
 
+from backend.handlers import texts
 from backend.handlers.callback_registry import CallbackAction
 from backend.handlers.fsm import InvoicesPeriodState
 from backend.handlers.utils import main_kb
@@ -29,7 +30,7 @@ def setup(router: Router) -> None:
         await state.update_data({"period": {}})
         if call.message is not None:
             await call.message.answer(
-                "С даты (YYYY-MM-DD):", reply_markup=ForceReply(selective=True)
+                texts.PERIOD_FROM_PROMPT, reply_markup=ForceReply(selective=True)
             )
             await call.answer()
         logger.info(f"[TG] update done req={req} h=cb_act_period")
@@ -41,9 +42,7 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update start req={req} h=cb_act_upload")
 
         if call.message is not None:
-            await call.message.answer(
-                "Пришлите файл: PDF или фото накладной. Бот распознаёт и покажет черновик."
-            )
+            await call.message.answer(texts.UPLOAD_PROMPT)
             await call.answer()
 
         logger.info(f"[TG] update done req={req} h=cb_act_upload")
@@ -55,8 +54,7 @@ def setup(router: Router) -> None:
         logger.info(f"[TG] update start req={req} h=cb_act_help")
         if call.message is not None:
             await call.message.answer(
-                "Быстрые действия кнопками ниже.\n"
-                "Команды для продвинутых: /show, /edit, /edititem, /comment, /save, /invoices.",
+                texts.HELP_TEXT,
                 reply_markup=main_kb(),
             )
         await call.answer()

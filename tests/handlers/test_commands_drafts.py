@@ -1577,3 +1577,50 @@ async def test_cmd_edititem_legacy(draft_container: AppContainer, commands_route
     assert saved_draft is not None
     # Check that description was updated (parsing may include rest of string)
     assert "NewItemName" in saved_draft.invoice.items[0].description
+
+
+@pytest.mark.asyncio
+async def test_cmd_comment_without_text_returns_usage(
+    draft_container: AppContainer,
+    commands_router: Router,
+) -> None:
+    """Test bare /comment command returns usage message without crashing."""
+    user_id = 12345
+    draft = _create_test_draft(_create_test_invoice())
+    await draft_container.draft_service.set_current_draft(user_id, draft)
+
+    message = FakeMessage(text="/comment", user_id=user_id)
+
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get:
+        mock_get.return_value = draft_container.draft_service
+        await commands_router.message.trigger(
+            message,  # type: ignore[arg-type]
+            container=draft_container,
+        )
+
+    assert len(message.answers) == 1
+    assert "Формат: /comment" in message.answers[0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_cmd_show_displays_draft_comments(
+    draft_container: AppContainer,
+    commands_router: Router,
+) -> None:
+    """Test /show displays comments added to the current draft."""
+    user_id = 12345
+    draft = _create_test_draft(_create_test_invoice())
+    draft.comments.append("Urgent review")
+    await draft_container.draft_service.set_current_draft(user_id, draft)
+
+    message = FakeMessage(text="/show", user_id=user_id)
+
+    with patch("backend.handlers.commands_drafts.get_draft_service") as mock_get:
+        mock_get.return_value = draft_container.draft_service
+        await commands_router.message.trigger(
+            message,  # type: ignore[arg-type]
+            container=draft_container,
+        )
+
+    assert len(message.answers) == 1
+    assert "Urgent review" in message.answers[0]["text"]
