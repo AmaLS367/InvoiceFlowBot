@@ -12,9 +12,13 @@ services:
     volumes:
       - ./data.sqlite:/app/data.sqlite
       - ./logs:/app/logs
+      - ocr-models:/app/data/huggingface
     healthcheck:
       test: ["CMD", "python", "backend/healthcheck.py"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  ocr-models:

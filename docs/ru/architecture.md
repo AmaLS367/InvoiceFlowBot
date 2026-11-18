@@ -27,7 +27,7 @@
 
 - **backend.services** - бизнес логика, которая связывает домен, OCR и хранилище.
 
-- **backend.ocr** - движок OCR и провайдеры (Mindee), отвечают за преобразование файлов в структурированные данные.
+- **backend.ocr** - движок OCR и провайдеры (Docling, Tesseract, Mindee), отвечают за преобразование файлов в структурированные данные.
 
 - **backend.storage** - асинхронный слой поверх SQLite с миграциями Alembic.
 
@@ -54,7 +54,8 @@ flowchart LR
     Services --> Domain
     Services --> OCR
     Services --> Storage
-    OCR --> MindeeAPI[(Mindee API)]
+    OCR --> Local[Docling + Tesseract]
+    OCR -.-> MindeeAPI[(Mindee API)]
     Storage --> SQLite[(SQLite база данных)]
     Config --> Handlers
     Config --> Services
@@ -69,15 +70,13 @@ sequenceDiagram
     participant TG as Telegram Bot API
     participant H as backend.handlers.file
     participant S as InvoiceService
-    participant O as OcrProvider (Mindee)
+    participant O as OcrProvider
     participant ST as AsyncInvoiceStorage
 
     User->>TG: отправка PDF или изображения
     TG->>H: апдейт с файлом
     H->>S: process_invoice_file(pdf_path, fast, max_pages)
-    S->>O: extract(pdf_bytes)
-    O->>MindeeAPI: HTTP запрос
-    MindeeAPI-->>O: OCR JSON
+    S->>O: extract_invoice(file_path)
     O-->>S: ExtractionResult
     S->>S: маппинг в доменную модель Invoice
     S->>ST: save_invoice_domain_async(invoice)

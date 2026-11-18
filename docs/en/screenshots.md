@@ -23,7 +23,7 @@ Users run `/start`, see the inline keyboard, and pick the next action.
 
 ## Recognizing PDFs or photos
 
-The bot uploads the file to Mindee and presents the extracted fields back in chat.
+The bot processes the file and presents the extracted fields back in chat.
 
 ![Recognized invoice](../assets/screenshots/02_ocr_result.png)
 

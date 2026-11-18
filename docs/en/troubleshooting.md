@@ -27,6 +27,10 @@
 - **Cause:** wrong `BOT_TOKEN`, network restrictions, or Telegram is blocked.
 - **Fix:** verify the token inside `.env`, ensure the host can reach `api.telegram.org`, and restart the bot. Inspect `logs/errors.log` for stack traces.
 
+## Local OCR errors
+
+Check that `tesseract --list-langs` lists the codes configured in `OCR_LANGUAGES`. The default is `eng+rus`. Docling needs access to Hugging Face to download its models on the first OCR run.
+
 ## Mindee API errors
 - **Problem:** OCR fails with Mindee-related messages.
 - **Cause:** invalid `MINDEE_API_KEY`, incorrect `MINDEE_MODEL_ID`, or transient network issues.
@@ -47,7 +51,7 @@
 ## Docker container exits immediately
 - **Problem:** `docker ps` shows the service stopping right after launch.
 - **Cause:** missing mandatory environment variables or missing write access to logs/database.
-- **Fix:** review `docker logs <container>`, provide `BOT_TOKEN`, `MINDEE_API_KEY`, `MINDEE_MODEL_ID`, and make sure `logs/` plus `data.sqlite` are writable.
+- **Fix:** review `docker logs <container>`, check `BOT_TOKEN` and make sure `logs/` plus `data.sqlite` are writable.
 
 ## Logs are empty
 - **Problem:** no log files appear, even under load.

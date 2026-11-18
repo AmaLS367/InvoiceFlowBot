@@ -18,7 +18,7 @@
 - 🐍 Python 3.11 or newer
 - 📦 Git installed
 - 🤖 Telegram bot token
-- 🔑 Mindee API credentials
+- Tesseract on `PATH` with the English and Russian language packs. On Debian or Ubuntu, install them with `sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-rus`. Verify the installed languages with `tesseract --list-langs`.
 
 ## 🚀 Steps
 
@@ -47,8 +47,10 @@ notepad .env
 
 Required values:
 - `BOT_TOKEN` — token from @BotFather.
-- `MINDEE_API_KEY` — Mindee API key.
-- `Model_id_mindee` — Mindee model identifier for invoices.
+
+Local OCR is the default. Set `OCR_LANGUAGES` to the installed Tesseract language codes, joined with `+`, if you use a different set of languages. Docling downloads its layout and table models the first time it processes a file. Set `HF_HUB_OFFLINE=1` to use the cached models offline.
+
+To use the cloud provider, set `OCR_PROVIDER=mindee` and supply `MINDEE_API_KEY` and `MINDEE_MODEL_ID`.
 
 5. **Run the bot:**
 ```powershell

@@ -3,7 +3,7 @@
 <div align="center">
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=Automated+Invoice+Processing;OCR+%7C+Telegram+Bot+%7C+SQLite;Extract+%7C+Edit+%7C+Save+%7C+Query;Mindee+API+%2B+Python+3.11%2B" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=Automated+Invoice+Processing;OCR+%7C+Telegram+Bot+%7C+SQLite;Extract+%7C+Edit+%7C+Save+%7C+Query;Docling+%26+Tesseract+%2B+Python+3.11%2B" alt="Typing SVG" />
 </p>
 
 [![CI](https://img.shields.io/github/actions/workflow/status/AmaLS367/InvoiceFlowBot/ci.yml?style=for-the-badge&logo=github&label=CI&color=success)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
@@ -13,7 +13,7 @@
 [![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?style=for-the-badge&logo=telegram)](https://telegram.org/)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OCR-Mindee-4A90E2?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMiA3TDEyIDEyTDIyIDdMMTIgMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yIDEzTDEyIDE4TDIyIDEzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+" alt="OCR" />
+  <img src="https://img.shields.io/badge/OCR-Docling%20%2B%20Tesseract-4A90E2?style=for-the-badge" alt="OCR" />
   <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
   <img src="https://img.shields.io/badge/Framework-Aiogram_3-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Aiogram" />
 </p>
@@ -51,7 +51,7 @@ graph LR
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| 🤖 **OCR Processing** | Automatic extraction via Mindee API with provider abstraction | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+| 🤖 **OCR Processing** | Local extraction with Docling and Tesseract | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
 | 📎 **Multiple Formats** | PDF, JPEG, PNG, HEIC, HEIF, WebP | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
 | ✏️ **Interactive Editing** | Edit headers and line items via Telegram | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
 | 💾 **Data Storage** | SQLite with Alembic migrations | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
@@ -63,7 +63,7 @@ graph LR
 
 - 🐍 Python 3.11+
 - 🤖 Telegram Bot Token
-- 🔑 Mindee API Key
+- Tesseract with English and Russian language data for local installs. Docker includes both.
 
 ## 🚀 Quick Start with Docker
 
@@ -117,8 +117,8 @@ pip install -e .
 ### 4. Create a `.env` file in the project root
 ```env
 BOT_TOKEN=your_telegram_bot_token
-MINDEE_API_KEY=your_mindee_api_key
-MINDEE_MODEL_ID=your_mindee_model_id
+OCR_PROVIDER=local
+OCR_LANGUAGES=eng+rus
 
 # Optional logging configuration
 LOG_LEVEL=INFO
@@ -136,12 +136,10 @@ For local development you can create a `.env` file in the project root:
 
 ```env
 BOT_TOKEN=123456:ABCDEF_your_bot_token
-MINDEE_API_KEY=your-mindee-api-key
-MINDEE_MODEL_ID=mindee/invoices/v4
-DB_FILENAME=data.sqlite
+OCR_PROVIDER=local
 ```
 
-On startup the application reads these values into the `Settings` model.
+With `OCR_PROVIDER=local`, documents are processed on the bot server without OCR API credentials or per-document fees. The first OCR run downloads the Docling models. Set `OCR_PROVIDER=mindee` and provide `MINDEE_API_KEY` and `MINDEE_MODEL_ID` to use Mindee. See the [local setup guide](docs/en/setup-local.md).
 
 ### 5. Run the bot
 ```powershell
@@ -332,8 +330,6 @@ The bot uses environment variables for configuration. See `.env.example` for ava
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABCDEF...` |
-| `MINDEE_API_KEY` | API key from Mindee platform | `your-api-key` |
-| `MINDEE_MODEL_ID` | Mindee model ID for invoice processing | `mindee/invoices/v4` |
 
 > [!WARNING]
 > The bot will not start without these required variables!
@@ -342,6 +338,10 @@ The bot uses environment variables for configuration. See `.env.example` for ava
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `OCR_PROVIDER` | OCR backend, `local` or `mindee` | `local` |
+| `OCR_LANGUAGES` | Tesseract language codes joined by `+` | `eng+rus` |
+| `MINDEE_API_KEY` | API key when using Mindee | empty |
+| `MINDEE_MODEL_ID` | Model ID when using Mindee | empty |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `LOG_ROTATE_MB` | Max log file size in MB | `10` |
 | `LOG_BACKUPS` | Number of backup log files | `5` |

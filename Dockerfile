@@ -10,10 +10,12 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends gcc libc-dev; \
     rm -rf /var/lib/apt/lists/*
 
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" "wheel>=0.46.2"
+RUN python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+    'torch<3' 'torchvision<1'
+
 COPY pyproject.toml ./
 COPY README.md ./
-
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" "wheel>=0.46.2"
 
 COPY backend/core/ ./backend/core/
 COPY backend/domain/ ./backend/domain/
@@ -39,6 +41,7 @@ ENV PYTHONUNBUFFERED=1
 RUN set -eux; \
     apt-get update; \
     apt-get upgrade -y; \
+    apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng tesseract-ocr-rus; \
     rm -rf /var/lib/apt/lists/*; \
     rm -rf /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/ensurepip \
            /usr/local/bin/pip* /usr/local/bin/wheel*
@@ -55,7 +58,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . /app
 
 # Create data directory for SQLite database
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data/huggingface
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -65,6 +68,7 @@ RUN chown -R botuser:botuser /app
 USER botuser
 
 ENV INVOICE_DB_PATH=../data.sqlite
+ENV HF_HOME=/app/data/huggingface
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD python backend/healthcheck.py || exit 1

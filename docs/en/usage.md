@@ -21,7 +21,7 @@
 
 1. Start a chat with the bot and run `/start` to display the menu.
 2. Upload an invoice as a PDF or image. The bot acknowledges receipt and forwards the file to OCR.
-3. Mindee extraction completes and the bot shares a draft via `/show`.
+3. Local OCR completes and the bot shares a draft via `/show`.
 4. Adjust header fields or line items using commands or inline buttons.
 5. Confirm the draft with `/save`, which writes it to SQLite.
 6. Request historical data with `/invoices <from> <to> [supplier=...]`.

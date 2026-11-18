@@ -14,8 +14,8 @@ InvoiceFlowBot работает как Telegram бот, принимающий �
 
 - Пользователь отправляет боту PDF или фото счета, загружая файл прямо в чат.
 - `backend.handlers.file` принимает вложение, валидирует формат и сохраняет временный файл.
-- `backend.services.invoice_service` координирует вызовы OCR через `backend.ocr.engine.router` и конвертирует результаты в доменные сущности (`backend.domain.invoices`).
-- Слой OCR реализован через абстракцию провайдеров: интерфейс `OcrProvider` и реализацию `MindeeOcrProvider`. Модуль `backend.ocr.engine.router` зависит только от интерфейса и вызывает текущий провайдер для распознавания счетов. В остальной части системы используется только функция `extract_invoice` из `backend.ocr.engine.router`.
+- `backend.services.invoice_service` запускает OCR через `backend.ocr.async_client` и конвертирует результаты в доменные сущности (`backend.domain.invoices`).
+- Интерфейс `OcrProvider` задаёт контракт распознавания. По умолчанию роутер выбирает `LocalOcrProvider` (Docling и Tesseract). Mindee можно включить в настройках.
 - Полученный черновик сохраняется в памяти состояния (`backend.handlers.fsm`), а подтвержденные данные записываются в SQLite (`backend.storage.db`).
 - Телеграм интерфейс (`backend.handlers.commands`, `backend.handlers.callbacks`, `backend.handlers.utils`) позволяет поправить поля, добавить комментарии и запросить историю.
 
@@ -62,7 +62,7 @@ sequenceDiagram
 </tr>
 <tr>
 <td width="5%" align="center">3️⃣</td>
-<td>Сервисный слой запускает <code>backend.ocr.engine.router</code> → <code>MindeeOcrProvider</code> → Mindee API</td>
+<td>Сервис запускает выбранный провайдер OCR в отдельном потоке</td>
 </tr>
 <tr>
 <td width="5%" align="center">4️⃣</td>
@@ -137,6 +137,7 @@ graph TD
 
 **providers/** — абстракция провайдеров:
 - `base.py` — интерфейс `OcrProvider`
+- `local_provider.py` — локальное распознавание PDF, сканов и фотографий
 - `mindee_provider.py` — реализация для Mindee
 
 **engine/** — движок OCR:

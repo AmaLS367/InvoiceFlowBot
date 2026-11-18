@@ -22,13 +22,15 @@ These variables are mandatory. If they are not set, the application will termina
 | Variable | Purpose | Accepted values | Default |
 | --- | --- | --- | --- |
 | `BOT_TOKEN` | Telegram bot token used by Aiogram | Token from @BotFather | none (startup fails without it) |
-| `MINDEE_API_KEY` | Mindee API key for access to OCR service | API key from the Mindee console (https://platform.mindee.com/) | none (startup fails without it) |
-| `MINDEE_MODEL_ID` | Mindee model identifier used for invoice recognition | Model ID from Mindee platform (e.g., `mindee/invoices/v4` or custom model UUID) | none (startup fails without it) |
 
 ## 🔧 Optional variables
 
 | Variable | Purpose | Accepted values | Default |
 | --- | --- | --- | --- |
+| `OCR_PROVIDER` | OCR backend | `local`, `mindee` | `local` |
+| `OCR_LANGUAGES` | Installed Tesseract language codes joined with `+` | e.g. `eng+rus` | `eng+rus` |
+| `MINDEE_API_KEY` | API key when `OCR_PROVIDER=mindee` | Mindee API key | empty |
+| `MINDEE_MODEL_ID` | Model ID when `OCR_PROVIDER=mindee` | e.g. `mindee/invoices/v4` or a UUID | empty |
 | `INVOICE_DB_PATH` | Path to the SQLite file | Any valid file path | `data.sqlite` |
 | `LOG_LEVEL` | Base logging level | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` | `INFO` |
 | `LOG_ROTATE_MB` | Size threshold before rotating log files | Integer megabytes | `10` |

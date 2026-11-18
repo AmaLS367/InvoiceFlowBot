@@ -36,3 +36,4 @@ class ExtractionResult:
     pages: List[PageInfo] = field(default_factory=list)
     items: List[Item] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    provider: Optional[str] = None

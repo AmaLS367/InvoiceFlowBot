@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     )
 
     BOT_TOKEN: str
+    OCR_PROVIDER: Literal["local", "mindee"] = "local"
+    OCR_LANGUAGES: str = "eng+rus"
     MINDEE_API_KEY: str = ""
     MINDEE_MODEL_ID: str = ""
 

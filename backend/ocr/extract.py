@@ -41,6 +41,8 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
 
     out: Dict[str, Any] = {
         "document_id": result.document_id,
+        "doc_number": result.doc_number,
+        "provider": result.provider,
         "supplier": result.supplier,
         "client": result.client,
         "date": result.date,

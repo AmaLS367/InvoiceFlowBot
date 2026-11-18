@@ -18,7 +18,7 @@
 - 🐍 Python 3.11 или новее
 - 📦 Установленный Git
 - 🤖 Аккаунт Telegram с бот-токеном
-- 🔑 Ключ Mindee API
+- Tesseract в `PATH` с английским и русским языковыми пакетами. На Debian и Ubuntu установите их командой `sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-rus`. Список установленных языков показывает `tesseract --list-langs`.
 
 ## 🚀 Шаги запуска
 
@@ -47,8 +47,10 @@ notepad .env
 
 Обязательные параметры:
 - `BOT_TOKEN` — токен бота из @BotFather.
-- `MINDEE_API_KEY` — API ключ Mindee.
-- `Model_id_mindee` — идентификатор модели Mindee для счетов.
+
+Локальное распознавание включено по умолчанию. Чтобы изменить набор языков, укажите в `OCR_LANGUAGES` коды установленных пакетов Tesseract через `+`. При первой обработке Docling скачает модели разметки и таблиц. Чтобы использовать скачанные модели без доступа к интернету, задайте `HF_HUB_OFFLINE=1`.
+
+Для облачного распознавания задайте `OCR_PROVIDER=mindee`, `MINDEE_API_KEY` и `MINDEE_MODEL_ID`.
 
 5. **Запустите Telegram бот локально:**
 ```powershell

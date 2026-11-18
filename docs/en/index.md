@@ -10,7 +10,7 @@
 
 ## 📋 About
 
-InvoiceFlowBot is a Telegram assistant that automates invoice capture for finance teams. Users forward PDFs or photos, the bot extracts a structured draft via Mindee, lets the operator review and edit details, and persists confirmed invoices to SQLite.
+InvoiceFlowBot is a Telegram assistant that automates invoice capture for finance teams. Users forward PDFs or photos, the bot extracts a structured draft locally with Docling and Tesseract, lets the operator review and edit details, and persists confirmed invoices to SQLite.
 
 > [!NOTE]
 > The workflow removes repetitive manual entry. Accountants receive a ready draft, adjust header fields or line items, add comments, and store the final version with a single command.

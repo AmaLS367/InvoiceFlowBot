@@ -31,7 +31,8 @@ def test_app_container_creates_default_dependencies() -> None:
     assert isinstance(container.invoice_service, InvoiceService)
     assert isinstance(container.draft_service, DraftService)
 
-    assert container.invoice_service._ocr_extractor is extract_invoice_async
+    assert container.invoice_service._ocr_extractor.func is extract_invoice_async
+    assert container.invoice_service._ocr_extractor.keywords == {"settings": config}
     assert container.invoice_service._save_invoice_func is save_invoice_domain_async
     assert container.invoice_service._fetch_invoices_func is fetch_invoices_domain_async
     assert container.draft_service._load_draft_func is load_draft_invoice

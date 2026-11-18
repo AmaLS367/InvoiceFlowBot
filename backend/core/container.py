@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date
+from functools import partial
 from typing import Awaitable, Callable, List, Optional
 
 from backend.config import Settings, get_settings
@@ -40,7 +41,7 @@ class AppContainer:
         self.config: Settings = config or get_settings()
 
         self._ocr_extractor: Callable[[str, bool, int], Awaitable[ExtractionResult]] = (
-            ocr_extractor or extract_invoice_async
+            ocr_extractor or partial(extract_invoice_async, settings=self.config)
         )
         self._save_invoice_func: Callable[[Invoice, int], Awaitable[int]] = (
             save_invoice_func or save_invoice_domain_async

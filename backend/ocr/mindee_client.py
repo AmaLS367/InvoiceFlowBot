@@ -65,9 +65,11 @@ def _field_value(field: Any) -> Optional[Any]:
     return None
 
 
-def mindee_predict(path: str) -> Optional[dict]:
-    api = MINDEE_API
-    model_id = MODEL_ID_MINDEE
+def mindee_predict(
+    path: str, *, api_key: str | None = None, model_id: str | None = None
+) -> Optional[dict]:
+    api = MINDEE_API if api_key is None else api_key
+    model_id = MODEL_ID_MINDEE if model_id is None else model_id
     if not api or not model_id:
         logger.warning("[Mindee HTTP] no API key or model id in env")
         return None
@@ -90,9 +92,11 @@ def mindee_predict(path: str) -> Optional[dict]:
         return None
 
 
-def mindee_predict_sdk(path: str) -> Optional[dict]:
-    api = MINDEE_API
-    model_id = MODEL_ID_MINDEE
+def mindee_predict_sdk(
+    path: str, *, api_key: str | None = None, model_id: str | None = None
+) -> Optional[dict]:
+    api = MINDEE_API if api_key is None else api_key
+    model_id = MODEL_ID_MINDEE if model_id is None else model_id
     if not api or not model_id:
         logger.warning("[Mindee ClientV2] no API key or model id in env")
         return None
@@ -189,8 +193,12 @@ def mindee_predict_sdk(path: str) -> Optional[dict]:
         return None
 
 
-def extract_text_mindee(path: str) -> str:
-    resp = mindee_predict_sdk(path) or mindee_predict(path)
+def extract_text_mindee(
+    path: str, *, api_key: str | None = None, model_id: str | None = None
+) -> str:
+    resp = mindee_predict_sdk(path, api_key=api_key, model_id=model_id) or mindee_predict(
+        path, api_key=api_key, model_id=model_id
+    )
     if not resp:
         return ""
     return "<<MINDEE_STRUCT>>\n" + json.dumps(resp, ensure_ascii=False)
@@ -417,13 +425,16 @@ def build_extraction_result(
         pages=[],
         items=items_out,
         warnings=data.get("warnings", []),
+        provider="mindee",
     )
     return result
 
 
-def extract_invoice_mindee(pdf_path: str) -> ExtractionResult:
+def extract_invoice_mindee(
+    pdf_path: str, *, api_key: str | None = None, model_id: str | None = None
+) -> ExtractionResult:
     logger.info(f"[Mindee] extract start path={pdf_path}")
-    text = extract_text_mindee(pdf_path)
+    text = extract_text_mindee(pdf_path, api_key=api_key, model_id=model_id)
     data = parse_text_mindee(text)
     result = build_extraction_result(data, pdf_path)
     logger.info(f"[Mindee] extract done items={len(result.items)} total={result.total_sum}")

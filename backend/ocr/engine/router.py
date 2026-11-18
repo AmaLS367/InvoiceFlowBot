@@ -4,15 +4,20 @@ import os
 import shutil
 from typing import Any, Dict
 
-from backend.config import ARTIFACTS_DIR
+from backend.config import ARTIFACTS_DIR, Settings, get_settings
 from backend.ocr.engine.types import ExtractionResult
 from backend.ocr.engine.util import ensure_dir, file_sha256, get_logger, time_block, write_json
 from backend.ocr.providers.base import OcrProvider
+from backend.ocr.providers.local_provider import LocalOcrProvider
 from backend.ocr.providers.mindee_provider import MindeeOcrProvider
 
 logger = get_logger("ocr.router")
 
-_default_provider: OcrProvider = MindeeOcrProvider()
+
+def get_ocr_provider(settings: Settings) -> OcrProvider:
+    if settings.OCR_PROVIDER == "mindee":
+        return MindeeOcrProvider(settings.MINDEE_API_KEY, settings.MINDEE_MODEL_ID)
+    return LocalOcrProvider(settings.OCR_LANGUAGES)
 
 
 def _copy_source(pdf_path: str, dst_pdf: str) -> None:
@@ -25,6 +30,8 @@ def _copy_source(pdf_path: str, dst_pdf: str) -> None:
 def _result_payload(result: ExtractionResult) -> Dict[str, Any]:
     return {
         "document_id": result.document_id,
+        "doc_number": result.doc_number,
+        "provider": result.provider,
         "template": result.template,
         "score": result.score,
         "extractor_version": result.extractor_version,
@@ -63,7 +70,9 @@ def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Ex
         raise FileNotFoundError(pdf_path)
 
     doc_id = file_sha256(pdf_path)
-    logger.info(f"[ROUTER] mindee start path={pdf_path} doc_id={doc_id}")
+    settings = get_settings()
+    provider = get_ocr_provider(settings)
+    logger.info("[ROUTER] %s start path=%s doc_id=%s", settings.OCR_PROVIDER, pdf_path, doc_id)
 
     doc_dir = os.path.join(ARTIFACTS_DIR, doc_id)
     ensure_dir(doc_dir)
@@ -72,8 +81,8 @@ def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Ex
     if not os.path.exists(dst_pdf):
         _copy_source(pdf_path, dst_pdf)
 
-    with time_block(logger, "router.mindee_extract"):
-        result = _default_provider.extract_invoice(
+    with time_block(logger, "router.extract_invoice"):
+        result = provider.extract_invoice(
             pdf_path=pdf_path,
             fast=fast,
             max_pages=max_pages,
@@ -82,14 +91,12 @@ def extract_invoice(pdf_path: str, fast: bool = True, max_pages: int = 12) -> Ex
     if not result.document_id:
         result.document_id = doc_id
     if not result.template:
-        result.template = "mindee"
-    if result.score is None or result.score == 0.0:
-        result.score = 1.0 if result.items else 0.4
+        result.template = settings.OCR_PROVIDER
 
     write_json(os.path.join(doc_dir, "extraction.json"), _result_payload(result))
 
     logger.info(
-        f"[ROUTER] mindee done doc_id={result.document_id} template={result.template} "
+        f"[ROUTER] {settings.OCR_PROVIDER} done doc_id={result.document_id} template={result.template} "
         f"score={result.score} items={len(result.items)} supplier={result.supplier}"
     )
 

@@ -3,7 +3,7 @@
 <div align="center">
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F+%D0%BE%D0%B1%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0+%D1%81%D1%87%D0%B5%D1%82%D0%BE%D0%B2;OCR+%7C+Telegram+%7C+SQLite;%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B0+%7C+%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%7C+%D0%A1%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5;Mindee+API+%2B+Python+3.11%2B" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F+%D0%BE%D0%B1%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0+%D1%81%D1%87%D0%B5%D1%82%D0%BE%D0%B2;OCR+%7C+Telegram+%7C+SQLite;%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B0+%7C+%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%7C+%D0%A1%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5;Docling+%26+Tesseract+%2B+Python+3.11%2B" alt="Typing SVG" />
 </p>
 
 [![CI](https://img.shields.io/github/actions/workflow/status/AmaLS367/InvoiceFlowBot/ci.yml?style=for-the-badge&logo=github&label=CI&color=success)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
@@ -13,7 +13,7 @@
 [![Telegram](https://img.shields.io/badge/Telegram-Бот-blue?style=for-the-badge&logo=telegram)](https://telegram.org/)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OCR-Mindee-4A90E2?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMiA3TDEyIDEyTDIyIDdMMTIgMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yIDEzTDEyIDE4TDIyIDEzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+" alt="OCR" />
+  <img src="https://img.shields.io/badge/OCR-Docling%20%2B%20Tesseract-4A90E2?style=for-the-badge" alt="OCR" />
   <img src="https://img.shields.io/badge/БД-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
   <img src="https://img.shields.io/badge/Фреймворк-Aiogram_3-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Aiogram" />
 </p>
@@ -31,7 +31,7 @@
 ## 📋 Описание
 
 InvoiceFlowBot это Telegram бот для обработки инвойсов с помощью OCR.
-Бот принимает PDF или изображение, отправляет его в Mindee, извлекает реквизиты счета и сохраняет их в SQLite.
+Бот принимает PDF или изображение, локально распознаёт реквизиты счёта и сохраняет подтверждённые данные в SQLite.
 Через интерфейс Telegram можно просматривать счета, редактировать шапку и позиции, добавлять комментарии и выгружать товары в CSV.
 
 <div align="center">
@@ -41,7 +41,7 @@ InvoiceFlowBot это Telegram бот для обработки инвойсов
 ```mermaid
 graph LR
     A[📱 Пользователь] -->|Загружает PDF/Фото| B[🤖 Telegram Бот]
-    B -->|Отправляет в OCR| C[🔍 Mindee API]
+    B -->|Отправляет в OCR| C[🔍 Docling и Tesseract]
     C -->|Извлекает данные| D[✏️ Черновик]
     D -->|Редактирование| E[💾 SQLite]
     E -->|Запросы| F[📊 Отчёты]
@@ -88,7 +88,7 @@ graph LR
 
 | Функция | Описание | Статус |
 |---------|----------|--------|
-| 🤖 **OCR Обработка** | Автоматическое извлечение через Mindee API | ![](https://img.shields.io/badge/-Готово-success?style=flat-square) |
+| 🤖 **OCR Обработка** | Локальное распознавание через Docling и Tesseract | ![](https://img.shields.io/badge/-Готово-success?style=flat-square) |
 | 📎 **Множество форматов** | PDF, JPEG, PNG, HEIC, HEIF, WebP | ![](https://img.shields.io/badge/-Готово-success?style=flat-square) |
 | ✏️ **Интерактивное редактирование** | Правка через интерфейс Telegram | ![](https://img.shields.io/badge/-Готово-success?style=flat-square) |
 | 💾 **Хранение данных** | SQLite с миграциями Alembic | ![](https://img.shields.io/badge/-Готово-success?style=flat-square) |
@@ -124,7 +124,7 @@ docker-compose down
 
 - 🐍 Python 3.11+
 - 🤖 Токен Telegram бота
-- 🔑 Mindee API Key и Model ID
+- Tesseract с английским и русским языковыми пакетами для локальной установки. В Docker они уже включены.
 - 💾 Доступ к SQLite (идет в комплекте с Python)
 
 ## 💻 Установка и запуск локально
@@ -165,13 +165,11 @@ notepad .env
 **Пример `.env`:**
 ```env
 BOT_TOKEN=123456:ABCDEF_your_bot_token
-MINDEE_API_KEY=your-mindee-api-key
-MINDEE_MODEL_ID=mindee/invoices/v4
-DB_FILENAME=data.sqlite
+OCR_PROVIDER=local
+OCR_LANGUAGES=eng+rus
 ```
 
-> [!WARNING]
-> Не забудьте заменить значения на свои реальные токены!
+При `OCR_PROVIDER=local` счета обрабатываются на сервере бота без API-ключа OCR и платы за документ. При первой обработке скачиваются модели Docling. Для Mindee укажите `OCR_PROVIDER=mindee`, `MINDEE_API_KEY` и `MINDEE_MODEL_ID`. Подробности в [руководстве по локальной установке](docs/ru/setup-local.md).
 
 ### 5. Запустите бота
 

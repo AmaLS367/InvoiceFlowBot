@@ -7,7 +7,9 @@ from backend.ocr.providers.base import OcrProvider
 
 
 class MindeeOcrProvider(OcrProvider):
-    def __init__(self) -> None:
+    def __init__(self, api_key: str | None = None, model_id: str | None = None) -> None:
+        self.api_key = api_key
+        self.model_id = model_id
         self.logger = get_logger("ocr.provider.mindee")
 
     def extract_invoice(
@@ -20,7 +22,7 @@ class MindeeOcrProvider(OcrProvider):
             f"[PROVIDER] Mindee extract start path={pdf_path} fast={fast} max_pages={max_pages}"
         )
 
-        result = extract_invoice_mindee(pdf_path)
+        result = extract_invoice_mindee(pdf_path, api_key=self.api_key, model_id=self.model_id)
 
         self.logger.info(
             f"[PROVIDER] Mindee extract done doc_id={result.document_id} items={len(result.items)} "

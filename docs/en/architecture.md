@@ -24,7 +24,7 @@ The project is split into several layers:
 
 - **backend.services** - business logic that orchestrates domain, OCR and storage.
 
-- **backend.ocr** - OCR engine and providers (Mindee), responsible for turning files into structured data.
+- **backend.ocr** - OCR engine and providers (Docling, Tesseract, Mindee), responsible for turning files into structured data.
 
 - **backend.storage** - async storage layer on top of SQLite and Alembic migrations.
 
@@ -51,7 +51,8 @@ flowchart LR
     Services --> Domain
     Services --> OCR
     Services --> Storage
-    OCR --> MindeeAPI[(Mindee API)]
+    OCR --> Local[Docling + Tesseract]
+    OCR -.-> MindeeAPI[(Mindee API)]
     Storage --> SQLite[(SQLite database)]
     Config --> Handlers
     Config --> Services
@@ -66,15 +67,13 @@ sequenceDiagram
     participant TG as Telegram Bot API
     participant H as backend.handlers.file
     participant S as InvoiceService
-    participant O as OcrProvider (Mindee)
+    participant O as OcrProvider
     participant ST as AsyncInvoiceStorage
 
     User->>TG: send PDF or image
     TG->>H: update with file
     H->>S: process_invoice_file(pdf_path, fast, max_pages)
-    S->>O: extract(pdf_bytes)
-    O->>MindeeAPI: HTTP request
-    MindeeAPI-->>O: OCR JSON
+    S->>O: extract_invoice(file_path)
     O-->>S: ExtractionResult
     S->>S: map to Invoice domain model
     S->>ST: save_invoice_domain_async(invoice)

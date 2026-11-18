@@ -78,16 +78,10 @@ def _build_item(item: Item) -> InvoiceItem:
     )
 
 
-def _build_source_info(result: ExtractionResult, provider: str = "mindee") -> InvoiceSourceInfo:
-    return InvoiceSourceInfo(
-        provider=provider,
-    )
-
-
 def build_invoice_from_extraction(result: ExtractionResult) -> Invoice:
     header = _build_header(result)
     items = [_build_item(it) for it in result.items]
-    source = _build_source_info(result, provider="mindee")
+    source = InvoiceSourceInfo(provider=result.provider)
 
     invoice = Invoice(
         header=header,

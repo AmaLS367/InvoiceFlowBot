@@ -43,6 +43,7 @@ class DummyExtractionResult:
         self.items = items
         self.document_id = document_id
         self.template = None
+        self.provider = "mindee"
         self.score = None
 
 
