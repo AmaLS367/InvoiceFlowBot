@@ -56,17 +56,6 @@ InvoiceFlowBot помогает финансовым и операционным
 | 🔧 [Решение проблем](troubleshooting.md) | Типовые ошибки и их решения |
 | 📸 [Скриншоты](screenshots.md) | Визуальные примеры |
 
-<details>
-<summary><b>📋 Архитектурные решения (ADR)</b></summary>
-
-Документированные решения по ключевым технологиям:
-
-- [ADR-0001: Mindee как основной OCR провайдер](../adr/0001-mindee-as-primary-ocr-provider.md)
-- [ADR-0002: SQLite как основное хранилище](../adr/0002-sqlite-as-primary-storage.md)
-- [ADR-0003: Aiogram 3 как Telegram фреймворк](../adr/0003-aiogram3-as-telegram-framework.md)
-
-</details>
-
 ---
 
 <div align="center">

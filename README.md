@@ -1,479 +1,259 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=200&section=header&text=InvoiceFlowBot&fontSize=60&animation=fadeIn&fontAlignY=35&desc=Automated%20Invoice%20Processing%20with%20OCR&descAlignY=55&descSize=20"/>
-
-<div align="center">
+<h1 align="center">InvoiceFlowBot</h1>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=600&lines=Automated+Invoice+Processing;OCR+%7C+Telegram+Bot+%7C+SQLite;Extract+%7C+Edit+%7C+Save+%7C+Query;Docling+%26+Tesseract+%2B+Python+3.11%2B" alt="Typing SVG" />
+  <strong>Automated Telegram bot for extracting, editing, and storing invoices with local OCR</strong>
 </p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/AmaLS367/InvoiceFlowBot/ci.yml?style=for-the-badge&logo=github&label=CI&color=success)](https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/astral-sh/ruff)
-[![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?style=for-the-badge&logo=telegram)](https://telegram.org/)
+<p align="center">
+  <a href="https://github.com/AmaLS367/InvoiceFlowBot/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/AmaLS367/InvoiceFlowBot/ci.yml?style=flat-square&logo=github&label=CI" alt="CI" /></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+" /></a>
+  <a href="https://telegram.org/"><img src="https://img.shields.io/badge/Aiogram-3.x-2CA5E0?style=flat-square&logo=telegram&logoColor=white" alt="Aiogram 3" /></a>
+  <a href="docs/en/setup-local.md"><img src="https://img.shields.io/badge/OCR-Docling%20%2B%20Tesseract-4A90E2?style=flat-square" alt="OCR" /></a>
+  <a href="docs/en/database.md"><img src="https://img.shields.io/badge/Database-SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite" /></a>
+  <a href="#-interface-languages"><img src="https://img.shields.io/badge/Languages-7-2EA043?style=flat-square" alt="Languages" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square" alt="License: Apache 2.0" /></a>
+</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OCR-Docling%20%2B%20Tesseract-4A90E2?style=for-the-badge" alt="OCR" />
-  <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Framework-Aiogram_3-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Aiogram" />
+  <strong>English</strong> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="docs/en/index.md">Documentation</a> ·
+  <a href="docs/en/screenshots.md">Screenshots</a>
+</p>
+
+<p align="center">
+  <a href="docs/assets/screenshots/InvoiceFlowBot_Contra_1600x1200_web.mp4">
+    <img src="docs/assets/screenshots/demo.webp" alt="InvoiceFlowBot demo" width="820" />
+  </a>
+</p>
+
+<p align="center">
+  <sub>
+    <a href="docs/assets/screenshots/InvoiceFlowBot_Contra_1600x1200_web.mp4">Watch full HD video with sound (MP4)</a>
+    ·
+    <a href="docs/en/screenshots.md">Browse screenshots</a>
+  </sub>
 </p>
 
 ---
 
-> 🇷🇺 **Русская документация:** [README.ru.md](README.ru.md) • [docs/ru/index.md](docs/ru/index.md)
-
-</div>
-
-<br/>
-
-A Telegram bot for automated invoice processing using OCR technology. The bot extracts structured data from PDF invoices and photos, allowing users to review, edit, and save invoice information to a database.
-
+InvoiceFlowBot accepts PDF invoices and photos in Telegram, extracts structured headers and line items locally with Docling and Tesseract (or Mindee as an optional backend), lets users review and edit drafts inline, and saves verified invoices to SQLite for period-based reporting and CSV export.
 
 ## ✨ Features
 
-<div align="center">
-
 ```mermaid
 graph LR
-    A[📱 Upload] -->|PDF/Image| B[🔍 OCR Extract]
-    B -->|Parse Data| C[✏️ Edit Draft]
-    C -->|Confirm| D[💾 SQLite]
-    D -->|Query| E[📊 Reports]
-
-    style A fill:#4A90E2,stroke:#2c3e50,stroke-width:2px,color:#fff
-    style B fill:#FF6B6B,stroke:#2c3e50,stroke-width:2px,color:#fff
-    style C fill:#FFD93D,stroke:#2c3e50,stroke-width:2px,color:#333
-    style D fill:#50C878,stroke:#2c3e50,stroke-width:2px,color:#fff
-    style E fill:#B19CD9,stroke:#2c3e50,stroke-width:2px,color:#fff
+    A[Upload PDF / Photo] --> B[Local OCR]
+    B --> C[Review & Edit Draft]
+    C --> D[Save to SQLite]
+    D --> E[Period Reports & CSV]
 ```
 
-</div>
+| Feature | Description |
+|---------|-------------|
+| **Local OCR by Default** | Runs Docling + Tesseract on your own server with no per-document API fees (optional Mindee provider included). |
+| **Multiple Input Formats** | Supports PDF, JPEG, PNG, HEIC, HEIF, and WebP. |
+| **Multilingual Interface (7 Languages)** | Auto-detects the user's Telegram language, persists choices in SQLite, and localizes Telegram command menus. |
+| **Interactive Draft Review** | Edit supplier, customer, date, invoice number, totals, and individual line items via inline buttons or commands. |
+| **Automatic Sanity Checks** | Highlights line-item sum mismatches and auto-computed or decimal-corrected values before saving. |
+| **SQLite + Alembic Migrations** | Stores invoices, line items, comments, drafts, and user language preferences with versioned schema migrations. |
+| **Period Queries & CSV Export** | Filter saved invoices by date range and supplier; long item tables are exported as UTF-8 CSV files. |
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| 🤖 **OCR Processing** | Local extraction with Docling and Tesseract | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| 📎 **Multiple Formats** | PDF, JPEG, PNG, HEIC, HEIF, WebP | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| ✏️ **Interactive Editing** | Edit headers and line items via Telegram | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| 💾 **Data Storage** | SQLite with Alembic migrations | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| 📅 **Period Queries** | Filter by date range and supplier | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| 💬 **Comment System** | Add notes to invoices | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
-| 📊 **CSV Export** | Export line items for analysis | ![](https://img.shields.io/badge/-Ready-success?style=flat-square) |
+## 🌐 Interface Languages
 
-## 📋 Requirements
+The bot interface, inline keyboards, and per-user Telegram command menu support **7 languages** out of the box:
 
-- 🐍 Python 3.11+
-- 🤖 Telegram Bot Token
-- Tesseract with English and Russian language data for local installs. Docker includes both.
+| Code | Language | Catalog |
+|------|----------|---------|
+| `ru` | Русский (default fallback) | [`ru.json`](backend/handlers/locales/ru.json) |
+| `en` | English | [`en.json`](backend/handlers/locales/en.json) |
+| `de` | Deutsch | [`de.json`](backend/handlers/locales/de.json) |
+| `es` | Español | [`es.json`](backend/handlers/locales/es.json) |
+| `fr` | Français | [`fr.json`](backend/handlers/locales/fr.json) |
+| `it` | Italiano | [`it.json`](backend/handlers/locales/it.json) |
+| `pt` | Português | [`pt.json`](backend/handlers/locales/pt.json) |
+
+Users can switch languages anytime via `/language` or the **🌐 Language** button. Adding another language only requires a new ISO 639-1 JSON file in `backend/handlers/locales/` and registering it in `LANGUAGES` in [`backend/handlers/texts.py`](backend/handlers/texts.py) — see the [development guide](docs/en/development.md).
 
 ## 🚀 Quick Start with Docker
 
 > [!TIP]
-> The fastest way to get started! Docker handles all dependencies automatically.
+> Docker includes Python, Tesseract language packs, and all runtime dependencies out of the box.
 
-```powershell
-# 1. Clone and setup environment
-git clone https://github.com/AmaLS367/InvoiceFlowBot.git
-cd InvoiceFlowBot
-Copy-Item .env.example .env
-
-# 2. Edit .env with your tokens
-notepad .env
-
-# 3. Start the bot
-docker-compose up --build -d
-
-# 4. Check logs
-docker-compose logs -f
-
-# 5. Stop when done
-docker-compose down
-```
-
-## 💻 Installation
-
-> [!NOTE]
-> Requires Python 3.11+ and Git installed on your system.
-
-<details>
-<summary><b>📦 Step-by-step installation guide</b></summary>
-
-### 1. Clone the repository
-```powershell
-git clone https://github.com/AmaLS367/InvoiceFlowBot.git
-cd InvoiceFlowBot
-```
-
-### 2. Create a virtual environment
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-### 3. Install dependencies
-```powershell
-pip install -e .
-```
-
-### 4. Create a `.env` file in the project root
-```env
-BOT_TOKEN=your_telegram_bot_token
-OCR_PROVIDER=local
-OCR_LANGUAGES=eng+rus
-
-# Optional logging configuration
-LOG_LEVEL=INFO
-LOG_ROTATE_MB=10
-LOG_BACKUPS=5
-LOG_CONSOLE=0
-LOG_DIR=logs
-```
-
-### ⚙️ Configuration
-
-The bot is configured via environment variables managed by pydantic settings in `backend.config`.
-
-For local development you can create a `.env` file in the project root:
-
-```env
-BOT_TOKEN=123456:ABCDEF_your_bot_token
-OCR_PROVIDER=local
-```
-
-With `OCR_PROVIDER=local`, documents are processed on the bot server without OCR API credentials or per-document fees. The first OCR run downloads the Docling models. Set `OCR_PROVIDER=mindee` and provide `MINDEE_API_KEY` and `MINDEE_MODEL_ID` to use Mindee. See the [local setup guide](docs/en/setup-local.md).
-
-### 5. Run the bot
-```powershell
-python bot.py
-```
-
-> [!TIP]
-> Check `logs/` directory for detailed application logs if you encounter any issues.
-
-</details>
-
-## 🧪 Tests
-
-Run unit tests with `pytest`. On Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -e .[dev]
-pytest
-```
-
-You can also run a specific test file:
-
-```powershell
-python -m pytest tests/test_invoice_service.py
-```
-
-## 🛠️ Scripts
-
-The project includes utility scripts organized by platform in the `scripts/` directory for common development tasks.
-
-<details>
-<summary><b>📜 Available Scripts</b></summary>
-
-### Python Scripts (`scripts/python/`)
-
-| Script | Description |
-|--------|-------------|
-| `setup.py` | Install dependencies and create `.env` file |
-| `migrate.py` | Run database migrations |
-| `run.py` | Apply migrations and start the bot |
-| `test.py` | Run tests with coverage |
-| `lint.py` | Run code linting (ruff + mypy) |
-| `format.py` | Format code with ruff |
-
-### Platform Wrappers
-
-**Linux/macOS** (`scripts/linux/`):
 ```bash
-./scripts/linux/setup.sh
-./scripts/linux/migrate.sh
-./scripts/linux/run.sh
-./scripts/linux/test.sh
-./scripts/linux/lint.sh
-./scripts/linux/format.sh
+# 1. Clone the repository and prepare .env
+git clone https://github.com/AmaLS367/InvoiceFlowBot.git
+cd InvoiceFlowBot
+cp .env.example .env
+
+# 2. Set BOT_TOKEN in .env, then build and start
+docker compose up --build -d
+
+# 3. Follow logs
+docker compose logs -f
+
+# 4. Stop
+docker compose down
 ```
 
-**Windows** (`scripts/windows/`):
-```powershell
-.\scripts\windows\setup.ps1
-.\scripts\windows\migrate.ps1
-.\scripts\windows\run.ps1
-.\scripts\windows\test.ps1
-.\scripts\windows\lint.ps1
-.\scripts\windows\format.ps1
-```
+## 💻 Local Installation
 
-> [!TIP]
-> See [Scripts Guide](docs/en/scripts.md) for detailed documentation on all available scripts.
+Requires **Python 3.11+**, **Git**, and **Tesseract** (with language data matching `OCR_LANGUAGES`, e.g., `eng+rus`).
+
+<details>
+<summary><b>Step-by-step local setup</b></summary>
+
+1. Clone and create a virtual environment:
+
+   ```bash
+   git clone https://github.com/AmaLS367/InvoiceFlowBot.git
+   cd InvoiceFlowBot
+   python -m venv .venv
+   # Linux/macOS:
+   source .venv/bin/activate
+   # Windows PowerShell:
+   # .\.venv\Scripts\Activate.ps1
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   pip install -e .
+   ```
+
+3. Create `.env` from `.env.example`:
+
+   ```env
+   BOT_TOKEN=123456:ABCDEF_your_bot_token
+   OCR_PROVIDER=local
+   OCR_LANGUAGES=eng+rus
+   ```
+
+   With `OCR_PROVIDER=local`, documents are processed locally without external OCR credentials; the first run downloads Docling models. To use Mindee instead, set `OCR_PROVIDER=mindee`, `MINDEE_API_KEY`, and `MINDEE_MODEL_ID`. See the [local setup guide](docs/en/setup-local.md).
+
+4. Apply migrations and run the bot:
+
+   ```bash
+   python -m alembic -c backend/alembic.ini upgrade head
+   python bot.py
+   ```
 
 </details>
 
 ## 📖 Usage
 
-> [!TIP]
-> New to the bot? Start with `/start` to see the interactive menu!
-
-<details>
-<summary><b>🎯 Basic Commands</b></summary>
-
-| Command | Description |
-|---------|-------------|
-| `/start` | Start the bot and see main menu |
-| `/help` | Show help message |
-| `/show` | Display current draft invoice |
-| `/save` | Save current draft to database |
-
-</details>
-
-<details>
-<summary><b>✏️ Editing Commands</b></summary>
+Start with `/start` to pick a language and open the interactive menu.
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `/edit` | Edit header fields | `/edit supplier=ACME client=Corp date=2024-01-15` |
-| `/edititem` | Edit specific line item | `/edititem 0 name=Widget qty=5 price=10.50` |
-| `/comment` | Add a comment | `/comment Approved by manager` |
+| `/start` | Initialize session, choose language, open menu | `/start` |
+| `/help` | Show quick help and available commands | `/help` |
+| `/language` | Switch interface language and command menu | `/language` |
+| `/show` | Display the current invoice draft | `/show` |
+| `/save` | Save the current draft to SQLite | `/save` |
+| `/edit` | Batch-edit header fields | `/edit supplier=ACME client=Corp date=2025-01-15` |
+| `/edititem` | Edit a specific line item (1-based index) | `/edititem 1 name=Widget qty=5 price=10.50` |
+| `/comment` | Append a comment to the active draft | `/comment Approved by manager` |
+| `/invoices` | Query saved invoices by date and supplier | `/invoices 2025-01-01 2025-01-31 supplier=ACME` |
 
-</details>
-
-<details>
-<summary><b>🔍 Query Commands</b></summary>
-
-```
-/invoices YYYY-MM-DD YYYY-MM-DD [supplier=text]
-```
-
-**Example:**
-```
-/invoices 2024-01-01 2024-01-31 supplier=ACME
-```
-
-</details>
-
-<details>
-<summary><b>🔘 Interactive Buttons</b></summary>
-
-The bot provides inline keyboard buttons for:
-- 📤 Upload invoice
-- ✏️ Edit invoice fields
-- 💬 Add comments
-- 💾 Save invoice
-- 📅 Query invoices by period
-- ❓ View help
-
-</details>
-
-<div align="center">
-
-## 📊 Project Stats
-
-<p align="center">
-  <img src="https://img.shields.io/github/languages/top/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=blue" alt="Top Language"/>
-  <img src="https://img.shields.io/github/languages/code-size/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=green" alt="Code Size"/>
-  <img src="https://img.shields.io/github/last-commit/AmaLS367/InvoiceFlowBot?style=for-the-badge&color=orange" alt="Last Commit"/>
-</p>
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=AmaLS367&repo=InvoiceFlowBot&theme=react-dark&hide_border=true&area=true" width="100%"/>
-
-</div>
-
-## 📁 Project Structure
-
-```
-InvoiceFlowBot/
-├── bot.py                 # Main bot entry point
-├── scripts/                # Utility scripts
-│   ├── python/             # Core Python scripts
-│   ├── linux/              # Linux shell wrappers
-│   └── windows/            # Windows PowerShell wrappers
-├── backend/
-│   ├── config.py          # Configuration management
-│   ├── domain/
-│   │   └── invoices.py    # Domain entities (Invoice, InvoiceHeader, InvoiceItem, etc.)
-│   ├── services/
-│   │   └── invoice_service.py # Service layer (OCR orchestration, domain conversion)
-│   ├── handlers/
-│   │   ├── commands.py    # Text command handlers (/show, /edit, /invoices, etc.)
-│   │   ├── callbacks.py   # Callback query handlers (inline button actions)
-│   │   ├── file.py        # File upload handlers
-│   │   ├── fsm.py         # Global state management
-│   │   └── utils.py       # Utility functions and keyboards
-│   ├── ocr/
-│   │   ├── extract.py     # Invoice extraction entry point
-│   │   ├── mindee_client.py # Mindee API integration
-│   │   ├── providers/     # OCR provider abstraction layer
-│   │   │   ├── base.py    # OcrProvider interface
-│   │   │   └── mindee_provider.py # Mindee provider implementation
-│   │   └── engine/
-│   │       ├── router.py  # OCR routing logic (uses providers)
-│   │       ├── types.py   # Data type definitions
-│   │       └── util.py    # OCR utilities and logging
-│   ├── storage/
-│   │   └── db.py          # Database operations
-│   └── alembic/           # Database migrations
-```
+Inline buttons mirror the main workflow: upload invoice, edit header or line items, add comments, save draft, query by period, view help, and switch language.
 
 ## ⚙️ Configuration
 
-The bot uses environment variables for configuration. See `.env.example` for available options.
-
 <details>
-<summary><b>📋 Environment Variables Reference</b></summary>
+<summary><b>Environment variables reference</b></summary>
 
-### 🔑 Required Variables
+### Required
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABCDEF...` |
+| `BOT_TOKEN` | Telegram bot token from `@BotFather` | `123456:ABCDEF...` |
 
-> [!WARNING]
-> The bot will not start without these required variables!
-
-### 🔧 Optional Variables
+### Optional
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OCR_PROVIDER` | OCR backend, `local` or `mindee` | `local` |
+| `OCR_PROVIDER` | OCR backend (`local` or `mindee`) | `local` |
 | `OCR_LANGUAGES` | Tesseract language codes joined by `+` | `eng+rus` |
-| `MINDEE_API_KEY` | API key when using Mindee | empty |
-| `MINDEE_MODEL_ID` | Model ID when using Mindee | empty |
+| `MINDEE_API_KEY` | Mindee API key (when `OCR_PROVIDER=mindee`) | empty |
+| `MINDEE_MODEL_ID` | Mindee model ID (when `OCR_PROVIDER=mindee`) | empty |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `LOG_ROTATE_MB` | Max log file size in MB | `10` |
-| `LOG_BACKUPS` | Number of backup log files | `5` |
-| `LOG_CONSOLE` | Enable console logging | `0` |
-| `LOG_DIR` | Custom log directory | `logs` |
+| `LOG_BACKUPS` | Number of rotated log backups | `5` |
+| `LOG_CONSOLE` | Enable console logging (`0` or `1`) | `0` |
+| `LOG_DIR` | Directory for log files | `logs` |
 
 </details>
 
 ## 🗄️ Database
 
-The bot uses SQLite database to store invoices. The database schema is managed by Alembic.
+SQLite schema is managed with Alembic (`backend/alembic/versions/`).
 
 <details>
-<summary><b>🔨 Database Setup & Structure</b></summary>
-
-### Initial Setup
-
-Run migrations **from the project root** so they apply to the same database the bot uses (e.g. `backend/data.sqlite`):
-
-```powershell
-python -m alembic -c backend/alembic.ini upgrade head
-```
-
-Or: `python scripts/python/migrate.py` (see [Database docs](docs/en/database.md#-migrations) for details).
-
-> [!NOTE]
-> The application also runs migrations on startup via `backend.storage.db.init_db()`. Running them once manually from the project root is recommended to avoid path issues (e.g. on Windows).
-
-### Database Tables
+<summary><b>Tables & migrations</b></summary>
 
 | Table | Description |
 |-------|-------------|
-| `invoices` | Header information (supplier, client, dates, totals) |
-| `invoice_items` | Line items for each invoice |
-| `comments` | User comments associated with invoices |
-| `invoice_drafts` | Temporary drafts for editing |
+| `invoices` | Saved invoice headers (supplier, customer, date, number, totals) |
+| `invoice_items` | Line items linked to each invoice |
+| `comments` | User and automatic review comments |
+| `invoice_drafts` | Active per-user drafts prior to saving |
+| `user_languages` | Saved per-user interface language preference |
 
-### Backup & Restore
+Run migrations from the project root:
 
-```powershell
-# Backup
-Copy-Item .\data.sqlite .\backup\data-$(Get-Date -Format yyyyMMddHHmmss).sqlite
-
-# Restore
-Copy-Item .\backup\data-20240115.sqlite .\data.sqlite
+```bash
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-> [!WARNING]
-> Always backup `data.sqlite` before major updates!
+See [Database Guide](docs/en/database.md) for backup, restore, and schema details.
 
 </details>
 
-## 📝 Logging
+## 📁 Project Structure
 
-Logs are written to the `logs/` directory by default:
-- `ocr_engine.log` - General application logs
-- `errors.log` - Error and warning logs
-- `router.log` - OCR routing logs
-- `extract.log` - Invoice extraction logs
+```text
+InvoiceFlowBot/
+├── bot.py                          # Application entry point
+├── scripts/                        # Cross-platform dev/ops scripts (python, linux, windows)
+├── backend/
+│   ├── config.py                   # Pydantic environment settings
+│   ├── core/container.py           # Dependency injection container
+│   ├── domain/                     # Domain models (invoices, drafts)
+│   ├── handlers/
+│   │   ├── commands*.py            # Command handlers (/start, /show, /edit, /invoices, ...)
+│   │   ├── callbacks*.py           # Inline keyboard handlers
+│   │   ├── file.py                 # PDF & image upload handlers
+│   │   ├── language.py             # Language picker & Telegram menu localization
+│   │   ├── locale_middleware.py    # Per-update locale resolution
+│   │   ├── texts.py                # Locale registry & text formatting helpers
+│   │   └── locales/                # JSON translation catalogs (de, en, es, fr, it, pt, ru)
+│   ├── ocr/
+│   │   ├── extract.py              # Extraction entry point
+│   │   ├── engine/                 # OCR router, types, and utilities
+│   │   └── providers/              # Local (Docling + Tesseract) and Mindee providers
+│   ├── services/                   # Invoice & draft application services
+│   ├── storage/                    # Async SQLite repositories & user language storage
+│   └── alembic/                    # Alembic schema migrations
+└── docs/                           # English & Russian documentation and screenshots
+```
 
-## 📚 Documentation
+## 🛠️ Development & Testing
 
-- [docs/ru/index.md](docs/ru/index.md)
-- [docs/en/index.md](docs/en/index.md)
-
-## 📸 Screenshots
-
-- [Screenshots (RU)](docs/ru/screenshots.md)
-- [Bot screenshots (EN)](docs/en/screenshots.md)
-
-## 📄 License
-
-Copyright 2025 Ama
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-## 👨‍💻 Development
-
-### 🔍 Code Quality
-
-The project uses the following tools for code quality:
-
-- **ruff** - Fast Python linter
-- **mypy** - Static type checking
-
-### 🛠️ Local Development Setup
-
-```powershell
-# Install dependencies
-pip install -e .
+```bash
 pip install -e .[dev]
-
-# Run linter
 python -m ruff check .
-
-# Run type checker
 python -m mypy backend/
-
-# Run tests
 python -m pytest
 ```
 
-The CI pipeline automatically runs `ruff`, `mypy`, and `pytest` on every push and pull request.
+Helper wrappers for setup, migrations, linting, formatting, and tests are also available in `scripts/python/`, `scripts/linux/`, and `scripts/windows/` (see [Scripts Guide](docs/en/scripts.md)).
 
-## 🤝 Contributing
+## 📚 Documentation
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- **English:** [docs/en/index.md](docs/en/index.md) · [Screenshots](docs/en/screenshots.md) · [Development](docs/en/development.md)
+- **Русский:** [README.ru.md](README.ru.md) · [docs/ru/index.md](docs/ru/index.md) · [Скриншоты](docs/ru/screenshots.md)
 
-## 💬 Support
+## 📄 License
 
-For issues and questions, please open an issue on the repository.
-
----
-
-<div align="center">
-
-### 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=AmaLS367/InvoiceFlowBot&type=Date)](https://star-history.com/#AmaLS367/InvoiceFlowBot&Date)
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
-
-**Made with ❤️ by [Ama](https://github.com/AmaLS367)**
-
-</div>
+Licensed under the [Apache License 2.0](LICENSE). Copyright 2025 Ama.

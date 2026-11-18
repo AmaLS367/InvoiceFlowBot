@@ -56,17 +56,6 @@ InvoiceFlowBot is a Telegram assistant that automates invoice capture for financ
 | 🔧 [Troubleshooting](troubleshooting.md) | Common issues and solutions |
 | 📸 [Screenshots](screenshots.md) | Visual examples |
 
-<details>
-<summary><b>📋 Architecture Decision Records (ADR)</b></summary>
-
-Documented decisions for key technologies:
-
-- [ADR-0001: Mindee as primary OCR provider](../adr/0001-mindee-as-primary-ocr-provider.md)
-- [ADR-0002: SQLite as primary storage](../adr/0002-sqlite-as-primary-storage.md)
-- [ADR-0003: Aiogram 3 as Telegram framework](../adr/0003-aiogram3-as-telegram-framework.md)
-
-</details>
-
 ---
 
 <div align="center">
