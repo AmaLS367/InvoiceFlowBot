@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 from backend.ocr.engine.types import ExtractionResult, PageInfo
 from backend.ocr.engine.util import file_sha256
 from backend.ocr.providers.base import OcrProvider
-from backend.ocr.providers.local_invoice import invoice_fields, invoice_items
+from backend.ocr.providers.local_invoice import InvoiceTableReader, invoice_fields
 
 if TYPE_CHECKING:
     from docling.document_converter import DocumentConverter
@@ -105,11 +105,11 @@ class LocalOcrProvider(OcrProvider):
                 if isinstance(item, TextItem)
                 for line in item.text.splitlines()
             ]
-            items = []
+            reader = InvoiceTableReader()
             for table in document.tables:
                 page_no = table.prov[0].page_no if table.prov else None
                 rows = [[cell.text for cell in row] for row in table.data.grid]
-                items.extend(invoice_items(rows, page_no))
+                reader.add_table(rows, page_no)
                 # Docling may group header fields and totals into two-column tables.
                 lines.extend(f"{row[0]}: {row[1]}" for row in rows if len(row) == 2)
 
@@ -127,8 +127,12 @@ class LocalOcrProvider(OcrProvider):
                     fields.update(invoice_fields(text.splitlines()))
         if conversion.input.page_count > max_pages:
             warnings.append(f"local: only the first {max_pages} pages were processed")
+        items = reader.finish()
         if not fields and not items:
             warnings.append("local: no invoice fields or line items recognized")
+        review = []
+        if reader.skipped_rows:
+            review.append(f"rows_skipped:{reader.skipped_rows}")
 
         return ExtractionResult(
             document_id=file_sha256(pdf_path),
@@ -147,6 +151,7 @@ class LocalOcrProvider(OcrProvider):
             ],
             items=items,
             warnings=warnings,
+            review=review,
             provider="local",
         )
 

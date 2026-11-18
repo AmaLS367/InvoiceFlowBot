@@ -47,6 +47,7 @@ def _result_payload(result: ExtractionResult) -> Dict[str, Any]:
                 "price": it.price,
                 "total": it.total,
                 "page_no": it.page_no,
+                "review": it.review,
             }
             for it in result.items
         ],
@@ -62,6 +63,7 @@ def _result_payload(result: ExtractionResult) -> Dict[str, Any]:
             for p in result.pages
         ],
         "warnings": result.warnings,
+        "review": result.review,
     }
 
 

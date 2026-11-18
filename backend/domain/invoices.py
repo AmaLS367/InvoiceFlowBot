@@ -20,6 +20,8 @@ class InvoiceItem:
     unit_price: Decimal = Decimal("0")
     line_total: Decimal = Decimal("0")
     currency: Optional[str] = None
+    # OCR reasons to double-check the row, e.g. "total_mismatch".
+    review: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -74,6 +76,8 @@ class Invoice:
     items: List[InvoiceItem] = field(default_factory=list)
     comments: List[InvoiceComment] = field(default_factory=list)
     source: Optional[InvoiceSourceInfo] = None
+    # Document-level OCR reasons to double-check the draft, e.g. "rows_skipped:3".
+    review: List[str] = field(default_factory=list)
 
     def total_items(self) -> int:
         return len(self.items)

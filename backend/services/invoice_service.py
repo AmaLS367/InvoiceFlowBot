@@ -75,6 +75,7 @@ def _build_item(item: Item) -> InvoiceItem:
         quantity=Decimal(str(item.qty)),
         unit_price=Decimal(str(item.price)),
         line_total=Decimal(str(item.total)),
+        review=list(getattr(item, "review", [])),
     )
 
 
@@ -88,6 +89,7 @@ def build_invoice_from_extraction(result: ExtractionResult) -> Invoice:
         items=items,
         comments=[],
         source=source,
+        review=list(getattr(result, "review", [])),
     )
 
     return invoice

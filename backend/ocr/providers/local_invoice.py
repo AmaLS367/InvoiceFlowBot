@@ -2,7 +2,7 @@
 
 import re
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from backend.ocr.engine.types import Item
 
@@ -40,14 +40,25 @@ _COLUMN_LABELS = {
     "code": r"sku|item code|product code|code|артикул|код",
     "qty": r"qty|quantity|кол[.\s-]*во|количество",
     "price": r"unit price|price(?: per unit)?|rate|цена(?: за единицу)?",
+    "discount": r"disc(?:ount)?(?:\.?\s*line)?|скидка",
     "total": r"(?:line )?total|amount|sum|стоимость|сумма|всего",
 }
 _COLUMNS = {field: re.compile(label, re.IGNORECASE) for field, label in _COLUMN_LABELS.items()}
+_CENT = Decimal("0.01")
+_CONTINUED = re.compile(r"\bcontinu|продолж|перенос", re.IGNORECASE)
+_LABEL_ONLY = re.compile(r"[^\W\d][^:]{0,40}:")
+_CODE = re.compile(r"[^\W\d_]{1,6}[-/]?\d[\w./-]*")
+# Cyrillic letters that OCR returns for look-alike Latin ones in article codes.
+_LATIN_LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсух", "ABEKMHOPCTXaeopcyx")
 
 
 def _number(value: str, *, quantity: bool = False) -> Decimal | None:
     value = re.sub(_CURRENCY, "", value, flags=re.IGNORECASE)
     value = " ".join(value.replace("−", "-").split())
+    # Accounting notation prints negative amounts in brackets: (1,250.00).
+    brackets = re.fullmatch(r"\(\s*([^()]*?)\s*\)", value)
+    if brackets and not brackets[1].startswith(("-", "+")):
+        value = f"-{brackets[1]}"
     if not _NUMBER.fullmatch(value):
         return None
 
@@ -87,12 +98,34 @@ def _date(value: str) -> str | None:
         return None
 
 
+def _pair_label_runs(lines: list[str]) -> list[str]:
+    """Join "A:", "B:", "1", "2" into "A: 1", "B: 2".
+
+    Layout analysis of a scanned totals box can return the label column before the value
+    column; reading the next line after each label would shift every value by one row.
+    """
+    paired: list[str] = []
+    index = 0
+    while index < len(lines):
+        end = index
+        while end < len(lines) and _LABEL_ONLY.fullmatch(lines[end]):
+            end += 1
+        count = end - index
+        values = lines[end : end + count]
+        if count > 1 and len(values) == count and not any(map(_LABEL_ONLY.fullmatch, values)):
+            paired.extend(f"{label} {value}" for label, value in zip(lines[index:end], values))
+            index = end + count
+        else:
+            paired.extend(lines[index : max(end, index + 1)])
+            index = max(end, index + 1)
+    return paired
+
+
 def invoice_fields(lines: list[str]) -> dict[str, str | float]:
     lines = [
         part
-        for line in lines
-        if line.strip()
-        for part in _INLINE_LABEL.split(" ".join(line.split()))
+        for line in _pair_label_runs([" ".join(line.split()) for line in lines if line.strip()])
+        for part in _INLINE_LABEL.split(line)
     ]
     fields: dict[str, str | float] = {}
     for index, line in enumerate(lines):
@@ -126,46 +159,190 @@ def invoice_fields(lines: list[str]) -> dict[str, str | float]:
     return fields
 
 
-def invoice_items(rows: list[list[str]], page_no: int | None) -> list[Item]:
-    items = []
-    columns: dict[str, int] = {}
-    for row in rows:
-        labels = [" ".join(cell.split()).strip(" .:") for cell in row]
-        header: dict[str, int] = {}
-        for index, label in enumerate(labels):
-            for field, pattern in _COLUMNS.items():
-                if pattern.fullmatch(label):
-                    header.setdefault(field, index)
-        if "name" in header and len(header.keys() & {"qty", "price", "total"}) >= 2:
-            columns = header
-            continue
-        if not columns:
-            continue
+def _percent(value: str) -> Decimal | None:
+    match = re.fullmatch(r"([+-]?\d+(?:[.,]\d+)?)\s*%?", value)
+    return Decimal(match[1].replace(",", ".")) if match else None
 
-        cells = {field: labels[index] for field, index in columns.items() if index < len(labels)}
-        name = cells.get("name", "")
+
+def _header_columns(cells: list[str]) -> dict[str, int]:
+    header: dict[str, int] = {}
+    for index, cell in enumerate(cells):
+        # Drop unit hints such as "Qty (pcs)", "Unit Price (USD)" or "Disc. %".
+        label = re.sub(r"\s*\([^)]*\)", "", cell).strip(" .:%")
+        for field, pattern in _COLUMNS.items():
+            if pattern.fullmatch(label):
+                header.setdefault(field, index)
+    if "name" in header and len(header.keys() & {"qty", "price", "total"}) >= 2:
+        return header
+    return {}
+
+
+def _infer_columns(header: dict[str, int], body: list[list[str]]) -> dict[str, int]:
+    """Fill item columns whose headings OCR could not read from the cell contents."""
+    columns = dict(header)
+    width = max((len(row) for row in body), default=0)
+
+    def share(index: int, matches) -> float:
+        values = [row[index] for row in body if index < len(row) and row[index]]
+        return sum(bool(matches(value)) for value in values) / len(values) if values else 0.0
+
+    def is_amount(value: str) -> bool:
+        return "%" not in value and _number(value) is not None
+
+    free = [index for index in range(width) if index not in columns.values()]
+    if "code" not in columns:
+        codes = [index for index in free if share(index, _CODE.fullmatch) >= 0.6]
+        if codes:
+            columns["code"] = codes[0]
+    if "price" in columns:
+        left = columns.get("name", -1)
+        if "qty" not in columns:
+            between = [
+                index
+                for index in free
+                if left < index < columns["price"] and share(index, is_amount) >= 0.6
+            ]
+            if between:
+                columns["qty"] = between[-1]
+        if "total" not in columns:
+            right = [
+                index
+                for index in free
+                if index > columns["price"] and share(index, is_amount) >= 0.6
+            ]
+            if right:
+                columns["total"] = right[-1]
+    return columns
+
+
+def _decimal_slip(read: str, implied: Decimal) -> bool:
+    """True when OCR dropped the decimal separator, e.g. "15" for 1,5."""
+    digits = re.sub(r"\D", "", read)
+    implied_digits = re.sub(r"\D", "", format(implied.normalize(), "f"))
+    return bool(digits) and digits == implied_digits and "." in format(implied.normalize(), "f")
+
+
+class InvoiceTableReader:
+    """Read item rows from the tables of one document in page order.
+
+    A table without its own header continues the previous item table when it has the
+    same number of columns, which covers schedules that print headings on page 1 only.
+    """
+
+    def __init__(self) -> None:
+        self.items: list[Item] = []
+        self.skipped_rows = 0
+        self._columns: dict[str, int] = {}
+        self._width = 0
+        self._table = 0
+        self._last_item_table = -1
+
+    def add_table(self, rows: list[list[str]], page_no: int | None) -> None:
+        self._table += 1
+        width = max((len(row) for row in rows), default=0)
+        columns = self._columns if width == self._width else {}
+        table = [[" ".join(cell.split()) for cell in row] for row in rows]
+        for index, cells in enumerate(table):
+            header = _header_columns(cells)
+            if header:
+                body = []
+                for row in table[index + 1 :]:
+                    if _header_columns(row):
+                        break
+                    body.append(row)
+                columns = self._columns = _infer_columns(header, body)
+                self._width = width
+                continue
+            if columns:
+                self._read_row(cells, columns, page_no)
+
+    def finish(self) -> list[Item]:
+        """Apply document-wide corrections and return the items."""
+        codes = [item.code for item in self.items if item.code]
+        latin = sum(code.isascii() for code in codes)
+        if codes and latin * 2 >= len(codes):
+            for item in self.items:
+                if item.code and not item.code.isascii():
+                    fixed = item.code.translate(_LATIN_LOOKALIKES)
+                    if fixed.isascii():
+                        item.code = fixed
+        return self.items
+
+    def _read_row(self, row: list[str], columns: dict[str, int], page_no: int | None) -> None:
+        cells = {
+            field: row[index].strip(" :") if index < len(row) else ""
+            for field, index in columns.items()
+        }
+        name = cells.get("name", "").strip(" .")
+        numbers = [cells.get(field, "") for field in ("qty", "price", "total")]
+        if not any(numbers) and not cells.get("code") and name:
+            # A wrapped description line belongs to the item above it; a page footer does not.
+            if (
+                self.items
+                and self._last_item_table == self._table
+                and not _HEADER.match(name)
+                and not _CONTINUED.search(name)
+            ):
+                self.items[-1].name = f"{self.items[-1].name} {name}"
+            return
         if not name or re.match(r"^(?:sub\s*total|tax|vat|ндс|подытог)\b", name, re.I):
-            continue
+            return
         if _HEADER.match(name):
-            continue
+            return
+
         qty = _number(cells.get("qty", ""), quantity=True)
         price = _number(cells.get("price", ""))
         total = _number(cells.get("total", ""))
-        if qty is None and price and total is not None:
-            qty = total / price
-        if price is None and qty and total is not None:
-            price = total / qty
+        discount = _percent(cells.get("discount", "")) or Decimal(0)
+        factor = 1 - discount / 100
+        review = []
         if total is None and qty is not None and price is not None:
-            total = qty * price
-        if qty is not None and price is not None and total is not None:
-            items.append(
-                Item(
-                    code=cells.get("code") or None,
-                    name=name,
-                    qty=float(qty),
-                    price=float(price),
-                    total=float(total),
-                    page_no=page_no,
+            total = (qty * price * factor).quantize(_CENT, ROUND_HALF_UP)
+            review.append("total_computed")
+        elif qty is None and price and factor and total is not None:
+            qty = (total / (price * factor)).quantize(Decimal("0.001")).normalize()
+            review.append("qty_computed")
+        elif price is None and qty and factor and total is not None:
+            price = (total / (qty * factor)).quantize(_CENT)
+            review.append("price_computed")
+        elif qty is not None and price is not None and total is not None:
+            # Printed line totals may round the discounted unit price first.
+            expected = qty * price * factor
+            tolerance = max(Decimal("0.05"), abs(total) * Decimal("0.002"))
+            if abs(expected - total) > tolerance:
+                implied_qty = (
+                    (total / (price * factor)).quantize(Decimal("0.001"))
+                    if price and factor
+                    else None
                 )
+                if implied_qty is not None and _decimal_slip(cells.get("qty", ""), implied_qty):
+                    qty = implied_qty.normalize()
+                    review.append("qty_corrected")
+                elif _decimal_slip(cells.get("total", ""), expected.quantize(_CENT, ROUND_HALF_UP)):
+                    total = expected.quantize(_CENT, ROUND_HALF_UP)
+                    review.append("total_corrected")
+                else:
+                    review.append("total_mismatch")
+
+        if qty is None or price is None or total is None:
+            if any(numbers):
+                self.skipped_rows += 1
+            return
+        self.items.append(
+            Item(
+                code=cells.get("code") or None,
+                name=name,
+                qty=float(qty),
+                price=float(price),
+                total=float(total),
+                page_no=page_no,
+                review=review,
             )
-    return items
+        )
+        self._last_item_table = self._table
+
+
+def invoice_items(rows: list[list[str]], page_no: int | None) -> list[Item]:
+    reader = InvoiceTableReader()
+    reader.add_table(rows, page_no)
+    return reader.finish()

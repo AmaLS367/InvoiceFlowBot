@@ -94,6 +94,26 @@ def format_invoice_comments(
     return "\n".join([texts.COMMENTS_SECTION_TITLE, *messages])
 
 
+def format_ocr_review(invoice: Invoice, max_items: int = 20) -> str:
+    """List the OCR doubts about a fresh draft, or return "" when there are none."""
+    lines = []
+    for reason in invoice.review:
+        code, _, count = reason.partition(":")
+        if code == "rows_skipped":
+            lines.append(f"• {texts.OCR_REVIEW_ROWS_SKIPPED.format(count=count)}")
+    flagged = [(index, item) for index, item in enumerate(invoice.items, 1) if item.review]
+    for index, item in flagged[:max_items]:
+        title = f"{index}. [{item.sku}]" if item.sku else f"{index}. {item.description}"
+        reasons = "; ".join(
+            texts.OCR_REVIEW_ITEM_REASONS.get(code, texts.OCR_REVIEW_UNKNOWN_REASON)
+            for code in item.review
+        )
+        lines.append(f"• {title}: {reasons}")
+    if len(flagged) > max_items:
+        lines.append(texts.OCR_REVIEW_MORE_ITEMS.format(count=len(flagged) - max_items))
+    return "\n".join([texts.OCR_REVIEW_TITLE, *lines]) if lines else ""
+
+
 def format_invoice_full(
     invoice: Invoice,
     extra_comments: List[str] | None = None,

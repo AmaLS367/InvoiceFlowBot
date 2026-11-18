@@ -36,6 +36,18 @@ FILE_SAVE_FAILED = "Ошибка при сохранении файла"
 BOT_UNAVAILABLE = "Ошибка: бот недоступен"
 DRAFT_SAVE_FAILED = "Не удалось сохранить черновик. Повторите попытку позже."
 TABLE_TOO_LONG_SEND_CSV = "Таблица длинная, отправляю CSV."
+OCR_REVIEW_TITLE = "⚠️ Проверьте распознавание:"
+OCR_REVIEW_ITEM_REASONS = {
+    "total_mismatch": "сумма не сходится с количеством × ценой с учётом скидки",
+    "total_computed": "сумма не прочитана, рассчитана из количества и цены",
+    "qty_computed": "количество не прочитано, рассчитано из суммы и цены",
+    "price_computed": "цена не прочитана, рассчитана из суммы и количества",
+    "qty_corrected": "в количестве восстановлен десятичный разделитель",
+    "total_corrected": "в сумме восстановлен десятичный разделитель",
+}
+OCR_REVIEW_UNKNOWN_REASON = "значения требуют проверки"
+OCR_REVIEW_ROWS_SKIPPED = "Не удалось разобрать {count} строк таблицы — их нет в черновике."
+OCR_REVIEW_MORE_ITEMS = "…и ещё позиций: {count}"
 
 # Drafts, editing, comments, saving
 NO_DRAFT_UPLOAD_DOCUMENT = "Нет черновика. Загрузите документ."

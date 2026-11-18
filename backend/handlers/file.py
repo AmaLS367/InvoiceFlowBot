@@ -19,6 +19,7 @@ from backend.handlers.utils import (
     format_invoice_full,
     format_invoice_header,
     format_invoice_items,
+    format_ocr_review,
     send_chunked,
 )
 from backend.ocr.engine.util import get_logger, save_file, set_request_id
@@ -133,6 +134,10 @@ async def _process_file_and_create_draft(
                 BufferedInputFile(csv_bytes_from_items(invoice.items), filename="invoice_items.csv")
             )
         await send_chunked(message, items_text)
+
+    review_text = format_ocr_review(invoice)
+    if review_text:
+        await send_chunked(message, review_text)
 
 
 async def handle_invoice_document(message: Message, container: AppContainer) -> None:

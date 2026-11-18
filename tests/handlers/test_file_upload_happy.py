@@ -120,3 +120,40 @@ async def test_handle_invoice_photo_happy_path(
     first_answer = message.answers[0]["text"]
     assert isinstance(first_answer, str)
     assert first_answer != ""
+
+
+@pytest.mark.asyncio
+async def test_uncertain_ocr_rows_are_reported_after_the_draft(
+    file_handlers_container: AppContainer,
+) -> None:
+    result = _non_empty_extraction_result()
+    result.items.append(
+        Item(
+            code="NP-1702",
+            name="Seal assembly",
+            qty=3.0,
+            price=22.11,
+            total=59.86,
+            review=["total_mismatch"],
+        )
+    )
+    result.review = ["rows_skipped:2"]
+    file_handlers_container.invoice_service._ocr_extractor = AsyncMock(return_value=result)
+    message = FakeMessage(
+        text="",
+        document=FakeDocument(
+            file_id="file_123", file_name="test_invoice.pdf", mime_type="application/pdf"
+        ),
+        bot=MagicMock(),
+    )
+
+    with patch("backend.handlers.file.save_file", new_callable=AsyncMock) as mock_save_file:
+        mock_save_file.return_value = "temp/test_invoice.pdf"
+        await handle_invoice_document(message, file_handlers_container)
+
+    review = message.answers[-1]["text"]
+    assert "2. [NP-1702]" in review
+    assert "не сходится" in review
+    assert "2 строк" in review
+    draft = next(c["draft"] for c in file_handlers_container.draft_service.calls if "draft" in c)
+    assert draft.invoice.items[1].review == ["total_mismatch"]

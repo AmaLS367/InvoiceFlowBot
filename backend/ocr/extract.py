@@ -36,6 +36,7 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
                 "price": it.price,
                 "total": it.total,
                 "page_no": it.page_no,
+                "review": it.review,
             }
         )
 
@@ -62,6 +63,7 @@ def parse_invoice_text(pdf_path: str, fast: bool = True, max_pages: int = 12) ->
             for p in result.pages
         ],
         "warnings": result.warnings,
+        "review": result.review,
     }
 
     pages_cnt = len(result.pages or [])

@@ -10,6 +10,8 @@ class Item:
     price: float
     total: float
     page_no: Optional[int] = None
+    # Reasons to double-check the row, e.g. "total_mismatch" or "total_computed".
+    review: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -36,4 +38,6 @@ class ExtractionResult:
     pages: List[PageInfo] = field(default_factory=list)
     items: List[Item] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    # Document-level reasons to double-check the result, e.g. "rows_skipped:3".
+    review: List[str] = field(default_factory=list)
     provider: Optional[str] = None
