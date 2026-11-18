@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, master]
     paths:
+      - '.github/workflows/docs.yml'
+      - '.lycheeignore'
       - 'docs/**'
       - '*.md'
       - 'README*.md'
@@ -11,6 +13,8 @@ on:
   pull_request:
     branches: [main, master]
     paths:
+      - '.github/workflows/docs.yml'
+      - '.lycheeignore'
       - 'docs/**'
       - '*.md'
       - 'README*.md'
@@ -27,5 +31,5 @@ jobs:
       - name: Check broken links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: '--accept 200,403,429 --exclude-mail --exclude-private --exclude-loopback --exclude-file .lycheeignore **/*.md'
+          args: '--accept 200,403,429 --exclude-private --exclude-loopback **/*.md'
           fail: true
