@@ -66,10 +66,11 @@ async def test_registers_localized_telegram_command_menus() -> None:
     await register_bot_commands(bot)
 
     menus = {call.args[1].language_code: call.args[1] for call in bot.session.call_args_list}
-    assert set(menus) == {None, "ru", "en"}
+    assert set(menus) == {None, "ru", "en", "de", "es", "fr", "it", "pt"}
     assert menus["en"].commands[-1].command == "language"
     assert menus["en"].commands[-1].description == "Choose a language"
     assert menus["ru"].commands[-1].description == "Выбрать язык"
+    assert menus["de"].commands[-1].description == "Sprache wählen"
     assert menus[None].commands == menus["ru"].commands
 
 
@@ -106,7 +107,9 @@ async def test_start_and_menu_change_language_and_keep_it_after_restart(
     dispatcher = _dispatcher(UserLanguageStorage(str(test_db_path)))
     picker = await command("/language")
     assert picker.text == "Выберите язык интерфейса."
-    assert _buttons(picker) == {"language:ru": "Русский", "language:en": "English"}
+    assert _buttons(picker) == {
+        f"language:{locale}": name for locale, name in texts.LANGUAGES.items()
+    }
 
     inline_picker, _ = await dispatch(_callback(user, "act_language"))
     assert inline_picker.text == picker.text
@@ -120,7 +123,10 @@ async def test_start_and_menu_change_language_and_keep_it_after_restart(
     upload, _ = await dispatch(_callback(user, "act_upload"))
     assert upload.text.startswith("Send a PDF or a photo")
 
-    other_user = User(id=43, is_bot=False, first_name="Other", language_code="fr")
+    french_user = User(id=43, is_bot=False, first_name="French", language_code="fr")
+    assert (await command("/language", french_user)).text == "Choisissez votre langue."
+
+    other_user = User(id=44, is_bot=False, first_name="Other", language_code="ja")
     assert (await command("/language", other_user)).text == "Выберите язык интерфейса."
 
 

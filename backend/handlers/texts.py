@@ -9,7 +9,15 @@ from importlib.resources import files
 from typing import Iterator, cast
 
 DEFAULT_LOCALE = "ru"
-LANGUAGES = {"ru": "Русский", "en": "English"}
+LANGUAGES = {
+    "ru": "Русский",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+}
 PLACEHOLDER = "—"
 SECTION_DIVIDER = "—" * 34
 
