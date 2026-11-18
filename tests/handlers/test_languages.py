@@ -94,17 +94,24 @@ async def test_start_and_menu_change_language_and_keep_it_after_restart(
         return message
 
     welcome = await command("/start")
-    assert "Choose your language." in welcome.text
-    assert _buttons(welcome)["language:ru"] == "Русский"
-    assert _buttons(welcome)["language:en"] == "English"
+    assert welcome.text == "Choose your language."
+    assert _buttons(welcome) == {
+        f"language:{locale}": name for locale, name in texts.LANGUAGES.items()
+    }
 
     confirmation, [menu] = await dispatch(_callback(user, "language:ru"))
     assert confirmation.text == "Язык интерфейса изменён."
     assert menu.scope.chat_id == user.id
     assert menu.commands[-1].description == "Выбрать язык"
+    assert _buttons(confirmation)["act_upload"]
     assert _buttons(confirmation)["act_language"] == "🌐 Язык"
+    assert not (_buttons(confirmation).keys() & _buttons(welcome).keys())
 
     dispatcher = _dispatcher(UserLanguageStorage(str(test_db_path)))
+    returning = await command("/start")
+    assert returning.text == texts.t("START_TEXT", locale="ru")
+    assert _buttons(returning) == _buttons(confirmation)
+
     picker = await command("/language")
     assert picker.text == "Выберите язык интерфейса."
     assert _buttons(picker) == {

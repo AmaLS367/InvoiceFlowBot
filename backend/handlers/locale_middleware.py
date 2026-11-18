@@ -23,5 +23,6 @@ class LocaleMiddleware(BaseMiddleware):
         preferred = await self._storage.get(user.id) if user else None
         locale = texts.resolve_locale(preferred, user.language_code if user else None)
         data["language_storage"] = self._storage
+        data["preferred_language"] = preferred
         with texts.use_locale(locale):
             return await handler(event, data)

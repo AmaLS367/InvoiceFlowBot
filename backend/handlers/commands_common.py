@@ -15,14 +15,14 @@ from backend.ocr.engine.util import get_logger, set_request_id
 logger = get_logger("ocr.engine")
 
 
-async def cmd_start(message: Message) -> None:
+async def cmd_start(message: Message, preferred_language: str | None = None) -> None:
     req = str(uuid.uuid4())
     set_request_id(req)
     logger.info(f"[TG] update start req={req} h=cmd_start")
-    await message.answer(
-        f"{texts.t('START_TEXT')}\n\n{texts.t('LANGUAGE_PROMPT')}",
-        reply_markup=main_kb(choose_language=True),
-    )
+    if preferred_language in texts.LANGUAGES:
+        await message.answer(texts.t("START_TEXT"), reply_markup=main_kb())
+    else:
+        await cmd_language(message)
     logger.info(f"[TG] update done req={req} h=cmd_start")
 
 

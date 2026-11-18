@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from backend.core.container import AppContainer
+from backend.handlers import texts
 from backend.handlers.commands_common import cmd_help, cmd_start
 from backend.handlers.commands_invoices import cmd_invoices
 from tests.fakes.fake_services import FakeInvoiceService
@@ -10,19 +11,14 @@ from tests.fakes.fake_telegram import FakeMessage
 
 
 @pytest.mark.asyncio
-async def test_cmd_start_sends_welcome_message(
-    app_container: AppContainer,
-) -> None:
+async def test_cmd_start_sends_welcome_message_for_saved_language() -> None:
     message = FakeMessage(text="/start")
 
-    await cmd_start(message)
+    with texts.use_locale("ru"):
+        await cmd_start(message, preferred_language="ru")
 
-    assert len(message.answers) >= 1
-
-    first_answer = message.answers[0]["text"]
-    assert isinstance(first_answer, str)
-    assert first_answer != ""
-    assert "инвойсов" in first_answer or "счет" in first_answer or "бот" in first_answer
+    assert len(message.answers) == 1
+    assert message.answers[0]["text"] == texts.t("START_TEXT", locale="ru")
 
 
 @pytest.mark.asyncio

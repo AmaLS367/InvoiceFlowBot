@@ -19,7 +19,7 @@
 
 ## Typical flow
 
-1. Run `/start` to open the menu and choose from Russian, English, German, Spanish, French, Italian, and Portuguese. The bot uses your saved preference, then your Telegram language if supported, then Russian.
+1. On a first `/start`, the bot shows only the language picker. Choose Russian, English, German, Spanish, French, Italian, or Portuguese to open the main menu. The picker uses your Telegram language if supported, otherwise Russian. Later, `/start` opens the main menu in your saved language.
 2. Upload an invoice as a PDF, JPEG, PNG, WebP, or a Telegram photo. Convert HEIC/HEIF to JPEG or PNG first.
 3. The bot displays the draft automatically after OCR and can attach a CSV for a long item table. Use `/show` to see the draft again.
 4. Review any flagged values and edit the header or existing items. Add a comment if needed.
@@ -28,7 +28,7 @@
 
 ## Commands
 
-- `/start` — open the language picker and the main menu.
+- `/start` — choose a language on first use or open the main menu.
 - `/help` — see the available actions.
 - `/language` — open the language picker, also available as **🌐 Language**. A selection updates the command menu in a private chat.
 - `/show` — display the active draft.

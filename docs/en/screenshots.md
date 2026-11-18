@@ -17,7 +17,7 @@ This gallery illustrates the full cycle: starting the chat, processing an invoic
 
 ## Start screen and menu
 
-The `/start` response includes the seven-language picker and the main actions. The screenshot below shows the main menu from an earlier version of the bot.
+On the first `/start`, the bot shows a separate language picker. The main menu appears after selection. The screenshot below shows the main menu from an earlier version of the bot.
 
 ![Main menu in an earlier release](../assets/screenshots/01_start.png)
 

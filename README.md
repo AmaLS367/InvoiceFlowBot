@@ -148,11 +148,11 @@ Requires **Python 3.11+**, **Git**, and **Tesseract** (with language data matchi
 
 ## 📖 Usage
 
-Start with `/start` to pick a language and open the interactive menu.
+On the first `/start`, choose a language to open the main menu. Once your choice is saved, `/start` opens the main menu directly.
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `/start` | Initialize session, choose language, open menu | `/start` |
+| `/start` | Choose a language on first use or open the main menu | `/start` |
 | `/help` | Show quick help and available commands | `/help` |
 | `/language` | Switch interface language and command menu | `/language` |
 | `/show` | Display the current invoice draft | `/show` |

@@ -221,10 +221,9 @@ def language_kb() -> InlineKeyboardMarkup:
     )
 
 
-def main_kb(*, choose_language: bool = False) -> InlineKeyboardMarkup:
+def main_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            *(language_kb().inline_keyboard if choose_language else []),
             [
                 InlineKeyboardButton(
                     text=texts.t("BUTTON_UPLOAD"),
